@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="GlobalTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2022-01-27T20:17:22" hostname="DESKTOP-0DJ965A" time="0.033">
+<testsuite name="GlobalTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2022-01-27T21:12:36" hostname="DESKTOP-0DJ965A" time="0.038">
   <properties/>
-  <testcase name="transformTest" classname="GlobalTest" time="0.014"/>
-  <testcase name="evaluateTest" classname="GlobalTest" time="0.019"/>
-  <system-out><![CDATA[8
-]]></system-out>
+  <testcase name="evaluateTest" classname="GlobalTest" time="0.038"/>
+  <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

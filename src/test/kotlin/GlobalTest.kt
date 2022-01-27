@@ -3,22 +3,21 @@ import org.junit.Test
 import org.junit.jupiter.api.Assertions.*
 
 internal class GlobalTest {
-    @Test
-    fun transformTest() {
-        Assert.assertEquals(
-            Global.transform("1//2>=3234   >=   3"),
-            "1\\2]3234]3"
-        )
-        Assert.assertEquals(
-            Global.transform("1==2==3>=4<=5<=6>=7!=8!=9!=10"),
-            "1=2=3]4[5[6]7!8!9!10"
-        )
-        Assert.assertEquals(Global.transform("1&&2&&3||4||5||6"), "1&2&3|4|5|6")
-    }
+//    @Test
+//    fun transformTest() {
+//        Assert.assertEquals(
+//            Global.transform("1//2>=3234   >=   3"),
+//            "1\\2]3234]3"
+//        )
+//        Assert.assertEquals(
+//            Global.transform("1==2==3>=4<=5<=6>=7!=8!=9!=10"),
+//            "1=2=3]4[5[6]7!8!9!10"
+//        )
+//        Assert.assertEquals(Global.transform("1&&2&&3||4||5||6"), "1&2&3|4|5|6")
+//    }
 
     @Test
     fun evaluateTest() {
-        println(5 - -3)
         Assert.assertEquals(Global.evaluate("1+3*5"), 16)
 
         Assert.assertEquals(Global.evaluate("(1+3)*5"), 20)

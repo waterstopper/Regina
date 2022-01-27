@@ -2,8 +2,9 @@ import java.util.*
 
 object Global {
     fun evaluate(input: String): Number {
+        // evaluate all parenthesis
         var expr = evaluateParenthesis(input)
-
+        // evaluate all ternary
         expr = evaluateTernary(expr)
 
         return evaluateAlgebra(expr)
@@ -14,17 +15,19 @@ object Global {
         while (expr.contains('(')) {
             var sum = 1
             val start = expr.indexOf('(')
-            var i = start + 1
+            var end = start + 1
 
             while (sum != 0) {
-                if (expr[i] == '(')
+                if (expr[end] == '(')
                     sum++
-                else if (expr[i] == ')')
+                else if (expr[end] == ')')
                     sum--
-                i++
+                end++
             }
+            end--
 
-            expr = expr.replaceRange(start until i, evaluate(expr.substring(start + 1, i - 1)).toString())
+            // essentially change everything that's in the parenthesis to single number
+            expr = expr.replaceRange(start..end, evaluate(expr.substring(start + 1, end)).toString())
         }
         return expr
     }
@@ -78,10 +81,19 @@ object Global {
         while (i <= expr.lastIndex) {
             when {
                 expr[i].isDigit() -> i = evalNumber(i, expr, values)
-                expr[i] == '(' -> operators.push(Operator.LEFT_PAR)
-                expr[i] == ')' -> evalRightParentheses(operators, values)
+                //expr[i] == '(' -> operators.push(Operator.LEFT_PAR)
+                //expr[i] == ')' -> evalRightParentheses(operators, values)
                 expr[i] == '-' -> i = evalMinus(i, expr, values, operators)
-                else -> evalOperator(Operator.toOperator(expr[i]), operators, values)
+                else -> {
+                    if (Operator.toOperator(expr[i].toString() + expr[i + 1].toString()) != Operator.NOT_OPERATOR) {
+                        evalOperator(
+                            Operator.toOperator(expr[i].toString() + expr[i + 1].toString()),
+                            operators,
+                            values
+                        )
+                        i++
+                    } else evalOperator(Operator.toOperator(expr[i]), operators, values)
+                }
             }
             i++
         }
@@ -156,13 +168,13 @@ object Global {
     fun transform(expr: String): String {
         return expr
             .replace("\\s".toRegex(), "")
-            .replace("//", "\\")
-            .replace("==", "=")
-            .replace("!=", "!")
-            .replace(">=", "]")
-            .replace("<=", "[")
-            .replace("&&", "&")
-            .replace("||", "|")
+//            .replace("//", "\\")
+//            .replace("==", "=")
+//            .replace("!=", "!")
+//            .replace(">=", "]")
+//            .replace("<=", "[")
+//            .replace("&&", "&")
+//            .replace("||", "|")
     }
 
     private fun calc(operator: Operator, first: Number, second: Number): Number {
@@ -219,6 +231,19 @@ object Global {
         NOT_OPERATOR(-1);
 
         companion object {
+            fun toOperator(s: String): Operator {
+                return when (s) {
+                    "//" -> INT_DIV
+                    ">=" -> MORE_EQUAL
+                    "<=" -> LESS_EQUAL
+                    "==" -> EQUAL
+                    "!=" -> UNEQUAL
+                    "&&" -> LAND
+                    "||" -> LOR
+                    else -> NOT_OPERATOR
+                }
+            }
+
             fun toOperator(c: Char): Operator {
                 return when (c) {
                     '(' -> LEFT_PAR
