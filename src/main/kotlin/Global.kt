@@ -2,8 +2,35 @@ import java.util.*
 
 object Global {
     fun evaluate(input: String): Number {
-        var expr = input
+        var expr = evaluateParenthesis(input)
 
+        expr = evaluateTernary(expr)
+
+        return evaluateAlgebra(expr)
+    }
+
+    private fun evaluateParenthesis(input: String): String {
+        var expr = input
+        while (expr.contains('(')) {
+            var sum = 1
+            val start = expr.indexOf('(')
+            var i = start + 1
+
+            while (sum != 0) {
+                if (expr[i] == '(')
+                    sum++
+                else if (expr[i] == ')')
+                    sum--
+                i++
+            }
+
+            expr = expr.replaceRange(start until i, evaluate(expr.substring(start + 1, i - 1)).toString())
+        }
+        return expr
+    }
+
+    private fun evaluateTernary(input: String): String {
+        var expr = input
         // handling all ternary operators.
         // evaluation from right to left!
         while (expr.contains('?')) {
@@ -36,7 +63,7 @@ object Global {
                 )
         }
 
-        return evaluateAlgebra(expr)
+        return expr
     }
 
     /**
