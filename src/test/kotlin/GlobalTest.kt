@@ -37,5 +37,6 @@ internal class GlobalTest {
         Assert.assertEquals(Global.evaluate("2 * (3-(1+(5/2)-2)+-2.0) - 3"), -3.0)
 
         Assert.assertEquals(Global.evaluate("3==2?-6:-7"), -7)
+        Assert.assertEquals(Global.evaluate("0?1 : 1?4:5"), 4)
     }
 }

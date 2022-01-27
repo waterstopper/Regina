@@ -3,24 +3,39 @@ import kotlin.math.exp
 
 object Global {
     fun evaluate(input: String): Number {
-        if (input.contains('?')) {
-            // remove all parentheses
-            while (input.contains("(")) {
-                var i = input.lastIndexOf(')') - 1
-                val end = i + 1
-                var sum = 1
-                while (sum > 0) {
-                    if (input[i] == ')')
-                        sum++
-                    else if (input[i] == '(')
-                        sum--
+        var expr = input
 
-                    i--
+        while (expr.contains('?')) {
+            var i = expr.lastIndex
+            var lastIndex = expr.lastIndex
+            var semicolonIndex = lastIndex + 1
+
+            while (expr[i] != '?') {
+                if (expr[i] == ':') {
+                    lastIndex = semicolonIndex - 1
+                    semicolonIndex = i
                 }
-                input.replaceRange(i..end, evaluate(input.substring(i..end)).toString())
+                i--
             }
+            val questionIndex = i
+            i--
+            while (i >= 0 && expr[i] != '?' && expr[i] != ':') {
+                i--
+            }
+            // true
+            if (evaluateAlgebra(expr.substring(i + 1, questionIndex)) != 0)
+                expr = expr.replaceRange(
+                    i + 1..lastIndex,
+                    evaluateAlgebra(expr.substring(questionIndex + 1, semicolonIndex)).toString()
+                )
+            else
+                expr = expr.replaceRange(
+                    i + 1..lastIndex,
+                    evaluateAlgebra(expr.substring(semicolonIndex + 1, lastIndex + 1)).toString()
+                )
+        }
 
-        } else return evaluateAlgebra(input)
+        return evaluateAlgebra(expr)
     }
 
     fun evaluateAlgebra(input: String): Number {
@@ -34,16 +49,6 @@ object Global {
                 expr[i].isDigit() -> i = evalNumber(i, expr, values)
                 expr[i] == '(' -> operators.push(Operator.LEFT_PAR)
                 expr[i] == ')' -> evalRightParentheses(operators, values)
-                expr[i] == '?' -> {
-                    if (operators.isNotEmpty())
-                        values.push(calc(operators.pop(), values.pop(), values.pop()))
-
-                    // false
-                    if (values.pop() == 0) values.push(evaluate(expr.substring(expr.indexOf(':') + 1)))
-                    // true
-                    else values.push(evaluate(expr.substring(i + 1, expr.indexOf(':', i + 1))))
-
-                }
                 expr[i] == '-' -> i = evalMinus(i, expr, values, operators)
                 else -> evalOperator(Operator.toOperator(expr[i]), operators, values)
             }
