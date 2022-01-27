@@ -5,6 +5,8 @@ object Global {
     fun evaluate(input: String): Number {
         var expr = input
 
+        // handling all ternary operators.
+        // evaluation from right to left!
         while (expr.contains('?')) {
             var i = expr.lastIndex
             var lastIndex = expr.lastIndex
@@ -23,13 +25,13 @@ object Global {
                 i--
             }
             // true
-            if (evaluateAlgebra(expr.substring(i + 1, questionIndex)) != 0)
-                expr = expr.replaceRange(
+            expr = if (evaluateAlgebra(expr.substring(i + 1, questionIndex)) != 0)
+                expr.replaceRange(
                     i + 1..lastIndex,
                     evaluateAlgebra(expr.substring(questionIndex + 1, semicolonIndex)).toString()
                 )
             else
-                expr = expr.replaceRange(
+                expr.replaceRange(
                     i + 1..lastIndex,
                     evaluateAlgebra(expr.substring(semicolonIndex + 1, lastIndex + 1)).toString()
                 )
@@ -38,7 +40,10 @@ object Global {
         return evaluateAlgebra(expr)
     }
 
-    fun evaluateAlgebra(input: String): Number {
+    /**
+     * evaluate all that is not ternary
+     */
+    private fun evaluateAlgebra(input: String): Number {
         val expr = transform(input)
         val operators = Stack<Operator>()
         val values = Stack<Number>()
