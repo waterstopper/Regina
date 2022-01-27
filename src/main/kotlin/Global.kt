@@ -1,5 +1,4 @@
 import java.util.*
-import kotlin.math.exp
 
 object Global {
     fun evaluate(input: String): Number {
