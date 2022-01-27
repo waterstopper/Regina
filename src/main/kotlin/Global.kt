@@ -1,16 +1,41 @@
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import rand.Rand
 import java.util.*
 
 object Global {
     fun evaluate(input: String): Number {
-        // evaluate all parenthesis
-        var expr = evaluateParenthesis(input)
+        var expr = evaluateRandom(input)
+        // evaluate all parentheses
+        expr = evaluateParentheses(expr)
         // evaluate all ternary
         expr = evaluateTernary(expr)
 
         return evaluateAlgebra(expr)
     }
 
-    private fun evaluateParenthesis(input: String): String {
+    /**
+     * here I suppose that braces cannot be nested.
+     * If they are nested, change the algorithm to parentheses evaluation
+     */
+    private fun evaluateRandom(input: String): String {
+        var expr = input
+
+        while (expr.contains('{')) {
+            val start = expr.indexOf('{')
+            var end = start + 1
+            while (expr[end] != '}') {
+                end++
+            }
+
+            val rand = Json.decodeFromString<Rand>(expr.substring(start..end))
+            expr = expr.replaceRange(start..end, rand.evaluate().toString())
+        }
+
+        return expr
+    }
+
+    private fun evaluateParentheses(input: String): String {
         var expr = input
         while (expr.contains('(')) {
             var sum = 1
@@ -26,9 +51,10 @@ object Global {
             }
             end--
 
-            // essentially change everything that's in the parenthesis to single number
+            // essentially change everything that's in the parentheses to single number
             expr = expr.replaceRange(start..end, evaluate(expr.substring(start + 1, end)).toString())
         }
+
         return expr
     }
 
@@ -121,7 +147,7 @@ object Global {
         return i
     }
 
-    private fun evalRightParentheses(operators: Stack<Operator>, values: Stack<Number>) {
+    private fun evalRightParenthesis(operators: Stack<Operator>, values: Stack<Number>) {
         var current = operators.pop()
         while (current != Operator.LEFT_PAR) {
             values.push(calc(current, values.pop(), values.pop()))
