@@ -3,5 +3,6 @@ package raw
 import kotlinx.serialization.Serializable
 
 @Serializable
-class RawNode(val name:String, val parent:String) {
+sealed class RawNode(val name: String, val parent: String) {
+    abstract fun calculateLinks()
 }

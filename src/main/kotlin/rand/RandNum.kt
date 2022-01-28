@@ -1,18 +1,41 @@
 package rand
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.math.round
+import kotlin.math.roundToInt
 
 @Serializable
 @SerialName("RandNum")
-sealed class RandNum : Rand() {
-    @Contextual
-    abstract val from: Number
-    @Contextual
-    abstract val until: Number
-    @Contextual
-    abstract val step: Number
+class RandNum(
+    val from: Double,
+    val until: Double,
+    val step: Double
+) :
+    Rand() {
 
-    abstract override fun evaluate(): Number
+    // @Contextual
+    //val from: Number = if(a is Int) a.toInt() else a.toDouble()
+
+    // @Contextual
+    //abstract val until: Number
+
+    // @Contextual
+    // abstract val step: Number
+
+    public override fun evaluate(): Number {
+        if (from.roundToInt() == from.toInt()
+            && until.roundToInt() == until.toInt()
+            && step.roundToInt() == step.toInt()
+        )
+            return evaluateInt()
+        return evaluateDouble()
+    }
+
+    private fun evaluateDouble(): Double =
+        (round(Global.random.nextDouble(from, until) / step) * step)
+
+
+    private fun evaluateInt(): Int =
+        (Global.random.nextInt(from.toInt(), until.toInt()).toDouble() / step.toInt()).roundToInt() * step.toInt()
 }

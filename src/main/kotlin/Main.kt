@@ -19,9 +19,10 @@ import rand.RandNum
 
 
 fun main(args: Array<String>) {
-    val rnd:Rand = RandInt(5,7,2)
+    val rnd:Rand = RandNum(5.0,7.0,2.0)
     val str = Json.encodeToString(rnd)
     println(str)
     val obj = Json.decodeFromString<Rand>(str)
     println(obj)
+    println(obj.evaluate())
 }

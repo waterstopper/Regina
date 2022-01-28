@@ -2,8 +2,21 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import rand.Rand
 import java.util.*
+import kotlin.random.Random
 
 object Global {
+    //region Random
+    var seed = 42
+    var random = Random(seed)
+
+    fun changeSeed(customSeed: Int) {
+        seed = customSeed
+        random = Random(seed)
+    }
+    //endregion
+
+    //region Expression evaluation
+    // region Evaluation steps
     fun evaluate(input: String): Number {
         var expr = evaluateRandom(input)
         // evaluate all parentheses
@@ -131,7 +144,9 @@ object Global {
         // after all calculations values contains one element which is the result
         return values.pop()
     }
+    //endregion
 
+    //region Operators and numbers evaluation
     private fun evalNumber(index: Int, expr: String, values: Stack<Number>): Int {
         var i = index
         var isDouble = false
@@ -186,21 +201,15 @@ object Global {
             operators.push(op)
         }
     }
+    //endregion
 
     /**
      * remove all whitespaces and
      * transform all operators to one-symbol chars
      */
-    fun transform(expr: String): String {
+    private fun transform(expr: String): String {
         return expr
             .replace("\\s".toRegex(), "")
-//            .replace("//", "\\")
-//            .replace("==", "=")
-//            .replace("!=", "!")
-//            .replace(">=", "]")
-//            .replace("<=", "[")
-//            .replace("&&", "&")
-//            .replace("||", "|")
     }
 
     private fun calc(operator: Operator, first: Number, second: Number): Number {
@@ -231,6 +240,7 @@ object Global {
         ) res.toInt() else res
     }
 
+    // region Operator
     enum class Operator(val precedence: Int) {
         LEFT_PAR(10), // (
         RIGHT_PAR(10), // )
@@ -298,4 +308,6 @@ object Global {
             }
         }
     }
+    //endregion
+    //endregion
 }
