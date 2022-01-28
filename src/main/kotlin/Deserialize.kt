@@ -11,9 +11,9 @@ class Deserialize {
 
 
     fun decode(json: String) {
-        val root = Rect(null)
-        val rect = Rect(root)
-        val str = Json.encodeToString(rect)
-        val obj = Json.decodeFromString<Node>(str)
+        //val root = Rect(null)
+        //val rect = Rect(root)
+        //val str = Json.encodeToString(rect)
+        //val obj = Json.decodeFromString<Node>(str)
     }
 }

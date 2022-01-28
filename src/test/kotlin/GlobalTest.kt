@@ -2,9 +2,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.Assert
 import org.junit.Test
-import org.junit.jupiter.api.Assertions.*
 import rand.Rand
-import rand.RandInt
+import rand.RandNum
 
 internal class GlobalTest {
 //    @Test
@@ -46,7 +45,7 @@ internal class GlobalTest {
 
     @Test
     fun evaluateRandomTest(){
-        val rand: Rand = RandInt(2,3)
+        val rand: Rand = RandNum(2.0,3.0)
         Assert.assertTrue((2..3).contains(Global.evaluate(Json.encodeToString(rand))))
     }
 }

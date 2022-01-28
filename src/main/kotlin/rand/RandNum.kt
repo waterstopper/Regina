@@ -8,9 +8,9 @@ import kotlin.math.roundToInt
 @Serializable
 @SerialName("RandNum")
 class RandNum(
-    val from: Double,
-    val until: Double,
-    val step: Double
+    val from: Double = 0.0,
+    val until: Double = 0.0,
+    val step: Double = 1.0
 ) :
     Rand() {
 

@@ -3,7 +3,7 @@
 
 # my additions
 .gradle
-.build
+build
 /build/
 /.gradle/
 
