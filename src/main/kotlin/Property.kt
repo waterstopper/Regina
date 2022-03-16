@@ -1,0 +1,1 @@
+class Property(name: String, parent: Container, var value: Any) : Node(name, parent)

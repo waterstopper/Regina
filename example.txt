@@ -1,3 +1,9 @@
-if(token == ")"){
+class Segment : Line {
 }
-{}
+
+fun copy() {
+    if a == true and b == not true {
+        do_stuff()
+    }
+    a=b
+}
