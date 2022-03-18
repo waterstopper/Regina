@@ -17,7 +17,7 @@ internal class TreeBuilderTest {
     }
 
     private fun createDefs() {
-        val root = Container("Root", null, mutableMapOf())
+        val root = OldContainer("Root", null, mutableMapOf())
         root.declarations["child"] = Formula("Segment")
         root.declarations["iter"] = Formula("0")
         root.declarations["x"] = Formula("0")
@@ -26,7 +26,7 @@ internal class TreeBuilderTest {
         root.declarations["y2"] = Formula("0")
         root.declarations["type"] = Formula("Line")
 
-        val segment = Container("Segment", root, mutableMapOf())
+        val segment = OldContainer("Segment", root, mutableMapOf())
         segment.declarations["next"] = Formula("iter < 10 ? Segment : Nothing")
         segment.declarations["iter"] = Formula("parent.iter + 1")
         segment.declarations["x"] = Formula("parent.x2")
@@ -35,7 +35,7 @@ internal class TreeBuilderTest {
         segment.declarations["y2"] = Formula("y + 10")
         segment.declarations["type"] = Formula("Line")
 
-        val nothing = Container("Nothing",root, mutableMapOf())
+        val nothing = OldContainer("Nothing",root, mutableMapOf())
 
         TreeBuilder.definitions.addAll(mutableListOf(root, segment, nothing))
     }

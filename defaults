@@ -1,0 +1,63 @@
+class Array : Nothing {
+    length = 0
+//    fun add(x)
+//    fun remove(x)
+//    fun removeIndex(index)
+}
+
+// Any equivalent
+class Nothing {}
+
+// properties
+class Vector2 : Nothing {
+    x = 0.0
+    y = 0.0
+}
+
+class Color : Nothing export attribute(color) {
+    r = 0
+    g = 0
+    b = 0
+    a = 255
+    hex = "000000"
+}
+
+class Transform : Nothing export attribute(transform) {
+    // degrees
+    rotation = 0.0
+    scale = Vector2
+    //
+    apply = 0
+}
+
+// geometry
+// specials
+class Group : Nothing export group {} // corresponds to svg <group>
+
+class Canvas : Nothing export svg {
+    vBox export attribute(viewBox)
+    width = 4
+} // corresponds to svg <svg>
+
+// drawable
+class Point : Vector2 {}
+
+class Line : Nothing export line {
+    position.x export attribute(x1)
+    position.y export attribute(y1)
+    color.value export stroke
+
+    position = Position
+    points = [position,Position(1,0)]
+    grouping = false
+}
+
+class Polyline : Line export polyline {
+}
+
+class Polygon : Polyline export polygon {
+}
+
+class Rectangle : Nothing export rect {
+
+}

@@ -1,12 +1,12 @@
 package export
 
-import Container
+import OldContainer
 import org.junit.Test
 
 
 internal class PainterTest{
     @Test
     fun draw(){
-        Painter(Container("", null, mutableMapOf())).export()
+        Painter(OldContainer("", null, mutableMapOf())).export()
     }
 }

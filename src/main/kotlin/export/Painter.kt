@@ -1,25 +1,25 @@
 package export
 
-import Container
-import Property
+import OldContainer
+import OldProperty
 import com.github.nwillc.ksvg.elements.Element
 import com.github.nwillc.ksvg.elements.LINE
 import com.github.nwillc.ksvg.elements.SVG
 import java.util.*
 
-class Painter(val root: Container) {
+class Painter(val root: OldContainer) {
     val svg = SVG.svg(true) {
     }
 
     fun build(): String {
-        val stack = Stack<Pair<Container, Element>>()
+        val stack = Stack<Pair<OldContainer, Element>>()
         var current = root
         stack.add(Pair(current, matchType(current)))
         svg.children.add(stack.peek().second)
         while (stack.isNotEmpty()) {
             current = stack.peek().first
-            while (current.children.filterIsInstance<Container>().isNotEmpty()) {
-                current = current.children.filterIsInstance<Container>()[0]
+            while (current.children.filterIsInstance<OldContainer>().isNotEmpty()) {
+                current = current.children.filterIsInstance<OldContainer>()[0]
                 stack.peek().first.children.minusAssign(current)
                 stack.add(Pair(current, matchType(current)))
                 svg.children.add(stack.peek().second)
@@ -31,7 +31,7 @@ class Painter(val root: Container) {
         return svg.toString()
     }
 
-    private fun matchType(container: Container): Element {
+    private fun matchType(container: OldContainer): Element {
         val type = TreeBuilder.getType(container)
         return when (type) {
             "Line" -> reassignLine(container, defaultLine())
@@ -39,8 +39,8 @@ class Painter(val root: Container) {
         }
     }
 
-    private fun reassignLine(container: Container, line: LINE): LINE {
-        for (i in container.children.filterIsInstance<Property>())
+    private fun reassignLine(container: OldContainer, line: LINE): LINE {
+        for (i in container.children.filterIsInstance<OldProperty>())
             when (i.name) {
                 "x" -> line.x1 = i.value.toString()
                 "y" -> line.y1 = i.value.toString()

@@ -1,3 +1,4 @@
+import lexer.Interpreter
 import lexer.Token
 import lexer.Parser
 import java.io.File
@@ -19,10 +20,13 @@ fun main(args: Array<String>) {
 //    t.resolveTree()
 //    val p = Painter(t.root)
 //    p.export()
+
     val text = File("example.txt").readText()
     val s = Parser(text).statements()
     println(s.treeView())
     print("")
+    val interpreter = Interpreter(s)
+    println(interpreter.declarations)
 }
 
 fun List<Token>.treeView(): String {
@@ -35,7 +39,7 @@ fun List<Token>.treeView(): String {
 }
 
 private fun createDefs() {
-    val root = Container("Root", null, mutableMapOf())
+    val root = OldContainer("Root", null, mutableMapOf())
     //root.children.add(Property("type", root, "Line"))
     root.declarations["type"] = Formula("@Line")
     root.declarations["child"] = Formula("@Segment")
@@ -48,7 +52,7 @@ private fun createDefs() {
 
     //root.declarations["rotation"] = Formula()
 
-    val segment = Container("Segment", root, mutableMapOf())
+    val segment = OldContainer("Segment", root, mutableMapOf())
     //segment.children.add(Property("type", segment, "Line"))
     segment.declarations["type"] = Formula("@Line")
     segment.declarations["next"] = Formula("iter < 10 ? ({@randNum,0,1}>0.3 ? @Segment : @DoubleSegment) : @Nothing")
@@ -59,7 +63,7 @@ private fun createDefs() {
     segment.declarations["y2"] = Formula("{@cos,angle} * 10 + y")
     segment.declarations["angle"] = Formula("{@randNum,-0.7,0.7}")
 
-    val doubleSegment = Container("DoubleSegment", null, mutableMapOf())
+    val doubleSegment = OldContainer("DoubleSegment", null, mutableMapOf())
     doubleSegment.declarations["child"] = Formula("@Segment")
     doubleSegment.declarations["child2"] = Formula("@Segment")
     doubleSegment.declarations["x"] = Formula("parent.x2")
@@ -70,7 +74,7 @@ private fun createDefs() {
 
     //segment.declarations["rotation"] = Formula("{@randNum,-10,10}")
 
-    val nothing = Container("Nothing", root, mutableMapOf())
+    val nothing = OldContainer("Nothing", root, mutableMapOf())
 
     TreeBuilder.definitions.addAll(mutableListOf(root, segment, nothing, doubleSegment))
 }

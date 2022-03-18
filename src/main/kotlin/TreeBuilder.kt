@@ -5,12 +5,12 @@ import java.util.*
  */
 class TreeBuilder {
     companion object {
-        val definitions = mutableListOf<Container>()
+        val definitions = mutableListOf<OldContainer>()
 
         /**
          * TODO - collect all property values missing in the container
          */
-        fun getType(container: Container): String {
+        fun getType(container: OldContainer): String {
 //            var res: Container? = container
 //            var name = ""
 //            do {
@@ -34,8 +34,6 @@ class TreeBuilder {
             }
             processNode(current)
         } while (true)
-
-        println()
     }
 
     // 1. cannot init Node because it needs something nonexistent yet - add Node to stack and so on.
@@ -48,8 +46,8 @@ class TreeBuilder {
     /**
      * Find unresolved declarations
      */
-    private fun bfs(root: Container): AssignmentFormula? {
-        val stack = Stack<Container>()
+    private fun bfs(root: OldContainer): AssignmentFormula? {
+        val stack = Stack<OldContainer>()
         stack.add(root)
 
         while (stack.isNotEmpty()) {
@@ -59,7 +57,7 @@ class TreeBuilder {
                 return AssignmentFormula(current.declarations[futureProperty]!!.content, futureProperty, current)
             }
 
-            val containers = current.children.filterIsInstance<Container>()
+            val containers = current.children.filterIsInstance<OldContainer>()
             stack.addAll(containers)
         }
 
@@ -100,13 +98,13 @@ class TreeBuilder {
             } else if (parent.children.any { it.name == nodeList[0] }) {
                 val smth = parent.children.find { it.name == nodeList[0] }
                 // take value from existing node
-                if (smth is Property) {
+                if (smth is OldProperty) {
                     current.replaceFirst(smth.value)
                     // stack.push(current)
                     break
                     // go one node deeper on chain
                 } else {
-                    parent = smth as Container
+                    parent = smth as OldContainer
                     nodeList = nodeList.drop(1)
                 }
             } else if (nodeList[0] == "parent") {

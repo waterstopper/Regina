@@ -1,0 +1,24 @@
+// rnd() - returns random value from 0 (inclusive) to 1 (exclusive). No declaration for that
+// sin(), cos()
+// int(), str(), double()
+
+seed = 42 - seed of rand
+
+fun randFromList(list) {
+
+}
+
+fun abs(x) {
+    return if x < 0 -x else x
+}
+
+fun toRadians(deg) {
+    return deg * PI / 180.0
+}
+
+fun toDegrees(rad) {
+
+}
+
+fun rotate(point, angle) {
+}

@@ -1,9 +1,34 @@
-class Segment : Line {
+class Segment:A export s {
+    example = 2+3*c
+    a export x
+    a=b
+    b=c
+    c=d
+    f = [1,f,3]
+}
+
+class Sheesh : A export svg {}
+
+class A {
 }
 
 fun copy() {
-    if a == true and b == not true {
+    if a == true & b == !true {
         do_stuff()
     }
-    a=b
+    a= if (true ==w & false==c) b else c
+}
+
+fun all(x,y) {
+    while(true){
+    // TODO add functions and properties reflections for classes
+    // gets current properties
+        a.properties
+        functions[2]
+        a.f[2]
+        a.f(2)
+        if(true) {
+            a = 5
+        }
+    }
 }

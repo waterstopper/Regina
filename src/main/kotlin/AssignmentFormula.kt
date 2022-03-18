@@ -1,11 +1,11 @@
 // every formula is assignment formula
-class AssignmentFormula(content: String, val propertyName: String, val parent: Container) : Formula(content) {
-    override fun evaluate(): Node {
+class AssignmentFormula(content: String, val propertyName: String, val parent: OldContainer) : Formula(content) {
+    override fun evaluate(): OldNode {
         val res = super.evaluate()
         if (res is String && TreeBuilder.definitions.any { it.name == res })
             return TreeBuilder.definitions.find { it.name == res }!!.copy(propertyName, parent, res)
 
-        return Property(propertyName, parent, res)
+        return OldProperty(propertyName, parent, res)
     }
 
     fun canEvaluate(): Boolean {

@@ -38,7 +38,8 @@ class Lexer() {
         }
         if (tokReg.defined(res.toString()))
             return tokReg.token(res.toString(), res.toString(), position)
-
+        if (res.contains('.'))
+            return tokReg.token("(LINK)", res.toString(), position)
         return tokReg.token("(IDENT)", res.toString(), position)
     }
 
@@ -162,7 +163,7 @@ class Lexer() {
     fun isIdentChar(c: Char): Boolean = c.isLetterOrDigit() || c == '.' || c == '_'
 
     fun isOperatorChar(c: Char): Boolean {
-        val operators = "!@#$%^*-+=/?.,:;\"|/(){}[]><\n"
+        val operators = "!@#$%^*-+=/?.,:;\"&|/(){}[]><\n"
         return operators.toCharArray().any { it == c }
     }
 
@@ -170,6 +171,7 @@ class Lexer() {
         tokReg = Registry()
 
         tokReg.symbol("(IDENT)")
+        tokReg.symbol("(LINK)")
         tokReg.symbol("(NUMBER)")
         tokReg.symbol("(STRING)")
 
@@ -199,13 +201,15 @@ class Lexer() {
         tokReg.infix(">=", 30)
         tokReg.infix("==", 30)
 
-        tokReg.infix(":", 10)
+        tokReg.infix("export", 10)
+        tokReg.infix(":", 20)
+
 
         tokReg.prefix("-")
-        tokReg.prefix("not")
+        tokReg.prefix("!")
 
-        tokReg.infixRight("and", 25)
-        tokReg.infixRight("or", 25)
+        tokReg.infixRight("&", 25)
+        tokReg.infixRight("|", 25)
         tokReg.infixRight("=", 10)
         tokReg.infixRight("+=", 10)
         tokReg.infixRight("-=", 10)
@@ -223,7 +227,7 @@ class Lexer() {
 
         // function use
         tokReg.infixLed("(", 90) { token: Token, parser: Parser, left: Token ->
-            if (left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(" && left.symbol != "->")
+            if (left.symbol != "(LINK)" && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(" && left.symbol != "->")
                 throw  PositionalException("bad func call left operand $left", position)
 
             token.children.add(left)
@@ -246,7 +250,7 @@ class Lexer() {
 
         // array indexing
         tokReg.infixLed("[", 80) { token: Token, parser: Parser, left: Token ->
-            if (left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(")
+            if (left.symbol != "(LINK)" && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(")
                 throw  PositionalException("bad func call left operand $left", position)
 
             token.children.add(left)
@@ -329,14 +333,23 @@ class Lexer() {
             token
         }
 
-        tokReg.infixLed("if", 20) { token: Token, parser: Parser, left: Token ->
+        tokReg.prefixNud("if") { token: Token, parser: Parser ->
             val cond = parser.expression(0)
             token.children.add(cond)
+            token.children.add(parser.expression(0))
             parser.advance("else")
-            token.children.add(left)
             token.children.add(parser.expression(0))
             token
         }
+
+//        tokReg.infixLed("if", 20) { token: Token, parser: Parser, left: Token ->
+//            val cond = parser.expression(0)
+//            token.children.add(cond)
+//            parser.advance("else")
+//            token.children.add(left)
+//            token.children.add(parser.expression(0))
+//            token
+//        }
 
         // statements
         tokReg.stmt("if") { token: Token, parser: Parser ->
@@ -355,13 +368,13 @@ class Lexer() {
             token
         }
 
-        tokReg.stmt("class"){ token: Token, parser: Parser ->
+        tokReg.stmt("class") { token: Token, parser: Parser ->
             token.children.add(parser.expression(0))
             token.children.add(parser.block())
             token
         }
 
-        tokReg.stmt("fun"){ token: Token, parser: Parser ->
+        tokReg.stmt("fun") { token: Token, parser: Parser ->
             token.children.add(parser.expression(0))
             token.children.add(parser.block())
             token
