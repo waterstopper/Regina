@@ -24,7 +24,7 @@ class Assignment(val token: Token) {
 
 
     fun evaluate(): Node {
-        val value = ValueEvaluation.evaluateValue(token.children[1])
+        val value = ValueEvaluation.evaluateValue(token.children[1], mutableMapOf())
         if (value is String)
             return TypeManager.types[value] ?: Property(name, value, parent)
         // number or array
