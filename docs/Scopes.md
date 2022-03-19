@@ -1,8 +1,11 @@
 # Scopes
+Scopes define visibility of classes, functions. In GRVPL everything is public.
 ## Global
 In global scope classes and functions are declared.
 ## Class
-In class scope assignments and functions are declared
+In class scope assignments and functions are declared. 
+
+Classes cannot be reassigned. ```ClassName = something``` will create a variable or property with same name and it will shadow that class for its scope, making it impossible to use ```class ClassName``` in scope.
 ## Function
 Functions can have variable assignments and blocks. Functions are not changing its arguments, arguments are values, not references. But everything else is changeable by referencing from function body.
 ```kotlin

@@ -8,17 +8,5 @@ fun randFromList(list) {
 
 }
 
-fun abs(x) {
-    return if x < 0 -x else x
-}
-
-fun toRadians(deg) {
-    return deg * PI / 180.0
-}
-
-fun toDegrees(rad) {
-
-}
-
 fun rotate(point, angle) {
 }

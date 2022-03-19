@@ -1,6 +1,41 @@
-PI = 3.1415926
+const class ARRAY {
 
-//
-Class Colors {
+}
+
+const class Colors {
     BLACK = "000000"
+    WHITE = "FFFFFF"
+    GRAY = "929292"
+    RED = "BF3011"
+    ORANGE = "DF8022"
+    YELLOW = "E5B527"
+    MINT = "26D07E"
+    GREEN = "06694A"
+    BLUE = "3896D4"
+    INDIGO = "253092"
+    PURPLE = "820D7C"
+    CHERRY = "FD5FF0"
+    CHERRY = "69122D"
+}
+
+const class Math {
+    PI = 3.1415926
+
+    fun rotate(point,pivot, angle) {}
+    fun abs(x) { return if x < 0 -x else x }
+    fun toRadians(deg) { return deg * PI / 180.0 }
+    fun toDegrees(rad) { }
+}
+
+// get all classes of classRef type
+fun all(classRef) {
+    res = []
+    stack = [Root]
+    while(stack.size > 0) {
+        current = stack.pop()
+        if(current is classRef){
+            res.add(current)
+        }
+        stack.add(res.properties !is Value)
+    }
 }
