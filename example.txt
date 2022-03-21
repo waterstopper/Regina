@@ -1,9 +1,9 @@
 class Segment:A export s {
     example = 2+3*c
     a export x
-    a=b
+    a=a.b.c.d(rwe,rwew).e.f
     b=c
-    c=d
+    2+c=(((d+2)))
     f = [1,f,3]
 }
 
@@ -15,7 +15,8 @@ class A {
 fun copy() {
     if a == true & b == !true {
         do_stuff()
-    }
+    } else if a==b{
+    } else if bre==rwe{}
     a= if (true ==w & false==c) b else c
 }
 
@@ -24,9 +25,10 @@ fun all(x,y) {
     // TODO add functions and properties reflections for classes
     // gets current properties
         a.properties
-        functions[2]
+        functions[2][e].f
         a.f[2]
         a.f(2)
+        matrix = [[],[],[]]
         if(true) {
             a = 5
         }

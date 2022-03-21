@@ -39,7 +39,7 @@ class TreeBuilder {
             if (current.assignments.isNotEmpty())
                 return current.assignments.first()
 
-            val containers = current.resolved.values.filterIsInstance<Type>()
+            val containers = current.resolved.filterIsInstance<Type>()
             stack.addAll(containers)
         }
 
@@ -55,7 +55,7 @@ class TreeBuilder {
             // evaluate assignment into node
             if (current.canEvaluate()) {
                 val node = current.evaluate()
-                current.parent.resolved[current.name] = node
+                current.parent.resolved.add(node)
                 current.parent.assignments.remove(current)
                 stack.pop()
             } else
@@ -71,8 +71,8 @@ class TreeBuilder {
             if (notResolved != null) {
                 stack.push(notResolved)
                 break
-            } else if (parent.resolved[linkList[0]] != null) {
-                val smth = parent.resolved[linkList[0]]
+            } else if (parent.resolved.find { it.name == linkList[0] } != null) {
+                val smth = parent.resolved.find { it.name == linkList[0] }
                 // take value from existing node
                 if (smth is Property) {
                     current.replaceFirst(smth.value)
@@ -88,7 +88,7 @@ class TreeBuilder {
                 linkList = linkList.drop(1)
             } else throw PositionalException(
                 "no property with name ${linkList[0]} in ${parent.name}",
-                current.token.position
+                current.token
             )
         }
     }

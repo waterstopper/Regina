@@ -3,7 +3,7 @@ package structure
 import lexer.Token
 
 object TypeManager {
-    val types = mutableMapOf<String, Type>()
+    val types = mutableListOf<Type>()
 
     var exported: Any? = null
     var type: Type? = null
@@ -22,7 +22,7 @@ object TypeManager {
         for (a in token.children[1].children)
             res.add(Assignment(a))
 
-        types[name] = Type(name, type, null, res, exported)
+        types.add(Type(name, name, type, null, res, exported))
     }
 
     private fun assignExported(token: Token): Token {
@@ -36,7 +36,7 @@ object TypeManager {
 
     private fun assignType(token: Token): Token {
         if (token.value == ":") {
-            type = types[token.children[1].value]
+            type = find(token.children[1].value)
             return token.children[0]
         } else
             type = null
@@ -48,9 +48,9 @@ object TypeManager {
     }
 
     fun getType(name: String): Type {
-        if (types[name] == null)
+        if (find(name) == null)
             throw Exception("no type with name $name")
-        return types[name]!!
+        return find(name)!!
     }
 
     fun getName(token: Token): String {
@@ -65,7 +65,7 @@ object TypeManager {
         while (t.children.isNotEmpty()) {
             t = t.children[0]
             if (t.value == ":") {
-                return if (types[t.children[1].value] == null)
+                return if (find(t.children[1].value) == null)
                     t.children[1].value
                 else ""
             }
@@ -76,4 +76,6 @@ object TypeManager {
     fun addAllTypes() {
 
     }
+
+    fun find(name: String) = types.find { it.name == name }
 }

@@ -1,3 +1,3 @@
 package structure
 
-class Property(name:String, val value: Any, parent: Type) : Node(name, parent)
+class Property(name: String, var value: Any, parent: Type?) : Node(name, parent)

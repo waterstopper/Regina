@@ -6,13 +6,18 @@ import java.util.*
 class Interpreter(val declarations: List<Token>) {
     init {
         initializeTypes()
+        initializeFunctions()
+    }
+
+    private fun initializeFunctions() {
+        declarations.filter { it.value == "fun" }.forEach { FunctionEvaluation.addFunction(it) }
     }
 
     fun interpret(token: Token) {
         when (token.symbol) {
             "fun" -> interpretFunction(token)
             "class" -> interpretClass(token)
-            else -> throw PositionalException("class or function can be top level declaration", token.position)
+            else -> throw PositionalException("class or function can be top level declaration", token)
         }
     }
 
@@ -28,16 +33,16 @@ class Interpreter(val declarations: List<Token>) {
 
     private fun interpretAssignment(assignment: Token) {
         if (assignment.symbol != "=")
-            throw PositionalException("class contains assignments only", assignment.position)
+            throw PositionalException("class contains assignments only", assignment)
     }
 
     private fun interpretFunction(token: Token) {
-        throw PositionalException("functions not yet implemented", token.position)
+        throw PositionalException("functions not yet implemented", token)
     }
 
     private fun getTypeName(token: Token) {
         if (token.symbol != ":")
-            throw PositionalException("class should have superclass", token.position)
+            throw PositionalException("class should have superclass", token)
         token.children[0].children[0].symbol
     }
 

@@ -1,6 +1,10 @@
+import lexer.FunctionEvaluation
 import lexer.Interpreter
 import lexer.Token
 import lexer.Parser
+import structure.Node
+import structure.SymbolTable
+import structure.TypeManager
 import java.io.File
 
 fun main(args: Array<String>) {
@@ -26,6 +30,8 @@ fun main(args: Array<String>) {
     println(s.treeView())
     print("")
     val interpreter = Interpreter(s)
+
+    val t = SymbolTable((TypeManager.types) as (MutableList<Node>), FunctionEvaluation.functions)
     println(interpreter.declarations)
 }
 

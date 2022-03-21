@@ -15,13 +15,13 @@ class Parser() {
         var t = lexer.next()
         var left = t.nud?.let { it(t, this) } ?: throw PositionalException(
             "expected variable or prefix operator",
-            lexer.position
+            position = lexer.position,length = 1
         )
         while (rbp < lexer.peek().bindingPower) {
             t = lexer.next()
             left = t.led?.let { it(t, this, left) } ?: throw PositionalException(
                 "expected infix or suffix operator",
-                lexer.position
+                position = lexer.position,length = 1
             )
         }
         return left
@@ -33,7 +33,7 @@ class Parser() {
         if (symbol == "\n" && token.symbol == "(EOF)")
             return token
         if (token.symbol != symbol)
-            throw PositionalException("expected ${if (symbol != "\n") symbol else "line break"}", lexer.position)
+            throw PositionalException("expected ${if (symbol != "\n") symbol else "line break"}", position = lexer.position,length = 1)
         return token
     }
 
@@ -51,7 +51,7 @@ class Parser() {
         var token = lexer.peek()
         if (token.std != null) {
             token = lexer.next()
-            return token.std?.let { it(token, this) } ?: throw PositionalException("expected statement", lexer.position)
+            return token.std?.let { it(token, this) } ?: throw PositionalException("expected statement", position = lexer.position,length = 1)
         }
         if (token.symbol == "\n") {
             lexer.next()
@@ -65,7 +65,7 @@ class Parser() {
     fun block(): Token {
         val token = lexer.next()
         if (token.symbol != "{")
-            throw PositionalException("expected a block start '{'", lexer.position)
-        return token.std?.let { it(token, this) } ?: throw PositionalException("expected statement", lexer.position)
+            throw PositionalException("expected a block start '{'", position = lexer.position)
+        return token.std?.let { it(token, this) } ?: throw PositionalException("expected statement", position = lexer.position)
     }
 }

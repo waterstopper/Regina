@@ -38,8 +38,8 @@ class Lexer() {
         }
         if (tokReg.defined(res.toString()))
             return tokReg.token(res.toString(), res.toString(), position)
-        if (res.contains('.'))
-            return tokReg.token("(LINK)", res.toString(), position)
+//        if (res.contains('.'))
+//            return tokReg.token("(LINK)", res.toString(), position)
         return tokReg.token("(IDENT)", res.toString(), position)
     }
 
@@ -77,7 +77,7 @@ class Lexer() {
         if (source[index] == '\n')
             toNextLine()
         else if (tokReg.defined(source[index].toString())) move()
-        else throw PositionalException("invalid operator", position)
+        else throw PositionalException("invalid operator", position = position,length = 1)
         return tokReg.token(source[index - 1].toString(), source[index - 1].toString(), position)
     }
 
@@ -101,7 +101,7 @@ class Lexer() {
                 consumeComments()
             }
             if (source[index] != '\n')
-                throw PositionalException("\n", position)
+                throw PositionalException("\n", position = position,length = 1)
             else index++
 
             position = Pair(0, position.second + 1)
@@ -115,7 +115,7 @@ class Lexer() {
             return nextNumber()
         else if (isOperatorChar(source[index]))
             return nextOperator()
-        else throw PositionalException("invalid character", position)
+        else throw PositionalException("invalid character", position = position,length = 1)
     }
 
     private fun consumeWhitespace() {
@@ -160,7 +160,7 @@ class Lexer() {
 
     fun isFirstIdentChar(c: Char): Boolean = c.isLetter() || c == '_'
 
-    fun isIdentChar(c: Char): Boolean = c.isLetterOrDigit() || c == '.' || c == '_'
+    fun isIdentChar(c: Char): Boolean = c.isLetterOrDigit() || c == '_'
 
     fun isOperatorChar(c: Char): Boolean {
         val operators = "!@#$%^*-+=/?.,:;\"&|/(){}[]><\n"
@@ -171,7 +171,7 @@ class Lexer() {
         tokReg = Registry()
 
         tokReg.symbol("(IDENT)")
-        tokReg.symbol("(LINK)")
+       // tokReg.symbol("(LINK)")
         tokReg.symbol("(NUMBER)")
         tokReg.symbol("(STRING)")
 
@@ -211,8 +211,10 @@ class Lexer() {
         tokReg.infixRight("&", 25)
         tokReg.infixRight("|", 25)
         tokReg.infixRight("=", 10)
-        tokReg.infixRight("+=", 10)
-        tokReg.infixRight("-=", 10)
+
+        tokReg.infixRight(".",80)
+//        tokReg.infixRight("+=", 10)
+//        tokReg.infixRight("-=", 10)
 
 //        tokReg.infixLed("?", 20) { token: Token, parser: Parser, left: Token ->
 //            val cond = parser.expression(0)
@@ -227,8 +229,8 @@ class Lexer() {
 
         // function use
         tokReg.infixLed("(", 90) { token: Token, parser: Parser, left: Token ->
-            if (left.symbol != "(LINK)" && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(" && left.symbol != "->")
-                throw  PositionalException("bad func call left operand $left", position)
+            if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(" && left.symbol != "->")
+                throw  PositionalException("bad func call left operand $left", left)
 
             token.children.add(left)
             val t = parser.lexer.peek()
@@ -250,8 +252,8 @@ class Lexer() {
 
         // array indexing
         tokReg.infixLed("[", 80) { token: Token, parser: Parser, left: Token ->
-            if (left.symbol != "(LINK)" && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(")
-                throw  PositionalException("bad func call left operand $left", position)
+            if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(")
+                throw  PositionalException("bad func call left operand $left", left)
 
             token.children.add(left)
             val t = parser.lexer.peek()
@@ -313,7 +315,7 @@ class Lexer() {
         // functions
         tokReg.infixRightLed("->", 10) { token: Token, parser: Parser, left: Token ->
             if (left.symbol != "()" && left.symbol != "(IDENT)")
-                throw PositionalException("invalid function declaration tuple $left", position)
+                throw PositionalException("invalid function declaration tuple $left", left)
             if (left.symbol == "()" && left.children.size != 0) {
                 var named = true
                 for (child in left.children) {
@@ -323,7 +325,7 @@ class Lexer() {
                     }
                 }
                 if (!named)
-                    throw PositionalException("invalid function declaration tuple $left", position)
+                    throw PositionalException("invalid function declaration tuple $left", left)
             }
             token.children.add(left)
             if (parser.lexer.peek().symbol == "{")
