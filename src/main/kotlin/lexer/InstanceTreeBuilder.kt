@@ -9,22 +9,20 @@ import java.util.*
 /**
  * Do BFS for each NodeDeclaration children
  */
-class TreeBuilder {
-    companion object {
-        val baseClasses = mutableListOf<Type>()
-
-        fun getType(container: Type): String {
-            return "Line"
-        }
+class InstanceTreeBuilder(private val root: Type, isObject: Boolean = false) {
+    init {
+        resolveTree()
     }
-
-    val root = baseClasses.find { it.name == "Root" }!!
 
     fun resolveTree() {
         do {
             val current = bfs(root) ?: break
             processNode(current)
         } while (true)
+    }
+
+    fun evaluateProperty(assignment: Assignment){
+
     }
 
     /**
@@ -39,7 +37,7 @@ class TreeBuilder {
             if (current.assignments.isNotEmpty())
                 return current.assignments.first()
 
-            val containers = current.resolved.filterIsInstance<Type>()
+            val containers = current.properties.filterIsInstance<Type>()
             stack.addAll(containers)
         }
 
@@ -55,7 +53,7 @@ class TreeBuilder {
             // evaluate assignment into node
             if (current.canEvaluate()) {
                 val node = current.evaluate()
-                current.parent.resolved.add(node)
+                current.parent.properties.add(node)
                 current.parent.assignments.remove(current)
                 stack.pop()
             } else
@@ -71,8 +69,8 @@ class TreeBuilder {
             if (notResolved != null) {
                 stack.push(notResolved)
                 break
-            } else if (parent.resolved.find { it.name == linkList[0] } != null) {
-                val smth = parent.resolved.find { it.name == linkList[0] }
+            } else if (parent.properties.find { it.name == linkList[0] } != null) {
+                val smth = parent.properties.find { it.name == linkList[0] }
                 // take value from existing node
                 if (smth is Property) {
                     current.replaceFirst(smth.value)

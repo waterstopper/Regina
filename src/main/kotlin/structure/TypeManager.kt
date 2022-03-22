@@ -19,10 +19,25 @@ object TypeManager {
 //        if (types[type] == null)
 //            throw PositionalException("undefined superclass", token.children[0].children[1].position)
         val res = mutableListOf<Assignment>()
-        for (a in token.children[1].children)
-            res.add(Assignment(a))
+        val functions = mutableListOf<Token>()
+        for (a in token.children[1].children) {
+            if (a.symbol == "fun")
+                functions.add(a)
+            else res.add(Assignment(a))
+        }
 
         types.add(Type(name, name, type, null, res, exported))
+        for (func in functions) {
+            val type = types.last()
+            type.functions.add(
+                Function(
+                    func.children[0].value,
+                    type,
+                    (func.children - func.children[0]).map { it.value },
+                    func.children[1]
+                )
+            )
+        }
     }
 
     private fun assignExported(token: Token): Token {
@@ -78,4 +93,8 @@ object TypeManager {
     }
 
     fun find(name: String) = types.find { it.name == name }
+
+    fun addObject(it: Token) {
+        addType(it)
+    }
 }

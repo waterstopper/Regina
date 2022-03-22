@@ -9,6 +9,10 @@ class Interpreter(val declarations: List<Token>) {
         initializeFunctions()
     }
 
+    private fun initializeObjects(){
+        declarations.filter { it.value == "object" }.forEach { TypeManager.addObject(it) }
+    }
+
     private fun initializeFunctions() {
         declarations.filter { it.value == "fun" }.forEach { FunctionEvaluation.addFunction(it) }
     }

@@ -1,6 +1,6 @@
 import org.junit.Test
 
-internal class TreeBuilderTest {
+internal class InstanceTreeBuilderTest {
 
     // TODO
     // 1. move root to defs, no need to frame it specially DONE

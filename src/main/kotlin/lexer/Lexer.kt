@@ -376,6 +376,12 @@ class Lexer() {
             token
         }
 
+        tokReg.stmt("object") { token: Token, parser: Parser ->
+            token.children.add(parser.expression(0))
+            token.children.add(parser.block())
+            token
+        }
+
         tokReg.stmt("fun") { token: Token, parser: Parser ->
             token.children.add(parser.expression(0))
             token.children.add(parser.block())

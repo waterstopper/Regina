@@ -9,7 +9,8 @@ class Type(
     val exported: Any? = null
 ) :
     Node(name, parent) {
-    val resolved: MutableList<Node> = mutableListOf()
+    val properties: MutableList<Node> = mutableListOf()
+    val functions: MutableList<Function> = mutableListOf()
 
     override fun toString(): String {
         return "$name${if (type != null) " : $type" else ""}${if (exported != null) " -> $exported" else ""}"
