@@ -1,8 +1,7 @@
+import deprecated.Formula
 import org.junit.Assert
 import org.junit.Test
-
-import org.junit.jupiter.api.Assertions.*
-
+@Deprecated("")
 internal class FormulaTest {
 
     @Test

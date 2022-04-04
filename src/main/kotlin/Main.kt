@@ -1,10 +1,13 @@
-import lexer.FunctionEvaluation
-import lexer.Interpreter
+import deprecated.Formula
+import deprecated.OldContainer
+import deprecated.TreeBuilder
+import evaluation.FunctionEvaluation
 import lexer.Token
 import lexer.Parser
-import structure.Node
+import properties.Property
 import structure.SymbolTable
-import structure.TypeManager
+import evaluation.TypeManager
+import properties.Function
 import java.io.File
 
 fun main(args: Array<String>) {
@@ -15,24 +18,23 @@ fun main(args: Array<String>) {
 //    println(obj)
 //    println(obj.evaluate())
 
-    //Painter(Container("", null, mutableMapOf())).export()
+    //Painter(Container("", null, mutableMapOf())).deprecated.export()
     //println(Painter(Container("", null, mutableMapOf())).defaultLine())
 
-    //println(Formula("-{@sin,angle} * 10 + x").getAllWords())
+    //println(deprecated.Formula("-{@sin,angle} * 10 + x").getAllWords())
 //    createDefs()
-//    val t = TreeBuilder()
+//    val t = deprecated.TreeBuilder()
 //    t.resolveTree()
 //    val p = Painter(t.root)
-//    p.export()
+//    p.deprecated.export()
 
-    val text = File("example.txt").readText()
+    val text = File("constants").readText()
     val s = Parser(text).statements()
     println(s.treeView())
     print("")
-    val interpreter = Interpreter(s)
-
-    val t = SymbolTable((TypeManager.types) as (MutableList<Node>), FunctionEvaluation.functions)
-    println(interpreter.declarations)
+    val interpreter = evaluation.Evaluation.evaluate(s)
+    // val t = SymbolTable((TypeManager.types) as (MutableList<Property>), FunctionEvaluation.functions)
+    // println(interpreter.declarations)
 }
 
 fun List<Token>.treeView(): String {
@@ -49,14 +51,14 @@ private fun createDefs() {
     //root.children.add(Property("type", root, "Line"))
     root.declarations["type"] = Formula("@Line")
     root.declarations["child"] = Formula("@Segment")
-    //root.declarations["child2"] = Formula("@Segment")
+    //root.declarations["child2"] = deprecated.Formula("@Segment")
     root.declarations["iter"] = Formula("0")
     root.declarations["x"] = Formula("20")
     root.declarations["y"] = Formula("0")
     root.declarations["x2"] = Formula("20")
     root.declarations["y2"] = Formula("0")
 
-    //root.declarations["rotation"] = Formula()
+    //root.declarations["rotation"] = deprecated.Formula()
 
     val segment = OldContainer("Segment", root, mutableMapOf())
     //segment.children.add(Property("type", segment, "Line"))
@@ -78,7 +80,7 @@ private fun createDefs() {
     doubleSegment.declarations["y2"] = Formula("parent.y2")
     doubleSegment.declarations["iter"] = Formula("parent.iter + 1")
 
-    //segment.declarations["rotation"] = Formula("{@randNum,-10,10}")
+    //segment.declarations["rotation"] = deprecated.Formula("{@randNum,-10,10}")
 
     val nothing = OldContainer("Nothing", root, mutableMapOf())
 

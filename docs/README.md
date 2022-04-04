@@ -34,7 +34,7 @@ List of keywords (variables and containers cannot be named like that):
 Description of what certain properties do:
 
 * **group** - groups all children of this container and applies all transformations of such container to the group. By
-  default, all containers are on the root level,
+  default, all containers are on the <svg> level,
 * **fill** - color of space inside container. Opaque by default.
 * **outline** - color of outline. Black by default
 * **opacity** - opacity

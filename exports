@@ -14,7 +14,7 @@ class Vector2 : Nothing {
     y = 0.0
 }
 
-class Color : Nothing export attribute(color) {
+class Color : Nothing deprecated.export attribute(color) {
     r = 0
     g = 0
     b = 0
@@ -22,7 +22,7 @@ class Color : Nothing export attribute(color) {
     hex = "000000"
 }
 
-class Transform : Nothing export attribute(transform) {
+class Transform : Nothing deprecated.export attribute(transform) {
     // degrees
     rotation = 0.0
     scale = Vector2
@@ -32,32 +32,32 @@ class Transform : Nothing export attribute(transform) {
 
 // geometry
 // specials
-class Group : Nothing export group {} // corresponds to svg <group>
+class Group : Nothing deprecated.export group {} // corresponds to svg <group>
 
-class Canvas : Nothing export svg {
-    vBox export attribute(viewBox)
+class Canvas : Nothing deprecated.export svg {
+    vBox deprecated.export attribute(viewBox)
     width = 4
 } // corresponds to svg <svg>
 
 // drawable
 class Point : Vector2 {}
 
-class Line : Nothing export line {
-    position.x export attribute(x1)
-    position.y export attribute(y1)
-    color.value export stroke
+class Line : Nothing deprecated.export line {
+    position.x deprecated.export attribute(x1)
+    position.y deprecated.export attribute(y1)
+    color.value deprecated.export stroke
 
     position = Position
     points = [position,Position(1,0)]
     grouping = false
 }
 
-class Polyline : Line export polyline {
+class Polyline : Line deprecated.export polyline {
 }
 
-class Polygon : Polyline export polygon {
+class Polygon : Polyline deprecated.export polygon {
 }
 
-class Rectangle : Nothing export rect {
+class Rectangle : Nothing deprecated.export rect {
 
 }

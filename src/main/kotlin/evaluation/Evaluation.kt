@@ -1,136 +1,157 @@
 package evaluation
 
-import DefaultOldContainer
+import evaluation.FunctionEvaluation.createFunction
+import evaluation.FunctionEvaluation.evaluateBlock
+import evaluation.FunctionEvaluation.evaluateFunction
+import evaluation.FunctionEvaluation.functions
+import evaluation.TypeEvaluation.resolveTree
+import evaluation.TypeManager.addType
+import evaluation.TypeManager.types
+import lexer.PositionalException
+import lexer.Token
+import properties.Primitive
+import properties.Type
+import structure.SymbolTable
 import java.util.*
+import kotlin.random.Random
 
 object Evaluation {
-    //region Expression evaluation
-    // region Evaluation steps
-    fun evaluate(input: String): Any {
-        var expr = transform(input)
+    const val SEED = 42
+    val rnd = Random(SEED)
+    val globalTable = SymbolTable(mutableMapOf(), functions)
+    lateinit var declarations: List<Token>
+//    init {
+//        initializeTypes()
+//        initializeFunctions()
+//    }
 
-        expr = evaluateFunctions(expr)
-        // evaluate all parentheses
-        expr = evaluateParentheses(expr)
-        // evaluate all ternary
-        expr = evaluateTernary(expr)
-        if (expr.startsWith("--")) {
-            println()
-        }
-        return evaluateWordsOrAlgebra(expr)
+    private fun initializeObjects() {
+        declarations.filter { it.value == "object" }.forEach { TypeManager.addObject(it) }
     }
 
-    fun evaluateWordsOrAlgebra(expr: String): Any {
-        if (evaluateWords(expr))
-            return expr
+//    private fun initializeFunctions() {
+//        val names = mutableSetOf<Pair<String, Int>>()
+//        declarations.filter { it.value == "fun" }.forEach {
+//            FunctionEvaluation.addFunction(it)
+//            if (names.add(Pair(functions.last().name, functions.last().args.size)))
+//                throw PositionalException(
+//                    "Two functions with same name: ${functions.last().name}" +
+//                            " and number of arguments: ${functions.last().args.size}", functions.last().body
+//                )
+//        }
+//    }
 
-        return Algebra.evaluate(expr)
-    }
-
-    private fun evaluateWords(expr: String): Boolean = expr.matches(Regex("[a-zA-Z]\\w+", RegexOption.CANON_EQ))
-
-    /**
-     * here I suppose that braces cannot be nested.
-     * If they are nested, change the algorithm to parentheses evaluation
-     */
-    private fun evaluateFunctions(input: String): String {
-        var expr = input
-
-        while (expr.contains('{')) {
-            val start = expr.indexOf('{') + 1
-            var end = start + 1
-            while (expr[end] != '}')
-                end++
-
-            val res = Function.evalFunction(expr.substring(start until end))
-            expr = expr.replaceRange(start - 1..end, res.toString())
-        }
-
-        return expr
-    }
-
-    private fun evaluateParentheses(input: String): String {
-        var expr = input
-        while (expr.contains('(')) {
-            var sum = 1
-            val start = expr.indexOf('(')
-            var end = start + 1
-
-            while (sum != 0) {
-                if (expr[end] == '(')
-                    sum++
-                else if (expr[end] == ')')
-                    sum--
-                end++
-            }
-            end--
-
-            // essentially change everything that's in the parentheses to single number
-            expr = expr.replaceRange(start..end, evaluate(expr.substring(start + 1, end)).toString())
-        }
-
-        return expr
-    }
-
-    private fun evaluateTernary(input: String): String {
-        var expr = input
-        // handling all ternary operators.
-        // evaluation from right to left!
-        while (expr.contains('?')) {
-            var i = expr.lastIndex
-            var lastIndex = expr.lastIndex
-            var semicolonIndex = lastIndex + 1
-
-            while (expr[i] != '?') {
-                if (expr[i] == ':') {
-                    lastIndex = semicolonIndex - 1
-                    semicolonIndex = i
+    fun evaluate(tokens: List<Token>) {
+        for (token in tokens)
+            when (token.symbol) {
+                "fun" -> {
+                    val func = createFunction(token, null)
+                    globalTable.functions[func.name] = func
                 }
-                i--
+                "class" -> addType(token)
+                "object" -> {
+                }
+                else -> throw PositionalException("class or function can be top level declaration", token)
             }
-            val questionIndex = i
-            i--
-            while (i >= 0 && expr[i] != '?' && expr[i] != ':') {
-                i--
-            }
-            // true
-            expr = if (Algebra.evaluate(expr.substring(i + 1, questionIndex)) != 0)
-                expr.replaceRange(
-                    i + 1..lastIndex,
-                    evaluateWordsOrAlgebra(expr.substring(questionIndex + 1, semicolonIndex)).toString()
-                )
-            else
-                expr.replaceRange(
-                    i + 1..lastIndex,
-                    evaluateWordsOrAlgebra(expr.substring(semicolonIndex + 1, lastIndex + 1)).toString()
-                )
-        }
 
-        return expr
+        val main = globalTable.functions["main"] ?: throw Exception("no main function")
+        evaluateBlock(main.body, globalTable)
+        println()
     }
 
-    private fun evalRightParenthesis(operators: Stack<Operator>, values: Stack<Number>) {
-        var current = operators.pop()
-        while (current != Operator.LEFT_PAR) {
-            values.push(Operator.calc(current, values.pop(), values.pop()))
-            current = operators.pop()
+    fun evaluateInvocation(token: Token, symbolTable: SymbolTable): Any {
+        return if (symbolTable.findFunction(token.children[0].value) != null)
+            evaluateFunction(
+                token, symbolTable.findFunction(token.children[0].value)!!,
+                token.children.subList(1, token.children.size), symbolTable
+            )
+        else {
+            resolveTree(types[token.children[0].value]!!)
+            return types[token.children[0].value]!!
         }
     }
 
-
-    /**
-     * remove all whitespaces and
-     * transform all operators to one-symbol chars
-     */
-    private fun transform(expr: String): String {
-        return expr
-            .replace("\\s".toRegex(), "").replace("@", "")
+    fun evaluateAssignment(token: Token, symbolTable: SymbolTable) {
+        when (token.children[0].symbol) {
+            "[" -> {
+                val element = ValueEvaluation.evaluateIndex(token, symbolTable)
+                if (element is Primitive) {
+                    element.value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
+                } else throw PositionalException("expected variable for assignment", token.children[0])
+            }
+            "." -> {
+                val link = ValueEvaluation.evaluateLink(token.children[0], symbolTable)
+                if (link is Primitive)
+                    link.value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
+                else throw PositionalException("class reassignment is prohibited", token)
+            }
+            "(IDENT)" -> {
+                val symbol = symbolTable.findIndentfier(token.children[0].value)
+                if (symbol != null) {
+                    if (symbol is Primitive)
+                        symbol.value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
+                    else throw PositionalException("class reassignment is prohibited", token)
+                } else {
+                    val value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
+                    if (value is Type) {
+                        value.name = token.children[0].value
+                        symbolTable.variables[value.name] = value
+                    } else symbolTable.variables[token.children[0].value] =
+                        Primitive(token.children[0].value, value, null)
+                }
+            }
+            else -> throw PositionalException("identifier or reference expected", token)
+        }
     }
 
+//    private fun evaluateType(token: Token) {
+//        getTypeName(token.children[0])
+//        interpretClassBlock(token.children[1])
+//    }
 
-    fun Char.isNameSymbol(): Boolean {
-        return this.isLetterOrDigit() || this == '_'
+    private fun interpretClassBlock(token: Token) {
+        for (assignment in token.children)
+            interpretAssignment(assignment)
     }
 
-    val defaultContainers = listOf(DefaultOldContainer("transform", null, mutableMapOf()))
+    private fun interpretAssignment(assignment: Token) {
+        if (assignment.symbol != "=")
+            throw PositionalException("class contains assignments only", assignment)
+    }
+
+    private fun interpretFunction(token: Token) {
+        throw PositionalException("functions not yet implemented", token)
+    }
+
+    private fun getTypeName(token: Token) {
+        if (token.symbol != ":")
+            throw PositionalException("class should have superclass", token)
+        token.children[0].children[0].symbol
+    }
+
+    private fun initializeTypes() {
+        val stack = Stack<Token>()
+        val classDeclarations = declarations.filter { it.symbol == "class" }.toMutableList()
+        while (true) {
+            if (stack.isEmpty()) {
+                if (classDeclarations.isEmpty())
+                    break
+                stack.push(classDeclarations.first())
+                classDeclarations.removeAt(0)
+            }
+            while (stack.isNotEmpty()) {
+                val typeToken = stack.pop()
+                val supertypeName = TypeManager.resolvedSupertype(typeToken)
+                if (supertypeName == "")
+                    TypeManager.addType(typeToken)
+                else {
+                    val foundSupertype = classDeclarations.find { TypeManager.getName(it) == supertypeName }
+                        ?: throw Exception("no class with name $supertypeName")
+                    stack.push(typeToken)
+                    stack.push(foundSupertype)
+                    classDeclarations.remove(foundSupertype)
+                }
+            }
+        }
+    }
 }

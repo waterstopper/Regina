@@ -1,8 +1,4 @@
-const class ARRAY {
-
-}
-
-const class Colors {
+class Colors {
     BLACK = "000000"
     WHITE = "FFFFFF"
     GRAY = "929292"
@@ -17,14 +13,63 @@ const class Colors {
     CHERRY = "FD5FF0"
     CHERRY = "69122D"
 }
+class Root {
+segm = Segment()
+iter = 0
+}
 
-const class Math {
+class Segment{
+iter = 1
+a = 5
+b = a
+}
+
+fun toDegrees(rad) {
+return
+a=b.c.d.e.f().g.h.parent.(if(a==true) u else b).t
+}
+
+
+class Math {
+    RANDOM_SEED = 42
     PI = 3.1415926
+}
 
-    fun rotate(point,pivot, angle) {}
-    fun abs(x) { return if x < 0 -x else x }
-    fun toRadians(deg) { return deg * PI / 180.0 }
-    fun toDegrees(rad) { }
+fun rotate(point, pivot, angle) {
+break}
+
+fun abs(x) {
+    return if (x < 0) -x else x
+}
+
+fun toRadians(deg) {
+    return abs(-deg) * 3 / 180
+}
+
+// returns random int in range [a,b]
+fun rndInt(a,b)  {
+    t = int(rnd() * ((b-a)+1))
+    log("t:"+t)
+    log(t)
+    return a + t
+}
+
+fun main(){
+a = toRadians(32)
+c = Segment()
+log(rndInt(64,999))
+log(rndInt(64,999))
+//log(c)
+arr  =[c,"",1]
+//log(arr)
+add(arr,2)
+add(arr,1,2)
+//log(arr)
+log(remove(arr,c))
+log(arr)
+removeAt(arr,1)
+log(arr)
+log(has(arr,2))
 }
 
 // get all classes of classRef type
@@ -33,7 +78,7 @@ fun all(classRef) {
     stack = [Root]
     while(stack.size > 0) {
         current = stack.pop()
-        if(current is classRef){
+        if(current is classRef) {
             res.add(current)
         }
         stack.add(res.properties !is Value)

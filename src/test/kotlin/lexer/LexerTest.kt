@@ -1,8 +1,9 @@
 package lexer
 
+import deprecated.Symbol
 import org.junit.Assert
 import org.junit.Test
-
+@Deprecated("")
 internal class LexerTest {
     private val regex = Regex("([A-Za-z][\\w]*)(.[A-Za-z][\\w]*)*")
 
@@ -38,6 +39,4 @@ internal class LexerTest {
 //        println(Lexer().tokenize(s).toStr())
 //
 //    }
-
-    fun List<Token>.toStr(): String = this.joinToString(separator = "\n")
 }

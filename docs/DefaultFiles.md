@@ -2,17 +2,17 @@
 There are three default files that make a basic library for GRVPL. All of them can be rewritten for each program.
 
 ## Exports file
-Contain export classes and classes needed for them. If concise naming is preferred, classes can be rewritten like that:
+Contain deprecated.export classes and classes needed for them. If concise naming is preferred, classes can be rewritten like that:
 ```kotlin
-class Line export line {
-    pos.x export x
-    pos.y export y
+class Line deprecated.export line {
+    pos.x deprecated.export x
+    pos.y deprecated.export y
     
     pos = Position
     pts = [pos,Position(x=1,y=0)]
 }
 
-class Rect : Line export rect {
+class Rect : Line deprecated.export rect {
     
 }
 ```

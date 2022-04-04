@@ -1,22 +1,30 @@
+/**
+ * AST building algorithm was taken and rewritten from:
+ * https://www.cristiandima.com/top-down-operator-precedence-parsing-in-go
+ *
+ * Important changes:
+ * 1. ; is (mostly) replaced by \n
+ * 2. changed return statement: expected
+ */
 package lexer
 
 class Lexer() {
 
-    var source: String = ""
+    private var source: String = ""
 
     constructor(source: String = "") : this() {
         this.source = source
         getRegistry()
     }
 
-    var tokReg: Registry = Registry()
-    var index: Int = 0
+    private var tokReg: Registry = Registry()
+    private var index: Int = 0
     var position: Pair<Int, Int> = Pair(0, 0)
-    var tok: Token = Token()
-    var cached: Boolean = false
+    private var tok: Token = Token()
+    private var cached: Boolean = false
     val last: Token = Token()
 
-    fun nextString(): Token {
+    private fun nextString(): Token {
         val res = StringBuilder(source[index].toString())
         move()
         while (source[index] != '"') {
@@ -27,23 +35,27 @@ class Lexer() {
         }
         res.append(source[index])
         move()
-        return tokReg.token("(STRING)", res.toString(), position)
+        return tokReg.token("(STRING)", res.toString(), Pair(position.first - res.toString().length, position.second))
     }
 
-    fun nextIdent(): Token {
+    private fun nextIdent(): Token {
         val res = StringBuilder()
         while (isIdentChar(source[index])) {
             res.append(source[index])
             move()
         }
         if (tokReg.defined(res.toString()))
-            return tokReg.token(res.toString(), res.toString(), position)
+            return tokReg.token(
+                res.toString(),
+                res.toString(),
+                Pair(position.first - res.toString().length, position.second)
+            )
 //        if (res.contains('.'))
 //            return tokReg.token("(LINK)", res.toString(), position)
-        return tokReg.token("(IDENT)", res.toString(), position)
+        return tokReg.token("(IDENT)", res.toString(), Pair(position.first - res.toString().length, position.second))
     }
 
-    fun nextNumber(): Token {
+    private fun nextNumber(): Token {
         val res = StringBuilder(source[index].toString())
         move()
         while (index < source.length && source[index].isDigit()) {
@@ -59,10 +71,21 @@ class Lexer() {
                 move()
             }
         }
-        return tokReg.token("(NUMBER)", res.toString(), position)
+        return tokReg.token("(NUMBER)", res.toString(), Pair(position.first - res.toString().length, position.second))
     }
 
-    fun nextOperator(): Token {
+    private fun nextOperator(): Token {
+        // for !is
+        if (index + 1 < source.lastIndex && tokReg.defined(source.substring(index..index + 2))) {
+            move()
+            move()
+            move()
+            return tokReg.token(
+                source.substring(index - 3 until index),
+                source.substring(index - 3 until index),
+                Pair(position.first - 3, position.second)
+            )
+        }
         if (index < source.lastIndex && isOperatorChar(source[index + 1]) &&
             tokReg.defined(source[index].toString() + source[index + 1].toString())
         ) {
@@ -71,14 +94,17 @@ class Lexer() {
             return tokReg.token(
                 source[index - 2].toString() + source[index - 1].toString(),
                 source[index - 2].toString() + source[index - 1].toString(),
-                position
+                Pair(position.first - 2, position.second)
             )
         }
         if (source[index] == '\n')
             toNextLine()
         else if (tokReg.defined(source[index].toString())) move()
-        else throw PositionalException("invalid operator", position = position,length = 1)
-        return tokReg.token(source[index - 1].toString(), source[index - 1].toString(), position)
+        else throw PositionalException("invalid operator", position = position, length = 1)
+        return tokReg.token(
+            source[index - 1].toString(),
+            source[index - 1].toString(), Pair(position.first - 1, position.second)
+        )
     }
 
     fun next(): Token {
@@ -101,21 +127,21 @@ class Lexer() {
                 consumeComments()
             }
             if (source[index] != '\n')
-                throw PositionalException("\n", position = position,length = 1)
+                throw PositionalException("\n", position = position, length = 1)
             else index++
 
             position = Pair(0, position.second + 1)
         }
 
-        if (source[index] == '"')
-            return nextString()
+        return if (source[index] == '"')
+            nextString()
         else if (isFirstIdentChar(source[index]))
-            return nextIdent()
+            nextIdent()
         else if (source[index].isDigit())
-            return nextNumber()
+            nextNumber()
         else if (isOperatorChar(source[index]))
-            return nextOperator()
-        else throw PositionalException("invalid character", position = position,length = 1)
+            nextOperator()
+        else throw PositionalException("invalid character", position = position, length = 1)
     }
 
     private fun consumeWhitespace() {
@@ -158,11 +184,11 @@ class Lexer() {
         position = Pair(position.first + 1, position.second)
     }
 
-    fun isFirstIdentChar(c: Char): Boolean = c.isLetter() || c == '_'
+    private fun isFirstIdentChar(c: Char): Boolean = c.isLetter() || c == '_'
 
-    fun isIdentChar(c: Char): Boolean = c.isLetterOrDigit() || c == '_'
+    private fun isIdentChar(c: Char): Boolean = c.isLetterOrDigit() || c == '_'
 
-    fun isOperatorChar(c: Char): Boolean {
+    private fun isOperatorChar(c: Char): Boolean {
         val operators = "!@#$%^*-+=/?.,:;\"&|/(){}[]><\n"
         return operators.toCharArray().any { it == c }
     }
@@ -171,9 +197,11 @@ class Lexer() {
         tokReg = Registry()
 
         tokReg.symbol("(IDENT)")
-       // tokReg.symbol("(LINK)")
+        // tokReg.symbol("(LINK)")
         tokReg.symbol("(NUMBER)")
         tokReg.symbol("(STRING)")
+
+        //tokReg.symbol("parent")
 
         tokReg.symbol("true")
         tokReg.symbol("false")
@@ -204,6 +232,9 @@ class Lexer() {
         tokReg.infix("export", 10)
         tokReg.infix(":", 20)
 
+        tokReg.infix("is", 15)
+        tokReg.infix("!is", 15)
+
 
         tokReg.prefix("-")
         tokReg.prefix("!")
@@ -212,7 +243,7 @@ class Lexer() {
         tokReg.infixRight("|", 25)
         tokReg.infixRight("=", 10)
 
-        tokReg.infixRight(".",80)
+        tokReg.infixRight(".", 80)
 //        tokReg.infixRight("+=", 10)
 //        tokReg.infixRight("-=", 10)
 
@@ -231,19 +262,10 @@ class Lexer() {
         tokReg.infixLed("(", 90) { token: Token, parser: Parser, left: Token ->
             if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(" && left.symbol != "->")
                 throw  PositionalException("bad func call left operand $left", left)
-
             token.children.add(left)
             val t = parser.lexer.peek()
-
             if (t.symbol != ")") {
-                while (true) {
-                    val exp = parser.expression(0)
-                    token.children.add(exp)
-                    val tokenRes = parser.lexer.peek()
-                    if (tokenRes.symbol != ",")
-                        break
-                    parser.advance(",")
-                }
+                sequence(token, parser)
                 parser.advance(")")
             } else
                 parser.advance(")")
@@ -254,18 +276,10 @@ class Lexer() {
         tokReg.infixLed("[", 80) { token: Token, parser: Parser, left: Token ->
             if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(")
                 throw  PositionalException("bad func call left operand $left", left)
-
             token.children.add(left)
             val t = parser.lexer.peek()
             if (t.symbol != "]") {
-                while (true) {
-                    val exp = parser.expression(0)
-                    token.children.add(exp)
-                    val tokenRes = parser.lexer.peek()
-                    if (tokenRes.symbol != ",")
-                        break
-                    parser.advance(",")
-                }
+                sequence(token, parser)
                 parser.advance("]")
             } else
                 parser.advance("]")
@@ -336,8 +350,10 @@ class Lexer() {
         }
 
         tokReg.prefixNud("if") { token: Token, parser: Parser ->
+            parser.advance("(")
             val cond = parser.expression(0)
             token.children.add(cond)
+            parser.advance(")")
             token.children.add(parser.expression(0))
             parser.advance("else")
             token.children.add(parser.expression(0))
@@ -407,22 +423,35 @@ class Lexer() {
         }
 
         tokReg.stmt("break") { token: Token, parser: Parser ->
-            parser.advance("\n")
+            if (parser.lexer.peek().symbol != "}")
+                parser.advance("\n")
             token
         }
 
         tokReg.stmt("continue") { token: Token, parser: Parser ->
-            parser.advance("\n")
+            if (parser.lexer.peek().symbol != "}")
+                parser.advance("\n")
             token
         }
 
         tokReg.stmt("return") { token: Token, parser: Parser ->
-            if (parser.lexer.peek().symbol != "\n")
+            if (parser.lexer.peek().symbol != "}" && parser.lexer.peek().symbol != "\n")
                 token.children.add(parser.expression(0))
-            parser.advance("\n")
+            //parser.advance("\n")
             token
         }
 
         return tokReg
+    }
+
+    private fun sequence(token: Token, parser: Parser) {
+        while (true) {
+            val exp = parser.expression(0)
+            token.children.add(exp)
+            val tokenRes = parser.lexer.peek()
+            if (tokenRes.symbol != ",")
+                break
+            parser.advance(",")
+        }
     }
 }

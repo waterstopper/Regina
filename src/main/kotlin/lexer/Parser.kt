@@ -1,3 +1,7 @@
+/**
+ * AST building algorithm was taken and rewritten from:
+ * https://www.cristiandima.com/top-down-operator-precedence-parsing-in-go
+ */
 package lexer
 
 class Parser() {

@@ -1,21 +1,19 @@
-import evaluation.Evaluation
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import deprecated.evaluation.Evaluation
 import org.junit.Assert
 import org.junit.Test
-
+@Deprecated("")
 internal class EvaluationTest {
 //    @Test
 //    fun transformTest() {
 //        Assert.assertEquals(
-//            evaluation.Global.transform("1//2>=3234   >=   3"),
+//            deprecated.connections.evaluation.Global.transform("1//2>=3234   >=   3"),
 //            "1\\2]3234]3"
 //        )
 //        Assert.assertEquals(
-//            evaluation.Global.transform("1==2==3>=4<=5<=6>=7!=8!=9!=10"),
+//            deprecated.connections.evaluation.Global.transform("1==2==3>=4<=5<=6>=7!=8!=9!=10"),
 //            "1=2=3]4[5[6]7!8!9!10"
 //        )
-//        Assert.assertEquals(evaluation.Global.transform("1&&2&&3||4||5||6"), "1&2&3|4|5|6")
+//        Assert.assertEquals(deprecated.connections.evaluation.Global.transform("1&&2&&3||4||5||6"), "1&2&3|4|5|6")
 //    }
 
     @Test

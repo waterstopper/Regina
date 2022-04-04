@@ -1,3 +1,7 @@
+/**
+ * AST building algorithm was taken and rewritten from:
+ * https://www.cristiandima.com/top-down-operator-precedence-parsing-in-go
+ */
 package lexer
 
 class Token(
@@ -26,7 +30,7 @@ class Token(
         val res = StringBuilder()
         for (i in 0 until indentation)
             res.append(' ')
-        res.append(value)
+        res.append(this)
         if (children.size > 0)
             for (i in children)
                 res.append('\n' + i.toTreeString(indentation + 2))
@@ -54,7 +58,7 @@ class Token(
                 t.findAndRemove(symbol)
     }
 
-    override fun toString(): String = value
+    override fun toString(): String = if (symbol == value) symbol else "$symbol:$value"
 
 //    override fun equals(other: Any?): Boolean {
 //        if (this === other) return true

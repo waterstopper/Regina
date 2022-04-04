@@ -8,5 +8,10 @@ fun randFromList(list) {
 
 }
 
+// returns random int in range [a,b]
+fun randInt(a,b)  {
+    return a + int(rand() * ((a-b)+1))
+}
+
 fun rotate(point, angle) {
 }

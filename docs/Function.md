@@ -1,20 +1,31 @@
 # Function
-Similar to classes, functions can have assignments, which are visible only during function execution. Unlike classes, functions execute in a strict top-down order. So each undefined variable will provide a compile error
+
+Similar to classes, functions can have assignments, which are visible only during function execution. Unlike classes,
+functions execute in a strict top-down order. So each undefined variable will provide a compile error
+
+## Constraints
+
+**No same functions allowed**. Functions differ by name and number of arguments. ```fun function(a)```
+and ```fun function(a,b)``` are different, but functions ```fun function(a)``` and ```fun function(b)``` are same.
 
 ## Embedded functions
+
 Even though language is built to be as flexible as possible, there are functions that cannot be reassigned.
 
 ```kotlin
 class Array {
-    fun add(a) // adds a to the end of array
-    fun remove(a) // removes element a if found and returns it (even if not found)
-    fun removeIndex(i) // removes element by index
-    fun has(a) // returns 1 if array contains is a, else returns 0
+    fun add(arr,x) // adds x to the end of array
+    fun add(arr,i,x) // inserts x at index i
+    fun remove(arr,a) // removes element x if found and returns it (even if not found)
+    fun removeAt(arr,i) // removes element by index
+    fun has(arr,x) // returns 1 if array contains is x, else returns 0
 }
 
 class String {
     fun int() // returns int from this string
     fun double() // returns double from this string
     fun str() // returns itself
+    fun log() // similar to console.log() in javascript
+    fun rnd() // returns random double in 0..1 (1 is exclusive)
 }
 ```
