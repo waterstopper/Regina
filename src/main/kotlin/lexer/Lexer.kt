@@ -3,8 +3,9 @@
  * https://www.cristiandima.com/top-down-operator-precedence-parsing-in-go
  *
  * Important changes:
- * 1. ; is (mostly) replaced by \n
+ * 1. ";" is (mostly) replaced by \n
  * 2. changed return statement: expected
+ * 3. array and string indexing commented out exception applicable for function calls
  */
 package lexer
 
@@ -35,7 +36,11 @@ class Lexer() {
         }
         res.append(source[index])
         move()
-        return tokReg.token("(STRING)", res.toString(), Pair(position.first - res.toString().length, position.second))
+        return tokReg.token(
+            "(STRING)",
+            res.toString().substring(1, res.toString().length - 1),
+            Pair(position.first - res.toString().length, position.second)
+        )
     }
 
     private fun nextIdent(): Token {
@@ -50,10 +55,9 @@ class Lexer() {
                 res.toString(),
                 Pair(position.first - res.toString().length, position.second)
             )
-//        if (res.contains('.'))
-//            return tokReg.token("(LINK)", res.toString(), position)
         return tokReg.token("(IDENT)", res.toString(), Pair(position.first - res.toString().length, position.second))
     }
+
 
     private fun nextNumber(): Token {
         val res = StringBuilder(source[index].toString())
@@ -62,7 +66,6 @@ class Lexer() {
             res.append(source[index])
             move()
         }
-
         if (index < source.length && source[index] == '.') {
             res.append(source[index])
             move()
@@ -112,23 +115,20 @@ class Lexer() {
         var tempIndex = -1
         while (index != tempIndex) {
             tempIndex = index
-            consumeWhitespace()
-            consumeComments()
+            consumeWhitespaceAndComments()
         }
-
         if (index == source.length)
             return tokReg.token("(EOF)", "EOF", position)
-
         if (source[index] == '\\') {
             index++
             while (index != tempIndex) {
                 tempIndex = index
-                consumeWhitespace()
-                consumeComments()
+                consumeWhitespaceAndComments()
             }
             if (source[index] != '\n')
                 throw PositionalException("\n", position = position, length = 1)
             else index++
+            consumeWhitespaceAndComments()
 
             position = Pair(0, position.second + 1)
         }
@@ -144,18 +144,43 @@ class Lexer() {
         else throw PositionalException("invalid character", position = position, length = 1)
     }
 
-    private fun consumeWhitespace() {
-        // '\t', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
-        while (index < source.length && source[index] != '\n' && source[index].isWhitespace())
-            move()
+    private fun consumeWhitespaceAndComments() {
+        var (whitespace, comments) = listOf(true, true)
+        while (whitespace || comments) {
+            whitespace = consumeWhitespace()
+            comments = consumeComments()
+        }
     }
 
-    private fun consumeComments() {
+    private fun consumeComments(): Boolean {
         if (index < source.length && source[index] == '/' && index < source.lastIndex && source[index + 1] == '/') {
-            while (source[index] != '\n')
+            while (source[index] != '\n') {
                 move()
+                if (index == source.length)
+                    return false
+            }
             toNextLine()
+            return true
+        } else if (index < source.length && source[index] == '/' && index < source.lastIndex && source[index + 1] == '*') {
+            while (!(source[index] == '*' && source[index + 1] == '/')) {
+                if (source[index] == '\n')
+                    toNextLine()
+                else move()
+                if (index + 1 >= source.length)
+                    return true
+            }
+            move()
+            move()
         }
+        return false
+    }
+
+    private fun consumeWhitespace(): Boolean {
+        // '\t', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
+        val res = index < source.length && source[index] != '\n' && source[index].isWhitespace()
+        while (index < source.length && source[index] != '\n' && source[index].isWhitespace())
+            move()
+        return res
     }
 
     fun peek(): Token {
@@ -163,14 +188,11 @@ class Lexer() {
             return tok
         val ind = index
         val pos = Pair(position.first, position.second)
-
         val res = next()
         tok = res
         cached = true
-
         index = ind
         position = pos
-
         return res
     }
 
@@ -189,7 +211,7 @@ class Lexer() {
     private fun isIdentChar(c: Char): Boolean = c.isLetterOrDigit() || c == '_'
 
     private fun isOperatorChar(c: Char): Boolean {
-        val operators = "!@#$%^*-+=/?.,:;\"&|/(){}[]><\n"
+        val operators = "!@#$%^*-+=?.,:;\"&|/(){}[]><\n"
         return operators.toCharArray().any { it == c }
     }
 
@@ -221,6 +243,8 @@ class Lexer() {
         tokReg.infix("-", 50)
         tokReg.infix("*", 60)
         tokReg.infix("/", 60)
+        // useless, because // is comment
+        // tokReg.infix("//", 60)
         tokReg.infix("%", 65)
 
         tokReg.infix("<", 30)
@@ -274,8 +298,8 @@ class Lexer() {
 
         // array indexing
         tokReg.infixLed("[", 80) { token: Token, parser: Parser, left: Token ->
-            if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(")
-                throw  PositionalException("bad func call left operand $left", left)
+//            if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(")
+//                throw  PositionalException("bad func call left operand $left", left)
             token.children.add(left)
             val t = parser.lexer.peek()
             if (t.symbol != "]") {

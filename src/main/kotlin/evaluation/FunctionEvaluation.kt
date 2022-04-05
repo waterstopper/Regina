@@ -1,19 +1,18 @@
 package evaluation
 
-import evaluation.Evaluation.SEED
-import evaluation.Evaluation.evaluateAssignment
 import evaluation.Evaluation.evaluateInvocation
 import evaluation.Evaluation.globalTable
 import evaluation.Evaluation.rnd
+import evaluation.FunctionEvaluation.evaluateBlock
 import lexer.PositionalException
 import lexer.Token
-import evaluation.ValueEvaluation.evaluateIndex
 import evaluation.ValueEvaluation.evaluateValue
+import evaluation.ValueEvaluation.toBoolean
 import evaluation.ValueEvaluation.toInt
 import properties.*
+import properties.Assignment.Companion.evaluateAssignment
 import properties.Function
 import structure.*
-import kotlin.random.Random.Default.nextDouble
 
 object FunctionEvaluation {
     val functions = initializeEmbedded()
@@ -28,15 +27,6 @@ object FunctionEvaluation {
         return Function(nameToken.value, argsTokens.map { it.value }, body, parent)
     }
 
-    fun addFunction(token: Token) {
-        val func = Function(
-            token.children[0].children[0].value,
-            token.children[0].children.subList(1, token.children[0].children.size).map { it.value },
-            token.children[1]
-        )
-        functions[func.name] = func
-    }
-
     fun evaluateFunction(token: Token, function: Function, args: List<Token>, symbolTable: SymbolTable): Any {
         // this table is used for function execution. Hence, it should contain only function arguments
         val localTable = globalTable.copy()
@@ -46,26 +36,12 @@ object FunctionEvaluation {
                 symbolTable
             ).toVariable(function.args[index])
         }, function.args)
-        if (function is EmbeddedFunction) {
-            val refw = evaluateEmbeddedFunction(token, function, localTable)
-            return refw
-        }
-
-        val res = evaluateBlock(function.body, localTable)
-        println(res)
-        return res
+        if (function is EmbeddedFunction)
+            return function.executeFunction(token, symbolTable)
+        return evaluateBlock(function.body, localTable)
     }
-
-    private fun evaluateEmbeddedFunction(token: Token, function: EmbeddedFunction, symbolTable: SymbolTable): Any {
-        return function.executeFunction(token, symbolTable)
-    }
-
-    fun evaluateWhile(token: Token, symbolTable: SymbolTable) {}
-
-    fun evaluateIf(token: Token, symbolTable: SymbolTable) {}
 
     fun evaluateBlock(token: Token, symbolTable: SymbolTable): Any {
-        // val localSymbolTable = symbolTable.copy()
         for (stmt in token.children) {
             when (stmt.value) {
                 "while" -> evaluateWhile(stmt, symbolTable)
@@ -81,6 +57,23 @@ object FunctionEvaluation {
             }
         }
         return Unit
+    }
+
+    private fun evaluateWhile(token: Token, symbolTable: SymbolTable) {
+        val condition = token.children[0]
+        val block = token.children[1]
+        while (evaluateValue(condition, symbolTable).toBoolean(condition)) {
+            evaluateBlock(block, symbolTable)
+        }
+    }
+
+    private fun evaluateIf(token: Token, symbolTable: SymbolTable) {
+        val condition = token.children[0]
+        val trueBlock = token.children[1]
+        if (evaluateValue(condition, symbolTable).toBoolean(condition))
+            evaluateBlock(trueBlock, symbolTable)
+        else if (token.children.size == 3)
+            evaluateBlock(token.children[2], symbolTable)
     }
 
     private fun Any.toVariable(name: String, parent: Type? = null): Variable {
@@ -171,10 +164,19 @@ object FunctionEvaluation {
             val element = args.variables["x"]!!
             if (list is Primitive && list.value is MutableList<*>) {
                 if (element is Primitive)
-                    (list.value as MutableList<*>).any { (it is Primitive && it.value == element.value) }.toInt()
+                    (list.value as MutableList<*>).any { (it is Primitive && it == element) }.toInt()
                 else (list.value as MutableList<*>).any { it == element }.toInt()
             } else throw PositionalException("has is not applicable for this type", token.children[1])
         }, 2..2)
         return res
+    }
+
+    fun addFunction(token: Token) {
+        val func = Function(
+            token.children[0].children[0].value,
+            token.children[0].children.subList(1, token.children[0].children.size).map { it.value },
+            token.children[1]
+        )
+        functions[func.name] = func
     }
 }

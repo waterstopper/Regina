@@ -9,8 +9,6 @@ import evaluation.TypeManager.addType
 import evaluation.TypeManager.types
 import lexer.PositionalException
 import lexer.Token
-import properties.Primitive
-import properties.Type
 import structure.SymbolTable
 import java.util.*
 import kotlin.random.Random
@@ -71,39 +69,6 @@ object Evaluation {
         }
     }
 
-    fun evaluateAssignment(token: Token, symbolTable: SymbolTable) {
-        when (token.children[0].symbol) {
-            "[" -> {
-                val element = ValueEvaluation.evaluateIndex(token, symbolTable)
-                if (element is Primitive) {
-                    element.value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
-                } else throw PositionalException("expected variable for assignment", token.children[0])
-            }
-            "." -> {
-                val link = ValueEvaluation.evaluateLink(token.children[0], symbolTable)
-                if (link is Primitive)
-                    link.value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
-                else throw PositionalException("class reassignment is prohibited", token)
-            }
-            "(IDENT)" -> {
-                val symbol = symbolTable.findIndentfier(token.children[0].value)
-                if (symbol != null) {
-                    if (symbol is Primitive)
-                        symbol.value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
-                    else throw PositionalException("class reassignment is prohibited", token)
-                } else {
-                    val value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
-                    if (value is Type) {
-                        value.name = token.children[0].value
-                        symbolTable.variables[value.name] = value
-                    } else symbolTable.variables[token.children[0].value] =
-                        Primitive(token.children[0].value, value, null)
-                }
-            }
-            else -> throw PositionalException("identifier or reference expected", token)
-        }
-    }
-
 //    private fun evaluateType(token: Token) {
 //        getTypeName(token.children[0])
 //        interpretClassBlock(token.children[1])
@@ -143,7 +108,7 @@ object Evaluation {
                 val typeToken = stack.pop()
                 val supertypeName = TypeManager.resolvedSupertype(typeToken)
                 if (supertypeName == "")
-                    TypeManager.addType(typeToken)
+                    addType(typeToken)
                 else {
                     val foundSupertype = classDeclarations.find { TypeManager.getName(it) == supertypeName }
                         ?: throw Exception("no class with name $supertypeName")

@@ -4,6 +4,7 @@ import evaluation.FunctionEvaluation
 import evaluation.TypeManager
 import lexer.Token
 import evaluation.ValueEvaluation
+import lexer.PositionalException
 import structure.SymbolTable
 
 class Assignment(val token: Token) {
@@ -20,7 +21,6 @@ class Assignment(val token: Token) {
     fun replaceFirst(value: Any) {
         // TODO think whether first encountered link is the right one in all cases
         // TODO it will hinder resolving same type next time. Or we can have copy of that token type
-        //token.findValue(){
         token.find(".")!!.value = value.toString()
         token.children.clear()
     }
@@ -38,4 +38,39 @@ class Assignment(val token: Token) {
     }
 
     override fun toString() = "$name=-"
+
+    companion object {
+        fun evaluateAssignment(token: Token, symbolTable: SymbolTable) {
+            when (token.children[0].symbol) {
+                "[" -> {
+                    val element = ValueEvaluation.evaluateIndex(token, symbolTable)
+                    if (element is Primitive) {
+                        element.value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
+                    } else throw PositionalException("expected variable for assignment", token.children[0])
+                }
+                "." -> {
+                    val link = ValueEvaluation.evaluateLink(token.children[0], symbolTable)
+                    if (link is Primitive)
+                        link.value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
+                    else throw PositionalException("class reassignment is prohibited", token)
+                }
+                "(IDENT)" -> {
+                    val symbol = symbolTable.findIndentfier(token.children[0].value)
+                    if (symbol != null) {
+                        if (symbol is Primitive)
+                            symbol.value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
+                        else throw PositionalException("class reassignment is prohibited", token)
+                    } else {
+                        val value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
+                        if (value is Type) {
+                            value.name = token.children[0].value
+                            symbolTable.variables[value.name] = value
+                        } else symbolTable.variables[token.children[0].value] =
+                            Primitive(token.children[0].value, value, null)
+                    }
+                }
+                else -> throw PositionalException("identifier or reference expected", token)
+            }
+        }
+    }
 }

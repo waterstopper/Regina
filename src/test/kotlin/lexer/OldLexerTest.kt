@@ -4,7 +4,7 @@ import deprecated.Symbol
 import org.junit.Assert
 import org.junit.Test
 @Deprecated("")
-internal class LexerTest {
+internal class OldLexerTest {
     private val regex = Regex("([A-Za-z][\\w]*)(.[A-Za-z][\\w]*)*")
 
     @Test

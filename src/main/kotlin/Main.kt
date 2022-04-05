@@ -1,13 +1,8 @@
 import deprecated.Formula
 import deprecated.OldContainer
 import deprecated.TreeBuilder
-import evaluation.FunctionEvaluation
 import lexer.Token
 import lexer.Parser
-import properties.Property
-import structure.SymbolTable
-import evaluation.TypeManager
-import properties.Function
 import java.io.File
 
 fun main(args: Array<String>) {
@@ -27,7 +22,6 @@ fun main(args: Array<String>) {
 //    t.resolveTree()
 //    val p = Painter(t.root)
 //    p.deprecated.export()
-
     val text = File("constants").readText()
     val s = Parser(text).statements()
     println(s.treeView())

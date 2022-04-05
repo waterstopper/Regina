@@ -13,7 +13,7 @@ object ValueEvaluation {
             "." -> evaluateLink(token, symbolTable)
             "(IDENT)" -> evaluateIdentifier(token, symbolTable)
             "(NUMBER)" -> if (token.value.contains(".")) token.value.toDouble() else token.value.toInt()
-            "(STRING)" -> token.value.substring(1, token.value.length - 1)
+            "(STRING)" -> token.value
             "(" -> {
                 val res = evaluateInvocation(token, symbolTable)
                 if (res is Unit)
@@ -32,6 +32,18 @@ object ValueEvaluation {
             "[]" -> token.children.map { evaluateValue(it, symbolTable) }.toMutableList()
             "if" -> evaluateTernary(token, symbolTable)
             "+" -> evaluateValue(token.children[0], symbolTable) + evaluateValue(token.children[1], symbolTable)
+            "==" -> evaluateValue(token.children[0], symbolTable).eq(
+                evaluateValue(
+                    token.children[1],
+                    symbolTable
+                )
+            ).toInt()
+            "!=" -> evaluateValue(token.children[0], symbolTable).neq(
+                evaluateValue(
+                    token.children[1],
+                    symbolTable
+                )
+            ).toInt()
             else -> evaluateInfixArithmetic(token, symbolTable)
         }
     }
@@ -62,12 +74,16 @@ object ValueEvaluation {
 
     fun evaluateIndex(token: Token, symbolTable: SymbolTable): Any {
         val array = evaluateValue(token.children[0], symbolTable)
-        if (array is List<*>) {
-            val index = evaluateValue(token.children[1], symbolTable)
-            if (index is Int)
-                return array[index]!!
-            else throw PositionalException("expected Int as index", token)
-        } else throw PositionalException("array expected", token)
+        val index = evaluateValue(token.children[1], symbolTable)
+        if (index is Int) {
+            return when (array) {
+                is List<*> -> if (index < array.size) array[index]!!
+                else throw PositionalException("index $index out of bounds for array of size ${array.size}", token)
+                is String -> if (index < array.length) array[index]
+                else throw PositionalException("index $index out of bounds for string of length ${array.length}", token)
+                else -> throw PositionalException("array or string expected", token)
+            }
+        } else throw PositionalException("expected Int as index", token)
     }
 
     private fun evaluateInfixArithmetic(token: Token, symbolTable: SymbolTable): Number {
@@ -89,10 +105,9 @@ object ValueEvaluation {
                 "<" -> (a.toDouble() < b.toDouble()).toInt()
                 ">=" -> (a.toDouble() >= b.toDouble()).toInt()
                 "<=" -> (a.toDouble() <= b.toDouble()).toInt()
-                "==" -> (a == b).toInt()
-                "!=" -> (a != b).toInt()
                 "&" -> (a != 0 && b != 0).toInt()
                 "|" -> (a != 0 || b != 0).toInt()
+                // never happens, because // is for comments
                 "//" -> a.toInt() / b.toInt()
                 else -> evaluateDuplicatedOperators(a, b, token)
             }
@@ -147,9 +162,15 @@ object ValueEvaluation {
 
     private operator fun Any.plus(other: Any): Any {
         if (this is MutableList<*>) {
-            if (other is MutableList<*>)
-                return (this as MutableList<Any>).addAll(other as MutableList<Any>)
-            else (this as MutableList<Any>).add(other)
+            return if (other is MutableList<*>) {
+                val res = this.toMutableList()
+                res.addAll(other)
+                res
+            } else {
+                val res = this.toMutableList()
+                res.add(other)
+                res
+            }
         }
         if (this is String || other is String)
             return this.toString() + other.toString()
@@ -167,7 +188,32 @@ object ValueEvaluation {
         throw PositionalException("! operator applicable to numeric", token)
     }
 
+    private fun Any.eq(other: Any): Boolean {
+        if (this is Number && other is Number)
+            return this.toDouble() == other.toDouble()
+        if (this is MutableList<*> && other is MutableList<*>) {
+            var res = true
+            this.forEachIndexed { index, _ ->
+                if (!this[index]!!.eq(other[index]!!)) {
+                    res = false
+                }
+            }
+            return res
+        }
+        return this == other
+    }
+
+    private fun Any.neq(other: Any) = !this.eq(other)
+
     fun Boolean.toInt(): Int = if (this) 1 else 0
+    fun Any.toBoolean(token: Token): Boolean {
+        try {
+            return this.toString().toDouble() != 0.0
+        } catch (e: NumberFormatException) {
+            throw PositionalException("expected numeric value", token)
+        }
+    }
 }
+
 
 

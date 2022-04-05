@@ -1,3 +1,47 @@
+//
+
+fun main(){
+/*
+log([0]+1)
+log(("t"+"t")[0])
+log(5/2)
+a = toRadians(32)
+c = Segment()
+log(rndInt(64,999))
+log(rndInt(64,999))
+//log(c)
+arr  =[c,"a",1]
+//log(arr)
+add(arr,2)
+add(arr,1,2)
+//log(arr)
+log(remove(arr,c))
+log(arr)
+removeAt(arr,1)
+log(arr)
+log(has(arr,2))
+a = []
+b=[]
+log(a==b)
+log([0]==[0.0])
+*/
+log(if(-1) 1 else 0)
+whileFun()
+}
+
+fun whileFun(){
+    a = 1
+    while(a<5){
+      if(a%2==0){
+            log(a)
+            } else{
+            //log(a+1)
+            }
+        a = a + 1
+        }
+    log(a)
+}
+
 class Colors {
     BLACK = "000000"
     WHITE = "FFFFFF"
@@ -13,6 +57,7 @@ class Colors {
     CHERRY = "FD5FF0"
     CHERRY = "69122D"
 }
+
 class Root {
 segm = Segment()
 iter = 0
@@ -43,7 +88,8 @@ fun abs(x) {
 }
 
 fun toRadians(deg) {
-    return abs(-deg) * 3 / 180
+    return abs( \
+    -deg) * 3 / 180
 }
 
 // returns random int in range [a,b]
@@ -54,24 +100,6 @@ fun rndInt(a,b)  {
     return a + t
 }
 
-fun main(){
-a = toRadians(32)
-c = Segment()
-log(rndInt(64,999))
-log(rndInt(64,999))
-//log(c)
-arr  =[c,"",1]
-//log(arr)
-add(arr,2)
-add(arr,1,2)
-//log(arr)
-log(remove(arr,c))
-log(arr)
-removeAt(arr,1)
-log(arr)
-log(has(arr,2))
-}
-
 // get all classes of classRef type
 fun all(classRef) {
     res = []
@@ -80,7 +108,9 @@ fun all(classRef) {
         current = stack.pop()
         if(current is classRef) {
             res.add(current)
+        } else {
+        }
         }
         stack.add(res.properties !is Value)
     }
-}
+}//
