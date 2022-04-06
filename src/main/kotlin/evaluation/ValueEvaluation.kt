@@ -44,8 +44,18 @@ object ValueEvaluation {
                     symbolTable
                 )
             ).toInt()
+            "is" -> evaluateTypeCheck(token, symbolTable).toInt()
+            "!is" -> (!evaluateTypeCheck(token, symbolTable)).toInt()
             else -> evaluateInfixArithmetic(token, symbolTable)
         }
+    }
+
+    private fun evaluateTypeCheck(token: Token, symbolTable: SymbolTable): Boolean {
+        val checked = evaluateValue(token.children[0], symbolTable)
+        val type = evaluateValue(token.children[1], symbolTable)
+        if (checked is Type && type is Type && type.symbolTable.isEmpty())
+            return checked.typeName == type.typeName
+        throw PositionalException("expected class instance as left operator and class name as right operator", token)
     }
 
     fun evaluateLink(token: Token, symbolTable: SymbolTable): Any {
@@ -69,7 +79,7 @@ object ValueEvaluation {
             )
         return if (identifier is Primitive)
             identifier.value
-        else identifier
+        else (identifier as Type)
     }
 
     fun evaluateIndex(token: Token, symbolTable: SymbolTable): Any {

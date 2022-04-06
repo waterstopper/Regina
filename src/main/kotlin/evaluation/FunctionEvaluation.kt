@@ -37,7 +37,7 @@ object FunctionEvaluation {
             ).toVariable(function.args[index])
         }, function.args)
         if (function is EmbeddedFunction)
-            return function.executeFunction(token, symbolTable)
+            return function.executeFunction(token, localTable)
         return evaluateBlock(function.body, localTable)
     }
 
@@ -177,6 +177,6 @@ object FunctionEvaluation {
             token.children[0].children.subList(1, token.children[0].children.size).map { it.value },
             token.children[1]
         )
-        functions[func.name] = func
+        functions[token.children[0].children[0].value] = func
     }
 }

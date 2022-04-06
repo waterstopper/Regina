@@ -1,6 +1,12 @@
 package properties
 
-abstract class Variable(var name: String, val parent: Type?) {
+abstract class Variable(name: String, val parent: Type?) {
+    protected var name = name
+        set(_) {
+            println("BAD")
+        }
+
+
     override fun toString() = "$name:$parent"
 
     override fun equals(other: Any?): Boolean {

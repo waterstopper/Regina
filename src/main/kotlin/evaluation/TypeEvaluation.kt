@@ -2,6 +2,7 @@ package evaluation
 
 import evaluation.Evaluation.evaluateInvocation
 import evaluation.Evaluation.globalTable
+import evaluation.ValueEvaluation.evaluateValue
 import lexer.PositionalException
 import lexer.Token
 import properties.Assignment
@@ -14,17 +15,12 @@ import java.util.*
  * Do BFS for each NodeDeclaration children
  */
 object TypeEvaluation {
-    fun resolveTree(root: Type) {
-
-        println(root)
+    fun resolveTree(root: Type):Type {
         do {
             val current = bfs(root) ?: break
             processNode(current)
         } while (true)
-    }
-
-    fun evaluateProperty(assignment: Assignment) {
-
+        return root
     }
 
     /**
@@ -52,16 +48,17 @@ object TypeEvaluation {
             // evaluate assignment into node
             if (current.canEvaluate()) {
                 val node = current.evaluate()
-                current.parent.symbolTable.variables[node.name] = node
+                current.parent.symbolTable.variables[current.name] = node
                 current.parent.assignments.remove(current)
                 stack.pop()
             } else
                 if (current.token.find(".") != null)
                     processLink(current, stack)
-                else if (current.token.find("(") != null)
-                    TODO("not yet implemented")
+                else if (current.token.children[1].find("(") != null)
+                //    evaluateValue(current.token.children[1], current.parent.symbolTable)
                 else if (current.token.children[1].find("(IDENT)") != null)
                     processIdentifier(current, stack)
+
         }
     }
 

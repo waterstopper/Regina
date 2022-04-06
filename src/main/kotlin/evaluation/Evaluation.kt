@@ -44,7 +44,7 @@ object Evaluation {
             when (token.symbol) {
                 "fun" -> {
                     val func = createFunction(token, null)
-                    globalTable.functions[func.name] = func
+                    globalTable.functions[token.children[0].children[0].value] = func
                 }
                 "class" -> addType(token)
                 "object" -> {
@@ -64,8 +64,8 @@ object Evaluation {
                 token.children.subList(1, token.children.size), symbolTable
             )
         else {
-            resolveTree(types[token.children[0].value]!!)
-            return types[token.children[0].value]!!
+            val a = resolveTree(types[token.children[0].value]!!.copy())
+            return a
         }
     }
 

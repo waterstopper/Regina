@@ -13,6 +13,8 @@ class Assignment(val token: Token) {
     // should be val, but no way to do it
     lateinit var parent: Type
 
+    fun copy() = Assignment(token.copy())
+
     fun canEvaluate(): Boolean = token.children[1].find("(IDENT)") == null
             && token.children[1].find("parent") == null
 
@@ -63,13 +65,13 @@ class Assignment(val token: Token) {
                     } else {
                         val value = ValueEvaluation.evaluateValue(token.children[1], symbolTable)
                         if (value is Type) {
-                            value.name = token.children[0].value
-                            symbolTable.variables[value.name] = value
+                            // value.name = token.children[0].value
+                            symbolTable.variables[token.children[0].value] = value
                         } else symbolTable.variables[token.children[0].value] =
                             Primitive(token.children[0].value, value, null)
                     }
                 }
-                else -> throw PositionalException("identifier or reference expected", token)
+                else -> throw PositionalException("identifier, reference or index expected", token)
             }
         }
     }

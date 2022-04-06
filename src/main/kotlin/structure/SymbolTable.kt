@@ -22,7 +22,9 @@ class SymbolTable(
         }
     }
 
-    fun addVariables(variables: List<Variable>,names:List<String>) {
+    fun isEmpty(): Boolean = variables.isEmpty()
+
+    fun addVariables(variables: List<Variable>, names: List<String>) {
         for (i in variables.indices)
             this.variables[names[i]] = variables[i]
     }

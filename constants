@@ -25,8 +25,13 @@ b=[]
 log(a==b)
 log([0]==[0.0])
 */
-log(if(-1) 1 else 0)
-whileFun()
+//log(if(-1) 1 else 0)
+//whileFun()
+//Root()
+c=Segment()
+d= c
+log(c)
+log(c is Colors)
 }
 
 fun whileFun(){

@@ -14,6 +14,10 @@ class Token(
     var std: ((token: Token, parser: Parser) -> Token)? = null,
     val children: MutableList<Token> = mutableListOf()
 ) {
+    fun copy(): Token =
+        Token(symbol, value, position, bindingPower, nud, led, std, children.map { it.copy() }.toMutableList())
+
+
     fun toTreeString(indentation: Int = 0): String {
         val res = StringBuilder()
         for (i in 0 until indentation)
