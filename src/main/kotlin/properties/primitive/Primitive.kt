@@ -1,9 +1,14 @@
-package properties
+package properties.primitive
+
+import lexer.PositionalException
+import lexer.Token
+import properties.Property
+import properties.Type
 
 /**
  * Stores Array, String, Int, Double values
  */
-class Primitive(name: String, var value: Any, parent: Type?) : Property(name, parent) {
+abstract class Primitive(name: String, var value: Any, parent: Type?) : Property(name, parent) {
 
     fun getSymbol(): String {
         return when (value) {
@@ -29,5 +34,17 @@ class Primitive(name: String, var value: Any, parent: Type?) : Property(name, pa
         var result = super.hashCode()
         result = 31 * result + value.hashCode()
         return result
+    }
+
+    companion object {
+        fun createPrimitive(value: Any, parent: Type?, token: Token=Token()): Primitive {
+            return when (value) {
+                is String -> PString(value, parent)
+                is List<*> -> PArray(value as MutableList<Any>, parent)
+                is Int -> PInt(value, parent)
+                is Double -> PDouble(value, parent)
+                else -> throw PositionalException("cannot create variable of type ${value.javaClass}", token)
+            }
+        }
     }
 }

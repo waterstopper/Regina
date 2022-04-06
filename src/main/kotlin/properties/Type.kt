@@ -1,5 +1,8 @@
 package properties
 
+import evaluation.ValueEvaluation
+import lexer.PositionalException
+import lexer.Token
 import structure.SymbolTable
 
 class Type(
@@ -36,5 +39,23 @@ class Type(
         val vars = mutableMapOf<String, Variable>()
         vars["parent"] = parent
         return SymbolTable(vars)
+    }
+
+    companion object {
+        /**
+         * similar to ValueEvaluation.evaluateLink()
+         */
+        fun getPropertyNameAndTable(token: Token, symbolTable: SymbolTable): Pair<String, SymbolTable> {
+            var linkRoot = token
+            var table = symbolTable
+            while (linkRoot.value == ".") {
+                val type = table.variables[linkRoot.left.value]
+                if (type !is Type)
+                    throw PositionalException("expected class", linkRoot.left)
+                linkRoot = linkRoot.right
+                table = type.symbolTable
+            }
+            return Pair(linkRoot.value, table)
+        }
     }
 }

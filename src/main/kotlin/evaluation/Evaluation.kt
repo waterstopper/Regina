@@ -14,14 +14,10 @@ import java.util.*
 import kotlin.random.Random
 
 object Evaluation {
-    const val SEED = 42
+    private const val SEED = 42
     val rnd = Random(SEED)
     val globalTable = SymbolTable(mutableMapOf(), functions)
-    lateinit var declarations: List<Token>
-//    init {
-//        initializeTypes()
-//        initializeFunctions()
-//    }
+    private lateinit var declarations: List<Token>
 
     private fun initializeObjects() {
         declarations.filter { it.value == "object" }.forEach { TypeManager.addObject(it) }
@@ -64,8 +60,7 @@ object Evaluation {
                 token.children.subList(1, token.children.size), symbolTable
             )
         else {
-            val a = resolveTree(types[token.children[0].value]!!.copy())
-            return a
+            return types[token.children[0].value]!!.copy()
         }
     }
 
@@ -73,26 +68,6 @@ object Evaluation {
 //        getTypeName(token.children[0])
 //        interpretClassBlock(token.children[1])
 //    }
-
-    private fun interpretClassBlock(token: Token) {
-        for (assignment in token.children)
-            interpretAssignment(assignment)
-    }
-
-    private fun interpretAssignment(assignment: Token) {
-        if (assignment.symbol != "=")
-            throw PositionalException("class contains assignments only", assignment)
-    }
-
-    private fun interpretFunction(token: Token) {
-        throw PositionalException("functions not yet implemented", token)
-    }
-
-    private fun getTypeName(token: Token) {
-        if (token.symbol != ":")
-            throw PositionalException("class should have superclass", token)
-        token.children[0].children[0].symbol
-    }
 
     private fun initializeTypes() {
         val stack = Stack<Token>()

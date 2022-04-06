@@ -22,7 +22,7 @@ object TypeManager {
 //            throw PositionalException("undefined superclass", token.children[0].children[1].position)
         val res = mutableListOf<Assignment>()
         val functions = mutableListOf<Token>()
-        for (a in token.children[1].children) {
+        for (a in token.right.children) {
             if (a.symbol == "fun")
                 functions.add(a)
             else res.add(Assignment(a))
@@ -33,11 +33,11 @@ object TypeManager {
             assignment.parent = types[name]!!
         for (func in functions) {
             val type = types[name]!!
-            type.symbolTable.functions[func.children[0].value] =
+            type.symbolTable.functions[func.left.value] =
                 Function(
-                    func.children[0].value,
-                    (func.children - func.children[0]).map { it.value },
-                    func.children[1],
+                    func.left.value,
+                    (func.children - func.left).map { it.value },
+                    func.right,
                     type
                 )
         }

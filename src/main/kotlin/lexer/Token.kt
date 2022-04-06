@@ -14,6 +14,10 @@ class Token(
     var std: ((token: Token, parser: Parser) -> Token)? = null,
     val children: MutableList<Token> = mutableListOf()
 ) {
+    val left: Token
+        get() = children[0]
+    val right: Token
+        get() = children[1]
     fun copy(): Token =
         Token(symbol, value, position, bindingPower, nud, led, std, children.map { it.copy() }.toMutableList())
 

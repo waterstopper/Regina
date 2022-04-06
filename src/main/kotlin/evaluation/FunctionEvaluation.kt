@@ -3,15 +3,15 @@ package evaluation
 import evaluation.Evaluation.evaluateInvocation
 import evaluation.Evaluation.globalTable
 import evaluation.Evaluation.rnd
-import evaluation.FunctionEvaluation.evaluateBlock
+import evaluation.TypeEvaluation.resolveTree
 import lexer.PositionalException
 import lexer.Token
 import evaluation.ValueEvaluation.evaluateValue
 import evaluation.ValueEvaluation.toBoolean
-import evaluation.ValueEvaluation.toInt
 import properties.*
 import properties.Assignment.Companion.evaluateAssignment
 import properties.Function
+import properties.primitive.*
 import structure.*
 
 object FunctionEvaluation {
@@ -30,11 +30,11 @@ object FunctionEvaluation {
     fun evaluateFunction(token: Token, function: Function, args: List<Token>, symbolTable: SymbolTable): Any {
         // this table is used for function execution. Hence, it should contain only function arguments
         val localTable = globalTable.copy()
-        localTable.addVariables(args.mapIndexed { index, it ->
+        localTable.addVariables(args.map {
             evaluateValue(
                 it,
                 symbolTable
-            ).toVariable(function.args[index])
+            ).toVariable(token)//(function.args[index])
         }, function.args)
         if (function is EmbeddedFunction)
             return function.executeFunction(token, localTable)
@@ -76,11 +76,11 @@ object FunctionEvaluation {
             evaluateBlock(token.children[2], symbolTable)
     }
 
-    private fun Any.toVariable(name: String, parent: Type? = null): Variable {
+    fun Any.toVariable(token: Token, parent: Type? = null): Variable {
         if (this is Type) {
-            return this
+            return resolveTree(this)
         }
-        return Primitive(name, this, parent)
+        return Primitive.createPrimitive(this, parent, token)
     }
 
     private fun initializeEmbedded(): MutableMap<String, Function> {
@@ -95,80 +95,23 @@ object FunctionEvaluation {
             args.variables["x"].toString()
         })
         res["int"] = EmbeddedFunction("int", listOf("x"), { token, args ->
-            val argument = args.variables["x"]
-            if (argument is Primitive) {
-                when (argument.value) {
-                    is Double -> (argument.value as Double).toInt()
-                    is Int -> argument.value
-                    is String -> (argument.value as String).toInt()
-                    else -> throw PositionalException("cannot cast array to integer", token)
-                }
-            } else throw PositionalException("cannot cast class to integer")
+            when (val argument = args.variables["x"]) {
+                is PDouble -> (argument.value as Double).toInt()
+                is PInt -> argument.value
+                is PString -> (argument.value as String).toInt()
+                else -> throw PositionalException("cannot cast type to integer", token)
+            }
         })
         res["double"] = EmbeddedFunction("double", listOf("x"), { token, args ->
-            val argument = args.variables["x"]
-            if (argument is Primitive) {
-                when (argument.value) {
-                    is Double -> argument.value
-                    is Int -> (argument.value as Int).toDouble()
-                    is String -> (argument.value as String).toDouble()
-                    else -> throw PositionalException("cannot cast array to double", token.children[1])
-                }
-            } else throw PositionalException("cannot cast class to double")
+            when (val argument = args.variables["x"]) {
+                is PDouble -> (argument.value as Double)
+                is PInt -> (argument.value as Int).toDouble()
+                is PString -> (argument.value as String).toDouble()
+                else -> throw PositionalException("cannot cast type to integer", token)
+            }
         })
-        res["add"] = EmbeddedFunction("add", listOf("arr", "i", "x"), { token, args ->
-            val list = args.variables["arr"]
-            if (list is Primitive && list.value is MutableList<*>) {
-                val argument = if (args.variables["x"] != null) args.variables["x"]!! else args.variables["i"]!!
-                val indexVar: Any = args.variables["i"]!!
-                var index = (list.value as MutableList<*>).size
-                if (args.variables["x"] != null)
-                    if (indexVar is Primitive && indexVar.value is Int) {
-                        index = (indexVar.value as Int)
-                    } else throw PositionalException("expected integer as index", token.children[2])
-                (list.value as MutableList<Any>).add(index, argument)
-            } else throw PositionalException("add is not applicable for this type", token.children[1])
-        }, 2..3)
-        res["remove"] = EmbeddedFunction("remove", listOf("arr", "x"), { token, args ->
-            val list = args.variables["arr"]
-            if (list is Primitive && list.value is MutableList<*>) {
-                val argument = args.variables["x"]!!
-                if (argument is Primitive) {
-                    var removed = false
-                    for (e in (list.value as MutableList<*>)) {
-                        if (e is Primitive && e.value == argument.value) {
-                            removed = true
-                            (list.value as MutableList<*>).remove(e)
-                            break
-                        }
-                    }
-                    removed
-                } else (list.value as MutableList<*>).remove(argument).toInt()
-            } else throw PositionalException("remove is not applicable for this type", token.children[1])
-        }, 2..2)
-        res["removeAt"] = EmbeddedFunction("removeAt", listOf("arr", "i"), { token, args ->
-            val list = args.variables["arr"]
-            val index = args.variables["i"]!!
-            if (list is Primitive && list.value is MutableList<*>) {
-                if (index is Primitive && index.value is Int)
-                    try {
-                        (list.value as MutableList<*>).removeAt(index.value as Int)!!
-                    } catch (e: IndexOutOfBoundsException) {
-                        throw PositionalException("index ${index.value} out of bounds for length ${(list.value as MutableList<*>).size}")
-                    }
-                else throw PositionalException("expected integer as index", token.children[2])
-            } else throw PositionalException("removeAt is not applicable for this type", token.children[1])
-        }, 2..2)
-        res["has"] = EmbeddedFunction("has", listOf("arr", "x"), { token, args ->
-            val list = args.variables["arr"]
-            val element = args.variables["x"]!!
-            if (list is Primitive && list.value is MutableList<*>) {
-                if (element is Primitive)
-                    (list.value as MutableList<*>).any { (it is Primitive && it == element) }.toInt()
-                else (list.value as MutableList<*>).any { it == element }.toInt()
-            } else throw PositionalException("has is not applicable for this type", token.children[1])
-        }, 2..2)
-        return res
+
+        return (res + PArray.initializeEmbeddedArrayFunctions()) as MutableMap<String, Function>
     }
 
     fun addFunction(token: Token) {

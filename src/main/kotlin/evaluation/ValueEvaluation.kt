@@ -1,9 +1,10 @@
 package evaluation
 
 import evaluation.Evaluation.evaluateInvocation
+import evaluation.FunctionEvaluation.toVariable
 import lexer.PositionalException
 import lexer.Token
-import properties.Primitive
+import properties.primitive.Primitive
 import properties.Type
 import structure.*
 
@@ -29,7 +30,7 @@ object ValueEvaluation {
             "true" -> 1
             "false" -> 0
             "!" -> evaluateNot(token, symbolTable)
-            "[]" -> token.children.map { evaluateValue(it, symbolTable) }.toMutableList()
+            "[]" -> token.children.map { evaluateValue(it, symbolTable).toVariable(it) }.toMutableList()
             "if" -> evaluateTernary(token, symbolTable)
             "+" -> evaluateValue(token.children[0], symbolTable) + evaluateValue(token.children[1], symbolTable)
             "==" -> evaluateValue(token.children[0], symbolTable).eq(
@@ -86,10 +87,11 @@ object ValueEvaluation {
         val array = evaluateValue(token.children[0], symbolTable)
         val index = evaluateValue(token.children[1], symbolTable)
         if (index is Int) {
+            println(array)
             return when (array) {
-                is List<*> -> if (index < array.size) array[index]!!
+                is MutableList<*> -> if (index < array.size) array[index]!!
                 else throw PositionalException("index $index out of bounds for array of size ${array.size}", token)
-                is String -> if (index < array.length) array[index]
+                is String -> if (index < array.length) array[index].toString()
                 else throw PositionalException("index $index out of bounds for string of length ${array.length}", token)
                 else -> throw PositionalException("array or string expected", token)
             }

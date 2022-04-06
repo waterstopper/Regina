@@ -2,12 +2,11 @@ package evaluation
 
 import evaluation.Evaluation.evaluateInvocation
 import evaluation.Evaluation.globalTable
-import evaluation.ValueEvaluation.evaluateValue
 import lexer.PositionalException
 import lexer.Token
 import properties.Assignment
 import properties.Type
-import properties.Primitive
+import properties.primitive.Primitive
 import java.util.*
 
 
@@ -33,7 +32,6 @@ object TypeEvaluation {
             val current = stack.pop()
             if (current.assignments.isNotEmpty())
                 return current.assignments.first()
-
             val containers = current.symbolTable.variables.values.filterIsInstance<Type>()
             stack.addAll(containers)
         }
@@ -54,16 +52,16 @@ object TypeEvaluation {
             } else
                 if (current.token.find(".") != null)
                     processLink(current, stack)
-                else if (current.token.children[1].find("(") != null)
+                else if (current.token.right.find("(") != null)
                 //    evaluateValue(current.token.children[1], current.parent.symbolTable)
-                else if (current.token.children[1].find("(IDENT)") != null)
+                else if (current.token.right.find("(IDENT)") != null)
                     processIdentifier(current, stack)
 
         }
     }
 
     private fun processIdentifier(current: Assignment, stack: Stack<Assignment>) {
-        val identifier = current.token.children[1].find("(IDENT)")!!
+        val identifier = current.token.right.find("(IDENT)")!!
         val property = current.parent.symbolTable.variables[identifier.value]
         if (property != null) {
             if (property is Primitive) {
@@ -83,51 +81,51 @@ object TypeEvaluation {
         var parent = current.parent
         // TODO not considering (if a.b > 0 a.b else a.c).f
         while (nextToken.value == ".") {
-            when (nextToken.children[0].symbol) {
+            when (nextToken.left.symbol) {
                 "parent" -> {
                     parent = parent.parent
-                        ?: throw PositionalException("no parent in root class", nextToken.children[0])
+                        ?: throw PositionalException("no parent in root class", nextToken.left)
                 }
                 "(IDENT)" -> {
-                    val assignment = current.parent.assignments.find { it.name == nextToken.children[0].value }
+                    val assignment = current.parent.assignments.find { it.name == nextToken.left.value }
                     if (assignment != null) {
                         stack.add(assignment)
                         return
-                    } else if (parent.symbolTable.variables[nextToken.children[0].value] != null)
-                        parent = parent.symbolTable.variables[nextToken.children[0].value] as Type
+                    } else if (parent.symbolTable.variables[nextToken.left.value] != null)
+                        parent = parent.symbolTable.variables[nextToken.left.value] as Type
                     else if (globalTable.variables[nextToken.value] != null)
                         parent = globalTable.variables[nextToken.value] as Type
                     else throw PositionalException("no such identifier found", nextToken)
                 }
                 "(" -> {
-                    val invocation = evaluateInvocation(nextToken.children[0], parent.symbolTable)
+                    val invocation = evaluateInvocation(nextToken.left, parent.symbolTable)
                     if (invocation is Type)
                         parent = invocation
                     else throw PositionalException("only class can have property", nextToken)
                 }
-                else -> throw PositionalException("this token is not expected", nextToken.children[0])
+                else -> throw PositionalException("this token is not expected", nextToken.left)
             }
-            nextToken = nextToken.children[1]
+            nextToken = nextToken.right
         }
         when (nextToken.symbol) {
             "parent" -> {
                 parent = parent.parent
-                    ?: throw PositionalException("no parent in root class", nextToken.children[0])
+                    ?: throw PositionalException("no parent in root class", nextToken.left)
             }
             "(IDENT)" -> {
                 val assignment = current.parent.assignments.find { it.name == nextToken.value }
                 if (assignment != null) {
                     stack.add(assignment)
                     return
-                } else if (parent.symbolTable.variables[nextToken.children[0].value] != null)
-                    parent = parent.symbolTable.variables[nextToken.children[0].value] as Type
+                } else if (parent.symbolTable.variables[nextToken.left.value] != null)
+                    parent = parent.symbolTable.variables[nextToken.left.value] as Type
                 else if (globalTable.variables[nextToken.value] != null)
                     parent = globalTable.variables[nextToken.value] as Type
                 else throw PositionalException("no such identifier found", nextToken)
             }
             "(" -> {
             }
-            else -> throw PositionalException("this token is not expected", nextToken.children[0])
+            else -> throw PositionalException("this token is not expected", nextToken.left)
         }
         processPrimitiveProperty()
     }

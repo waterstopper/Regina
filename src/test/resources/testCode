@@ -1,21 +1,18 @@
 //
 
 fun main(){
-/*
-//log([0]+1)
-//log(("t"+"t")[0])
-//log(5/2)
-//a = toRadians(32)
-
-//log(rndInt(64,999))
-//log(rndInt(64,999))
+log([0]+1)
+log(("t"+"t")[0])
+log(5/2)
+a = toRadians(32)
+log(rndInt(64,999))
+log(rndInt(64,999))
 c = Segment()
 arr  =[c,"a",1]
 log(arr)
 add(arr,2)
 add(arr,1,2)
 log(arr)
-
 log(remove(arr,c))
 log(arr)
 removeAt(arr,1)
@@ -25,14 +22,14 @@ a = []
 b=[]
 log(a==b)
 log([0]==[0.0])
-//whileFun()
+whileFun()
 //Root()
 c=Segment()
 d = c
 c.e = Segment()
 log(c)
 log(d)
-*/
+
 
 log(if(-1) 1 else 0)
 a = [5,2]

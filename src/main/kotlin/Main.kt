@@ -1,6 +1,7 @@
 import deprecated.Formula
 import deprecated.OldContainer
 import deprecated.TreeBuilder
+import evaluation.Evaluation
 import lexer.Token
 import lexer.Parser
 import java.io.File
@@ -26,7 +27,7 @@ fun main(args: Array<String>) {
     val s = Parser(text).statements()
     println(s.treeView())
     print("")
-    val interpreter = evaluation.Evaluation.evaluate(s)
+    val interpreter = Evaluation.evaluate(s)
     // val t = SymbolTable((TypeManager.types) as (MutableList<Property>), FunctionEvaluation.functions)
     // println(interpreter.declarations)
 }
