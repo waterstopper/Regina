@@ -8,16 +8,17 @@ class Token(
     var symbol: String = "",
     var value: String = "",
     val position: Pair<Int, Int> = Pair(0, 0),
-    val bindingPower: Int = 0,
-    var nud: ((token: Token, parser: Parser) -> Token)? = null,
-    var led: ((token: Token, parser: Parser, token2: Token) -> Token)? = null,
-    var std: ((token: Token, parser: Parser) -> Token)? = null,
+    val bindingPower: Int = 0, // precedence priority
+    var nud: ((token: Token, parser: Parser) -> Token)? = null, // null denotation: values, prefix operators
+    var led: ((token: Token, parser: Parser, token2: Token) -> Token)? = null, // left denotation: infix and suffix operators
+    var std: ((token: Token, parser: Parser) -> Token)? = null, // statement denotation
     val children: MutableList<Token> = mutableListOf()
 ) {
     val left: Token
         get() = children[0]
     val right: Token
         get() = children[1]
+
     fun copy(): Token =
         Token(symbol, value, position, bindingPower, nud, led, std, children.map { it.copy() }.toMutableList())
 

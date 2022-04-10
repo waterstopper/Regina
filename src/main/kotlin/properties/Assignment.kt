@@ -1,9 +1,8 @@
 package properties
 
+import evaluation.Evaluation.globalTable
 import evaluation.FunctionEvaluation
 import evaluation.FunctionEvaluation.toVariable
-import evaluation.TypeEvaluation.resolveTree
-import evaluation.TypeManager
 import lexer.Token
 import evaluation.ValueEvaluation
 import evaluation.ValueEvaluation.evaluateIndex
@@ -34,12 +33,12 @@ class Assignment(val token: Token) {
 
 
     fun evaluate(): Property {
-        val value = ValueEvaluation.evaluateValue(
+        val value = evaluateValue(
             token.right,
-            SymbolTable((TypeManager.types) as (MutableMap<String, Variable>), FunctionEvaluation.functions)
+            globalTable//SymbolTable((TypeManager.types) as (MutableMap<String, Variable>), FunctionEvaluation.functions)
         )
         if (value is String)
-            return TypeManager.find(value) ?: Primitive.createPrimitive(value, parent)
+            return globalTable.getType(value) ?: Primitive.createPrimitive(value, parent)
         // number or array
         return Primitive.createPrimitive(value, parent)
     }
@@ -60,7 +59,7 @@ class Assignment(val token: Token) {
                         token.left,
                         symbolTable
                     )
-                    table.variables[name] = evaluateValue(token.right, symbolTable).toVariable(token.right)
+                    table.addVariable(name, evaluateValue(token.right, symbolTable).toVariable(token.right))
 //                    if (property is Primitive && newValue !is Type)
 //                        property.value = newValue
 //                    else {
@@ -68,9 +67,11 @@ class Assignment(val token: Token) {
 //                    }throw PositionalException("class reassignment is prohibited", token)
                 }
                 "(IDENT)" -> {
-                    symbolTable.variables[token.left.value] =
+                    symbolTable.addVariable(
+                        token.left.value,
                         evaluateValue(token.right, symbolTable).toVariable(token.right)
-//                    val symbol = symbolTable.findIndentfier(token.left.value)
+                    )
+//                   val symbol = symbolTable.findIndentfier(token.left.value)
 //                    if (symbol != null) {
 //                        if (symbol is Primitive)
 //                            symbol.value = evaluateValue(token.right, symbolTable)

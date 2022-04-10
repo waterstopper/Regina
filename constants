@@ -1,5 +1,5 @@
 //
-
+//import fwe
 fun main(){
 /*
 //log([0]+1)
@@ -33,12 +33,26 @@ c.e = Segment()
 log(c)
 log(d)
 */
-
+d = Segment()
+log(d)
+//add()
+d.e = 4
+log(d is Segment)
+log(Segment)
+/*
+log(d)
 log(if(-1) 1 else 0)
 a = [5,2]
 a[0] = "fads"
+//add(a, 0, d)
 log(a)
+remove()
+whileFun()*/
 }
+
+class A:B {}
+
+class B {}
 
 fun whileFun() {
     a = 1

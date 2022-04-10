@@ -254,6 +254,7 @@ class Lexer() {
         tokReg.infix("==", 30)
 
         tokReg.infix("export", 10)
+        tokReg.prefix("import")
         tokReg.infix(":", 20)
 
         tokReg.infix("is", 15)

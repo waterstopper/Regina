@@ -3,7 +3,6 @@ package evaluation
 import evaluation.Evaluation.evaluateInvocation
 import evaluation.Evaluation.globalTable
 import evaluation.Evaluation.rnd
-import evaluation.TypeEvaluation.resolveTree
 import lexer.PositionalException
 import lexer.Token
 import evaluation.ValueEvaluation.evaluateValue
@@ -15,14 +14,12 @@ import properties.primitive.*
 import structure.*
 
 object FunctionEvaluation {
-    val functions = initializeEmbedded()
-
-    fun createFunction(token: Token, parent: Type?): Function {
-        if (token.children[0].value != "(")
-            throw PositionalException("expected parentheses after function name", token.children[0])
-        val nameToken = token.children[0].children[0]
+    fun createFunction(token: Token, parent: Type? = null): Function {
+        if (token.left.value != "(")
+            throw PositionalException("expected parentheses after function name", token.left)
+        val nameToken = token.left.left
         val body = token.children[1]
-        val argsTokens = token.children[0].children - nameToken
+        val argsTokens = token.left.children - nameToken
 
         return Function(nameToken.value, argsTokens.map { it.value }, body, parent)
     }
@@ -51,7 +48,7 @@ object FunctionEvaluation {
                 "return" -> {
                     return if (stmt.children.size == 0)
                         Unit
-                    else evaluateValue(stmt.children[0], symbolTable)
+                    else evaluateValue(stmt.left, symbolTable)
                 }
                 else -> throw PositionalException("expected assignment, invocation or block", stmt)
             }
@@ -60,16 +57,16 @@ object FunctionEvaluation {
     }
 
     private fun evaluateWhile(token: Token, symbolTable: SymbolTable) {
-        val condition = token.children[0]
-        val block = token.children[1]
+        val condition = token.left
+        val block = token.right
         while (evaluateValue(condition, symbolTable).toBoolean(condition)) {
             evaluateBlock(block, symbolTable)
         }
     }
 
     private fun evaluateIf(token: Token, symbolTable: SymbolTable) {
-        val condition = token.children[0]
-        val trueBlock = token.children[1]
+        val condition = token.left
+        val trueBlock = token.right
         if (evaluateValue(condition, symbolTable).toBoolean(condition))
             evaluateBlock(trueBlock, symbolTable)
         else if (token.children.size == 3)
@@ -77,25 +74,24 @@ object FunctionEvaluation {
     }
 
     fun Any.toVariable(token: Token, parent: Type? = null): Variable {
-        if (this is Type) {
-            return resolveTree(this)
-        }
+        if (this is Type)
+            return this
         return Primitive.createPrimitive(this, parent, token)
     }
 
-    private fun initializeEmbedded(): MutableMap<String, Function> {
+    fun initializeEmbedded(): MutableMap<String, Function> {
         val res = mutableMapOf<String, Function>()
         res["log"] = EmbeddedFunction("log", listOf("x"), { _, args ->
-            println(args.variables["x"])
+            println(args.getVariable("x"))
         })
         res["rnd"] = EmbeddedFunction("rnd", listOf(), { _, _ ->
             rnd.nextDouble()
         }, 0..0)
         res["str"] = EmbeddedFunction("str", listOf("x"), { _, args ->
-            args.variables["x"].toString()
+            args.getVariable("x").toString()
         })
         res["int"] = EmbeddedFunction("int", listOf("x"), { token, args ->
-            when (val argument = args.variables["x"]) {
+            when (val argument = args.getVariable("x")) {
                 is PDouble -> (argument.value as Double).toInt()
                 is PInt -> argument.value
                 is PString -> (argument.value as String).toInt()
@@ -103,7 +99,7 @@ object FunctionEvaluation {
             }
         })
         res["double"] = EmbeddedFunction("double", listOf("x"), { token, args ->
-            when (val argument = args.variables["x"]) {
+            when (val argument = args.getVariable("x")) {
                 is PDouble -> (argument.value as Double)
                 is PInt -> (argument.value as Int).toDouble()
                 is PString -> (argument.value as String).toDouble()
@@ -112,14 +108,5 @@ object FunctionEvaluation {
         })
 
         return (res + PArray.initializeEmbeddedArrayFunctions()) as MutableMap<String, Function>
-    }
-
-    fun addFunction(token: Token) {
-        val func = Function(
-            token.children[0].children[0].value,
-            token.children[0].children.subList(1, token.children[0].children.size).map { it.value },
-            token.children[1]
-        )
-        functions[token.children[0].children[0].value] = func
     }
 }

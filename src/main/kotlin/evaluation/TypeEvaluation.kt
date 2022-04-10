@@ -14,11 +14,14 @@ import java.util.*
  * Do BFS for each NodeDeclaration children
  */
 object TypeEvaluation {
-    fun resolveTree(root: Type):Type {
+    var resolving = false
+    fun resolveTree(root: Type): Type {
+        resolving = true
         do {
             val current = bfs(root) ?: break
             processNode(current)
         } while (true)
+        resolving = false
         return root
     }
 
@@ -32,7 +35,7 @@ object TypeEvaluation {
             val current = stack.pop()
             if (current.assignments.isNotEmpty())
                 return current.assignments.first()
-            val containers = current.symbolTable.variables.values.filterIsInstance<Type>()
+            val containers = current.symbolTable.getVariables().filterIsInstance<Type>()
             stack.addAll(containers)
         }
         return null
@@ -46,13 +49,20 @@ object TypeEvaluation {
             // evaluate assignment into node
             if (current.canEvaluate()) {
                 val node = current.evaluate()
-                current.parent.symbolTable.variables[current.name] = node
+                current.parent.symbolTable.addVariable(current.name, node)
                 current.parent.assignments.remove(current)
                 stack.pop()
             } else
-                if (current.token.find(".") != null)
+                if (current.token.find(".") != null) {
+                    val nextInStack = current.parent.getFirstUnresolved(current.token.find(".")!!)
+                    if (nextInStack != null)
+                        stack.push(nextInStack.first.assignments.find { it.name == nextInStack.second }
+                            ?: throw PositionalException(
+                                "no declaration found named ${nextInStack.second}",
+                                current.token.find(".")!!
+                            ))
                     processLink(current, stack)
-                else if (current.token.right.find("(") != null)
+                } else if (current.token.right.find("(") != null)
                 //    evaluateValue(current.token.children[1], current.parent.symbolTable)
                 else if (current.token.right.find("(IDENT)") != null)
                     processIdentifier(current, stack)
@@ -62,7 +72,7 @@ object TypeEvaluation {
 
     private fun processIdentifier(current: Assignment, stack: Stack<Assignment>) {
         val identifier = current.token.right.find("(IDENT)")!!
-        val property = current.parent.symbolTable.variables[identifier.value]
+        val property = current.parent.symbolTable.getVariableOrNull(identifier)
         if (property != null) {
             if (property is Primitive) {
                 identifier.value = property.value.toString()
@@ -91,10 +101,10 @@ object TypeEvaluation {
                     if (assignment != null) {
                         stack.add(assignment)
                         return
-                    } else if (parent.symbolTable.variables[nextToken.left.value] != null)
-                        parent = parent.symbolTable.variables[nextToken.left.value] as Type
-                    else if (globalTable.variables[nextToken.value] != null)
-                        parent = globalTable.variables[nextToken.value] as Type
+                    } else if (parent.symbolTable.getVariableOrNull(nextToken.left) != null)
+                        parent = parent.symbolTable.getVariable(nextToken.left) as Type
+                    else if (globalTable.getVariableOrNull(nextToken) != null)
+                        parent = globalTable.getVariable(nextToken) as Type
                     else throw PositionalException("no such identifier found", nextToken)
                 }
                 "(" -> {
@@ -117,10 +127,10 @@ object TypeEvaluation {
                 if (assignment != null) {
                     stack.add(assignment)
                     return
-                } else if (parent.symbolTable.variables[nextToken.left.value] != null)
-                    parent = parent.symbolTable.variables[nextToken.left.value] as Type
-                else if (globalTable.variables[nextToken.value] != null)
-                    parent = globalTable.variables[nextToken.value] as Type
+                } else if (parent.symbolTable.getVariableOrNull(nextToken.left) != null)
+                    parent = parent.symbolTable.getVariable(nextToken.left) as Type
+                else if (globalTable.getVariableOrNull(nextToken) != null)
+                    parent = globalTable.getVariable(nextToken) as Type
                 else throw PositionalException("no such identifier found", nextToken)
             }
             "(" -> {

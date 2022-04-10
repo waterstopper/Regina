@@ -32,16 +32,16 @@ object ValueEvaluation {
             "!" -> evaluateNot(token, symbolTable)
             "[]" -> token.children.map { evaluateValue(it, symbolTable).toVariable(it) }.toMutableList()
             "if" -> evaluateTernary(token, symbolTable)
-            "+" -> evaluateValue(token.children[0], symbolTable) + evaluateValue(token.children[1], symbolTable)
-            "==" -> evaluateValue(token.children[0], symbolTable).eq(
+            "+" -> evaluateValue(token.left, symbolTable) + evaluateValue(token.right, symbolTable)
+            "==" -> evaluateValue(token.left, symbolTable).eq(
                 evaluateValue(
-                    token.children[1],
+                    token.right,
                     symbolTable
                 )
             ).toInt()
-            "!=" -> evaluateValue(token.children[0], symbolTable).neq(
+            "!=" -> evaluateValue(token.left, symbolTable).neq(
                 evaluateValue(
-                    token.children[1],
+                    token.right,
                     symbolTable
                 )
             ).toInt()
@@ -52,9 +52,12 @@ object ValueEvaluation {
     }
 
     private fun evaluateTypeCheck(token: Token, symbolTable: SymbolTable): Boolean {
-        val checked = evaluateValue(token.children[0], symbolTable)
-        val type = evaluateValue(token.children[1], symbolTable)
-        if (checked is Type && type is Type && type.symbolTable.isEmpty())
+        val checked = evaluateValue(token.left, symbolTable)
+        val type = evaluateValue(token.right, symbolTable)
+        if (checked is Type && type is Type
+            && checked.assignments.isEmpty()
+            && type.symbolTable.isEmpty()
+        )
             return checked.typeName == type.typeName
         throw PositionalException("expected class instance as left operator and class name as right operator", token)
     }
@@ -63,29 +66,25 @@ object ValueEvaluation {
         var linkRoot = token
         var table = symbolTable
         while (linkRoot.value == ".") {
-            val type = evaluateValue(linkRoot.children[0], table)
+            val type = evaluateValue(linkRoot.left, table)
             if (type !is Type)
-                throw PositionalException("expected class", linkRoot.children[0])
-            linkRoot = linkRoot.children[1]
+                throw PositionalException("expected class", linkRoot.left)
+            linkRoot = linkRoot.right
             table = type.symbolTable
         }
         return evaluateValue(linkRoot, table)
     }
 
     private fun evaluateIdentifier(token: Token, symbolTable: SymbolTable): Any {
-        val identifier =
-            symbolTable.findIndentfier(token.value) ?: TypeManager.find(token.value) ?: throw PositionalException(
-                "no identifier named ${token.value}",
-                token
-            )
+        val identifier = symbolTable.getIdentifier(token)
         return if (identifier is Primitive)
             identifier.value
         else (identifier as Type)
     }
 
     fun evaluateIndex(token: Token, symbolTable: SymbolTable): Any {
-        val array = evaluateValue(token.children[0], symbolTable)
-        val index = evaluateValue(token.children[1], symbolTable)
+        val array = evaluateValue(token.left, symbolTable)
+        val index = evaluateValue(token.right, symbolTable)
         if (index is Int) {
             println(array)
             return when (array) {
@@ -100,7 +99,7 @@ object ValueEvaluation {
 
     private fun evaluateInfixArithmetic(token: Token, symbolTable: SymbolTable): Number {
         if (token.children.size == 1) {
-            val a = evaluateValue(token.children[0], symbolTable)
+            val a = evaluateValue(token.left, symbolTable)
             return when (token.symbol) {
                 "-" -> evaluateUnaryMinus(a as Number)
                 else -> throw PositionalException("no such prefix operator", token)
@@ -108,8 +107,8 @@ object ValueEvaluation {
         }
         if (token.children.size == 2) {
             val (a, b) = unifyNumbers(
-                evaluateValue(token.children[0], symbolTable),
-                evaluateValue(token.children[1], symbolTable),
+                evaluateValue(token.left, symbolTable),
+                evaluateValue(token.right, symbolTable),
                 token
             )
             return when (token.symbol) {
@@ -167,8 +166,8 @@ object ValueEvaluation {
     private fun evaluateTernary(token: Token, symbolTable: SymbolTable): Any {
         if (token.children.size != 3)
             throw PositionalException("ternary if should have else branch", token)
-        return if (evaluateValue(token.children[0], symbolTable) != 0)
-            evaluateValue(token.children[1], symbolTable)
+        return if (evaluateValue(token.left, symbolTable) != 0)
+            evaluateValue(token.right, symbolTable)
         else evaluateValue(token.children[2], symbolTable)
     }
 
@@ -194,7 +193,7 @@ object ValueEvaluation {
     }
 
     private fun evaluateNot(token: Token, symbolTable: SymbolTable): Int {
-        val res = (evaluateValue(token.children[0], symbolTable))
+        val res = (evaluateValue(token.left, symbolTable))
         if (res is Number)
             return (res == 0).toInt()
         throw PositionalException("! operator applicable to numeric", token)

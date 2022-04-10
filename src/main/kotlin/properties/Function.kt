@@ -1,12 +1,18 @@
 package properties
 
+import evaluation.FunctionEvaluation.evaluateFunction
 import lexer.Token
 
 open class Function(name: String, val args: List<String>, val body: Token, parent: Type? = null) :
-    Property(name, parent) {
+    Property(name, parent), Invokable {
     override fun toString(): String {
         return "$name(${args.joinToString(separator = ",")})     ${parent ?: ""}"
     }
+
+    fun getFunctionName() = name
+
+    override fun invoke() {}
+
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
