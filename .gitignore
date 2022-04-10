@@ -4,8 +4,8 @@
 # my additions
 .gradle
 build
-/build/
-/.gradle/
+/build
+/.gradle
 
 # User-specific stuff
 .idea/**/workspace.xml
