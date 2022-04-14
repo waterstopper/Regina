@@ -5,7 +5,7 @@ import evaluation.Evaluation.globalTable
 import lexer.PositionalException
 import lexer.Token
 import properties.Assignment
-import properties.Type
+import structure.SymbolTable.Type
 import properties.primitive.Primitive
 import java.util.*
 
@@ -35,7 +35,7 @@ object TypeEvaluation {
             val current = stack.pop()
             if (current.assignments.isNotEmpty())
                 return current.assignments.first()
-            val containers = current.symbolTable.getVariables().filterIsInstance<Type>()
+            val containers = current.symbolTable.getVariableValues().filterIsInstance<Type>()
             stack.addAll(containers)
         }
         return null

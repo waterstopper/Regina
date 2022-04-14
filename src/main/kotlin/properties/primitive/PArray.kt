@@ -4,7 +4,7 @@ import evaluation.ValueEvaluation.toInt
 import lexer.PositionalException
 import properties.EmbeddedFunction
 import properties.Function
-import properties.Type
+import structure.SymbolTable.Type
 
 class PArray(value: MutableList<Any>, parent: Type?) : Primitive("", value, parent) {
     companion object {

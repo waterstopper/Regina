@@ -1,5 +1,5 @@
 package properties.primitive
 
-import properties.Type
+import structure.SymbolTable.Type
 
 class PString(value: String, parent: Type?) : Primitive("", value, parent)

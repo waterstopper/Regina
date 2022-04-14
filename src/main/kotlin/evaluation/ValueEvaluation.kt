@@ -5,7 +5,7 @@ import evaluation.FunctionEvaluation.toVariable
 import lexer.PositionalException
 import lexer.Token
 import properties.primitive.Primitive
-import properties.Type
+import structure.SymbolTable.Type
 import structure.*
 
 object ValueEvaluation {

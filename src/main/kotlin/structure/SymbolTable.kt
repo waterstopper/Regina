@@ -8,8 +8,9 @@ import properties.Function
 
 class SymbolTable(
     private val variables: MutableMap<String, Variable> = mutableMapOf(),
-) {
     var currentFile: String = ""
+) {
+
 
     companion object {
         private val importMap: MutableMap<String, MutableSet<String>> = mutableMapOf()
@@ -22,27 +23,38 @@ class SymbolTable(
     fun getImportOrNull(to: String, from: String) = importMap[to]?.contains(from) ?: false
 
     fun addImport(importedTo: String, importedFrom: String) {
-        importMap[importedTo]?.add(importedFrom) ?: mutableSetOf(importedFrom)
+        if (importMap[importedTo] == null)
+            importMap[importedTo] = mutableSetOf(importedFrom)
+        else importMap[importedTo]!!.add(importedFrom)
     }
 
     private fun getDeclared(nameToken: Token, map: MutableMap<String, MutableMap<String, Invokable>>): Invokable {
         if (nameToken.value == ".") {
-            if (nameToken.left.value == currentFile)
-                return map[nameToken.right.value]?.get(currentFile) ?: throw PositionalException(
+//            if (nameToken.left.value == currentFile)
+//                return map[nameToken.right.value]?.get(currentFile) ?: throw PositionalException(
+//                    "identifier not found",
+//                    nameToken.right
+//                )
+            if (nameToken.right.value == "(") {
+                return map[nameToken.right.left.value]?.get(nameToken.left.value) ?: throw PositionalException(
                     "identifier not found",
                     nameToken.right
                 )
+            }
             return map[nameToken.right.value]?.get(nameToken.left.value) ?: throw PositionalException(
                 "identifier not found",
                 nameToken.right
             )
         }
         val declarations =
-            map[nameToken.value] ?: throw PositionalException("identifier ${nameToken.value} not found", nameToken)
+            map[nameToken.value] ?: throw PositionalException(
+                "identifier ${nameToken.value} not found in $currentFile",
+                nameToken
+            )
         val filtered =
             declarations.filter { importMap[currentFile]?.contains(it.key) ?: false || it.key == currentFile }
         if (filtered.isEmpty())
-            throw PositionalException("identifier ${nameToken.right.value} not found", nameToken.right)
+            throw PositionalException("identifier ${nameToken.right.value} not found in $currentFile", nameToken.right)
         if (filtered.size > 1)
             throw PositionalException("import ambiguity. Such identifier found in ${filtered.keys}")
         return filtered.values.first()
@@ -51,8 +63,7 @@ class SymbolTable(
     // TODO rewrite bullshit code
     fun getType(name: String): Type? = types[name]?.get(currentFile)
 
-
-    fun getType(token: Token): Type {
+    private fun getType(token: Token): Type {
         return (getDeclared(token, types as MutableMap<String, MutableMap<String, Invokable>>) as Type).copy()
     }
 
@@ -75,7 +86,12 @@ class SymbolTable(
     }
 
     fun addType(token: Token, fileName: String) {
-        TypeManager.assignName(TypeManager.assignType(TypeManager.assignExported(token.left)))
+        Type.assignName(
+            Type.assignType(
+                Type.assignExported(token.left),
+                currentFile
+            )
+        )
 //        val name = token.left.left.symbol
 //        val type = token.left.right.symbol
 //        if (types[name] != null)
@@ -89,10 +105,10 @@ class SymbolTable(
                 functions.add(a)
             else res.add(Assignment(a))
         }
-        val added = Type("", TypeManager.name, TypeManager.superType, null, res, TypeManager.exported)
-        if (types[TypeManager.name] == null)
-            types[TypeManager.name] = mutableMapOf(fileName to added)
-        types[TypeManager.name]!![fileName] = added
+        val added = Type("", Type.name, null, res, Type.exported)
+        if (types[Type.name] == null)
+            types[Type.name] = mutableMapOf(fileName to added)
+        types[Type.name]!![fileName] = added
         for (assignment in added.assignments)
             assignment.parent = added
     }
@@ -153,7 +169,9 @@ class SymbolTable(
 
     fun getIdentifier(token: Token): Variable = variables[token.value] ?: getType(token)
 
-    fun getVariables() = variables.values
+    fun getVariableValues() = variables.values
+
+    fun getVariables() = variables.toMutableMap()
 
     fun copy(): SymbolTable = SymbolTable(variables.toMutableMap())
 
@@ -171,7 +189,7 @@ class SymbolTable(
     }
 
     override fun toString(): String =
-        "variables:${variables}"//"variables:${variables}${if (functions.isNotEmpty()) "\nfunctions:$functions" else ""}"
+        "variables:${variables}"//"variables:${variables}${if (functions.isNotEmpty()) "\n functions:$functions" else ""}"
 
     fun toStringWithAssignments(assignments: List<Assignment>): String {
         if (assignments.isEmpty())
@@ -183,51 +201,131 @@ class SymbolTable(
         return res
     }
 
-    object TypeManager {
-        var exported: Any? = null
-        var superType: Type? = null
-        var superTypes = mutableMapOf<String, String>()
-        var name = ""
 
-        fun assignExported(token: Token): Token {
-            if (token.value == "export") {
-                exported = token.right.value
-                return token.left
-            } else
-                exported = null
-            return token
+    class Type(
+        name: String,
+        val typeName: String,
+        parent: Type?,
+        val assignments: MutableList<Assignment>,
+        private val exported: Any? = null,
+        private var type: Type? = null
+    ) :
+        Property(name, parent), Invokable {
+
+        val symbolTable = baseSymbolTable()
+
+        override fun toString(): String {
+            return "$typeName${if (type != null) ":${type!!.typeName}" else ""}{parent:${parent ?: "-"}, ${
+                symbolTable.toStringWithAssignments(
+                    assignments
+                )
+            }${if (exported != null) ",to $exported" else ""}}"
         }
 
-        fun assignType(token: Token): Token {
-            if (token.value == ":") {
-                return token.left
-            } else
-                superType = null
-            return token
+        fun copy(): Type {
+            val copy =
+                Type(
+                    "",
+                    typeName,
+                    parent?.copy(),
+                    assignments.map { it.copy() }.toMutableList(),
+                    this.exported,
+                    this.type
+                )
+            copy.assignments.forEach { it.parent = copy }
+            return copy
         }
 
-        fun assignName(token: Token) {
-            name = token.value
+        private fun baseSymbolTable(): SymbolTable {
+            if (parent == null)
+                return SymbolTable()
+            val vars = mutableMapOf<String, Variable>()
+            vars["parent"] = parent
+            return SymbolTable(vars)
         }
 
-        fun getName(token: Token): String {
-            var t = token
-            while (t.children.isNotEmpty())
-                t = t.left
-            return t.value
+        fun getFirstUnresolved(token: Token): Pair<Type, String>? {
+            var linkRoot = token
+            var table = symbolTable
+            var type = this
+            while (linkRoot.value == ".") {
+                val nextType = table.getVariableOrNull(linkRoot.left) ?: return Pair(type, linkRoot.left.value)
+                if (nextType !is Type)
+                    throw PositionalException("expected class instance, but primitive was found", linkRoot.left)
+                type = nextType
+                table = type.symbolTable
+                linkRoot = linkRoot.right
+            }
+            return null
         }
 
-//        fun resolvedSupertype(token: Token): String {
-//            var t = token
-//            while (t.children.isNotEmpty()) {
-//                t = t.left
-//                if (t.value == ":") {
-//                    return if (find(t.right.value) == null)
-//                        t.right.value
-//                    else ""
-//                }
-//            }
-//            return ""
-//        }
+        companion object {
+            /**
+             * similar to ValueEvaluation.evaluateLink()
+             */
+            fun getPropertyNameAndTable(token: Token, symbolTable: SymbolTable): Pair<String, SymbolTable> {
+                var linkRoot = token
+                var table = symbolTable
+                while (linkRoot.value == ".") {
+                    val type = table.getVariable(linkRoot.left)
+                    if (type !is Type)
+                        throw PositionalException("expected class", linkRoot.left)
+                    linkRoot = linkRoot.right
+                    table = type.symbolTable
+                }
+                return Pair(linkRoot.value, table)
+            }
+
+            var exported: Any? = null
+            private var superType: Type? = null
+            private var superTypes = mutableMapOf<Pair<String, String>, Token>()
+            var name = ""
+
+            fun initializeSuperTypes() {
+                for ((pair, token) in superTypes) {
+                    val (type, fileName) = pair
+                    if (token.value == ".")
+                        types[type]!![fileName]!!.type = types[token.right.value]!![token.left.value]
+                    else {
+                        val parents = types[token.value]!!.filter {
+                            importMap[fileName]?.contains(it.key) ?: false
+                                    || it.key == fileName
+                        }
+                        if (parents.isEmpty())
+                            throw PositionalException("no superclass ${token.value} found", token)
+                        if (parents.size > 1)
+                            throw PositionalException(
+                                "superclass ambiguity. There are ${parents.size} applicable supertypes in files ${parents.keys}",
+                                token
+                            )
+                        types[type]!![fileName]!!.type = parents[parents.keys.first()]
+                    }
+                }
+                superTypes.clear()
+            }
+
+            fun assignExported(token: Token): Token {
+                if (token.value == "export") {
+                    exported = token.right.value
+                    return token.left
+                } else
+                    exported = null
+                return token
+            }
+
+            fun assignType(token: Token, fileName: String): Token {
+                if (token.value == ":") {
+                    superTypes[Pair(token.left.value, fileName)] = token.right
+                    return token.left
+                } else
+                    superType = null
+                return token
+            }
+
+            fun assignName(token: Token) {
+                name = token.value
+            }
+        }
     }
+
 }

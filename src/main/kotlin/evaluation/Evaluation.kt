@@ -8,9 +8,12 @@ import evaluation.TypeEvaluation.resolving
 import lexer.PositionalException
 import lexer.Token
 import properties.Function
-import properties.Type
+
 import readFile
 import structure.SymbolTable
+
+import structure.SymbolTable.Type
+import structure.SymbolTable.Type.Companion.initializeSuperTypes
 import java.util.*
 import kotlin.random.Random
 
@@ -37,18 +40,22 @@ object Evaluation {
 //    }
 
     fun evaluate(tokens: List<Token>, fileName: String) {
+        globalTable.currentFile = fileName
+
         val queue = ArrayDeque<Pair<Token, String>>()
         queue.addAll(tokens.map { Pair(it, fileName) })
         while (queue.isNotEmpty()) {
             val (token, currentFileName) = queue.pop()
             when (token.symbol) {
                 "fun" -> globalTable.addFunction(createFunction(token), currentFileName)
-                "class" -> globalTable.addType(token, currentFileName)
+                "class" -> {
+                    globalTable.addType(token, currentFileName)
+                }
                 "object" -> {
                 }
                 "import" -> {
-                    if (!globalTable.getImportOrNull(fileName, token.left.value)) {
-                        globalTable.addImport(fileName, token.left.value)
+                    if (!globalTable.getImportOrNull(currentFileName, token.left.value)) {
+                        globalTable.addImport(currentFileName, token.left.value)
                         queue.addAll(readFile(tokenPath = token.left).map { Pair(it, token.left.value) })
                     }
                     /**
@@ -62,7 +69,7 @@ object Evaluation {
             }
         }
         //initializeSuperTypes()
-        globalTable.currentFile = fileName
+        initializeSuperTypes()
         val main = globalTable.getMain()
         evaluateBlock(main.body, globalTable)
         println()
@@ -77,7 +84,7 @@ object Evaluation {
                 token.children.subList(1, token.children.size),
                 symbolTable
             )
-        else return if(resolving) invokable as Type else resolveTree(invokable as Type)
+        else return if (resolving) invokable as Type else resolveTree(invokable as Type)
 //        return if (symbolTable.findFunction(token.left.value) != null)
 //            evaluateFunction(
 //                token, symbolTable.findFunction(token.left.value)!!,
@@ -97,6 +104,7 @@ object Evaluation {
 //    }
 
 //    private fun initializeSuperTypes() {
+//        for(type in globalTable.getTypes())
 //        val stack = Stack<Type>()
 //        val classDeclarations = types.values.toMutableList()
 //        while (true) {

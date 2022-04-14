@@ -1,5 +1,3 @@
 package properties
 
-interface Invokable{
-    fun invoke()
-}
+interface Invokable

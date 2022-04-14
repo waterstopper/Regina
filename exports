@@ -14,7 +14,7 @@ class Vector2 : Nothing {
     y = 0.0
 }
 
-class Color : Nothing deprecated.export attribute(color) {
+class Color : Nothing export attribute(color) {
     r = 0
     g = 0
     b = 0

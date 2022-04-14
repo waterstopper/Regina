@@ -1,6 +1,8 @@
-//
-//import fwe
+import imported
+
 fun main(){
+log(addition(2,3))
+
 /*
 //log([0]+1)
 //log(("t"+"t")[0])
@@ -33,12 +35,14 @@ c.e = Segment()
 log(c)
 log(d)
 */
-d = Segment()
+
+/* d = Segment()
 log(d)
 //add()
 d.e = 4
 log(d is Segment)
-log(Segment)
+log(Segment) */
+
 /*
 log(d)
 log(if(-1) 1 else 0)
@@ -48,6 +52,15 @@ a[0] = "fads"
 log(a)
 remove()
 whileFun()*/
+
+/*
+log(A())
+fwe = A()
+fwe.e = 3
+log(fwe)
+log(A)
+log(A())
+log(B)*/
 }
 
 class A:B {}
@@ -88,7 +101,7 @@ segm = Segment()
 iter = 0
 }
 
-class Segment{
+class Segment {
 c = a + b + a
 iter = 1
 a = 5

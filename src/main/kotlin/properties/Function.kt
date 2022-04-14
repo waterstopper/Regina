@@ -1,7 +1,7 @@
 package properties
 
-import evaluation.FunctionEvaluation.evaluateFunction
 import lexer.Token
+import structure.SymbolTable.Type
 
 open class Function(name: String, val args: List<String>, val body: Token, parent: Type? = null) :
     Property(name, parent), Invokable {
@@ -10,9 +10,6 @@ open class Function(name: String, val args: List<String>, val body: Token, paren
     }
 
     fun getFunctionName() = name
-
-    override fun invoke() {}
-
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -1,5 +1,5 @@
 package properties.primitive
 
-import properties.Type
+import structure.SymbolTable.Type
 
 class PInt(value: Int, parent: Type?) : Primitive("", value, parent)

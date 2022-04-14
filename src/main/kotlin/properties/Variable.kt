@@ -1,5 +1,7 @@
 package properties
 
+import structure.SymbolTable.Type
+
 abstract class Variable(name: String, val parent: Type?) {
     protected var name = name
         set(_) {

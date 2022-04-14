@@ -12,6 +12,7 @@ import properties.Assignment.Companion.evaluateAssignment
 import properties.Function
 import properties.primitive.*
 import structure.*
+import structure.SymbolTable.Type
 
 object FunctionEvaluation {
     fun createFunction(token: Token, parent: Type? = null): Function {
@@ -49,6 +50,14 @@ object FunctionEvaluation {
                     return if (stmt.children.size == 0)
                         Unit
                     else evaluateValue(stmt.left, symbolTable)
+                }
+                "." -> {
+                    val func = symbolTable.getFunction(stmt)
+                    evaluateFunction(
+                        stmt.right, func, stmt.right.children.subList(1, stmt.right.children.size),
+                        SymbolTable(symbolTable.getVariables(), currentFile = stmt.left.value)
+                    )
+                    println(func)
                 }
                 else -> throw PositionalException("expected assignment, invocation or block", stmt)
             }

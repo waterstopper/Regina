@@ -3,7 +3,7 @@ package properties.primitive
 import lexer.PositionalException
 import lexer.Token
 import properties.Property
-import properties.Type
+import structure.SymbolTable.Type
 
 /**
  * Stores Array, String, Int, Double values

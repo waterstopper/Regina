@@ -1,0 +1,7 @@
+import imported2
+
+fun addition(a,b){
+imported2.addition(a,b)
+log("imported")
+return a+b
+}

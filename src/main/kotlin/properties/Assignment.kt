@@ -1,15 +1,14 @@
 package properties
 
 import evaluation.Evaluation.globalTable
-import evaluation.FunctionEvaluation
 import evaluation.FunctionEvaluation.toVariable
 import lexer.Token
-import evaluation.ValueEvaluation
 import evaluation.ValueEvaluation.evaluateIndex
 import evaluation.ValueEvaluation.evaluateValue
 import lexer.PositionalException
 import properties.primitive.Primitive
 import structure.SymbolTable
+import structure.SymbolTable.Type
 
 class Assignment(val token: Token) {
     val name: String get() = token.left.value

@@ -5,6 +5,7 @@ properties. These property-classes are evaluated dynamically. Take a look at thi
 
 ```kotlin
 class Node export rect {
+    // export = false - can deny export
     iter = if (parent) parent.iter + 1 else 0
 
     childNode = if (iter == 5) Nothing() else Node()
@@ -57,6 +58,7 @@ class FunctionOveruse {
     }
 }
 ```
+
 Both lines in ```make()``` will execute forever.
 
 To make functions as expressive as possible, it is important to allow class instantiating inside them. If
