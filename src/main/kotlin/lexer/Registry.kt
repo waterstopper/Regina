@@ -4,10 +4,13 @@
  */
 package lexer
 
-class Registry {
-    val table = mutableMapOf<String, Token>()
+import token.Token
+import token.TokenFactory
 
-    fun register(
+class Registry {
+    private val table = mutableMapOf<String, Token>()
+
+    private fun register(
         symbol: String, bp: Int,
         nud: ((token: Token, parser: Parser) -> Token)?,
         led: ((token: Token, parser: Parser, token2: Token) -> Token)?,
@@ -21,9 +24,7 @@ class Registry {
                 value.led = led
             if (std != null && value.std == null)
                 value.std = std
-
-        } else
-            table[symbol] = Token(bindingPower = bp, nud = nud, led = led, std = std)
+        } else table[symbol] = Token(bindingPower = bp, nud = nud, led = led, std = std)
     }
 
     fun prefix(symbol: String) {
@@ -41,6 +42,18 @@ class Registry {
         }, null)
     }
 
+    fun operator(symbol: String, value: String, position: Pair<Int, Int>): Token {
+        return TokenFactory().createOperator(
+            symbol,
+            value,
+            position,
+            table[symbol]!!.bindingPower,
+            table[symbol]!!.nud,
+            table[symbol]!!.led,
+            table[symbol]!!.std
+        )
+    }
+
     fun token(symbol: String, value: String, position: Pair<Int, Int>): Token =
         Token(
             symbol,
@@ -53,7 +66,7 @@ class Registry {
         )
 
     fun symbol(symbol: String) {
-        register(symbol, 0, { t: Token, p: Parser -> t }, null, null)
+        register(symbol, 0, { t: Token, _: Parser -> t }, null, null)
     }
 
     fun consumable(symbol: String) {

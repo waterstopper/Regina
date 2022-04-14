@@ -1,5 +1,7 @@
 package lexer
 
+import token.Token
+
 class PositionalException(
     private val errorMessage: String,
     private val token: Token = Token(),

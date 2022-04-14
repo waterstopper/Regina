@@ -1,12 +1,12 @@
 package evaluation
 
+import SymbolTable
 import evaluation.Evaluation.evaluateInvocation
 import evaluation.FunctionEvaluation.toVariable
 import lexer.PositionalException
-import lexer.Token
+import token.Token
 import properties.primitive.Primitive
-import structure.SymbolTable.Type
-import structure.*
+import SymbolTable.Type
 
 object ValueEvaluation {
     fun evaluateValue(token: Token, symbolTable: SymbolTable): Any {
@@ -102,7 +102,7 @@ object ValueEvaluation {
             val a = evaluateValue(token.left, symbolTable)
             return when (token.symbol) {
                 "-" -> evaluateUnaryMinus(a as Number)
-                else -> throw PositionalException("no such prefix operator", token)
+                else -> throw PositionalException("no such prefix operator ${token.value}", token)
             }
         }
         if (token.children.size == 2) {
@@ -151,7 +151,7 @@ object ValueEvaluation {
         }
     }
 
-    private fun unifyNumbers(first: Any, second: Any, token: Token): List<Number> {
+    fun unifyNumbers(first: Any, second: Any, token: Token): List<Number> {
         if (first !is Number)
             throw PositionalException("left operand is not numeric for this infix operator", token)
         if (second !is Number)
@@ -161,7 +161,7 @@ object ValueEvaluation {
         return listOf(first.toDouble(), second.toDouble())
     }
 
-    private fun evaluateUnaryMinus(number: Number): Number = if (number is Double) -number else -(number as Int)
+    fun evaluateUnaryMinus(number: Number): Number = if (number is Double) -number else -(number as Int)
 
     private fun evaluateTernary(token: Token, symbolTable: SymbolTable): Any {
         if (token.children.size != 3)
@@ -171,7 +171,7 @@ object ValueEvaluation {
         else evaluateValue(token.children[2], symbolTable)
     }
 
-    private operator fun Any.plus(other: Any): Any {
+    operator fun Any.plus(other: Any): Any {
         if (this is MutableList<*>) {
             return if (other is MutableList<*>) {
                 val res = this.toMutableList()
@@ -192,14 +192,14 @@ object ValueEvaluation {
         else throw Exception("operator not applicable to operands")
     }
 
-    private fun evaluateNot(token: Token, symbolTable: SymbolTable): Int {
+    fun evaluateNot(token: Token, symbolTable: SymbolTable): Int {
         val res = (evaluateValue(token.left, symbolTable))
         if (res is Number)
             return (res == 0).toInt()
         throw PositionalException("! operator applicable to numeric", token)
     }
 
-    private fun Any.eq(other: Any): Boolean {
+    fun Any.eq(other: Any): Boolean {
         if (this is Number && other is Number)
             return this.toDouble() == other.toDouble()
         if (this is MutableList<*> && other is MutableList<*>) {
@@ -214,7 +214,7 @@ object ValueEvaluation {
         return this == other
     }
 
-    private fun Any.neq(other: Any) = !this.eq(other)
+    fun Any.neq(other: Any) = !this.eq(other)
 
     fun Boolean.toInt(): Int = if (this) 1 else 0
     fun Any.toBoolean(token: Token): Boolean {

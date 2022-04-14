@@ -1,6 +1,6 @@
 package deprecated
 
-import lexer.Token
+import token.Token
 @Deprecated("")
 class OldLexer : Iterator<Token> {
     val NUMBER_NULLS_TOLERATED = 1

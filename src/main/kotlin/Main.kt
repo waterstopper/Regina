@@ -1,13 +1,14 @@
-import evaluation.Evaluation.evaluate
-import lexer.Token
+import token.Token
 import lexer.Parser
 import lexer.PositionalException
+import lexer.SemanticAnalyzer
 import java.io.File
 import java.io.FileNotFoundException
 
 fun main() {
     val statements = readFile("constants")
-    evaluate(statements,"constants")
+    println(statements.treeView())
+    // (statements, "constants")
 }
 
 fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {
@@ -19,7 +20,8 @@ fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {
         throw PositionalException("no import ${file.name} found", tokenPath)
     }
 
-    return Parser(text).statements()
+    val statements = Parser(text).statements()
+    return SemanticAnalyzer(path, statements).analyze()
 }
 
 fun List<Token>.treeView(): String {

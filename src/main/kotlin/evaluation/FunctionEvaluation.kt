@@ -1,18 +1,18 @@
 package evaluation
 
+import SymbolTable
 import evaluation.Evaluation.evaluateInvocation
 import evaluation.Evaluation.globalTable
 import evaluation.Evaluation.rnd
 import lexer.PositionalException
-import lexer.Token
+import token.Token
 import evaluation.ValueEvaluation.evaluateValue
 import evaluation.ValueEvaluation.toBoolean
 import properties.*
 import properties.Assignment.Companion.evaluateAssignment
 import properties.Function
 import properties.primitive.*
-import structure.*
-import structure.SymbolTable.Type
+import SymbolTable.Type
 
 object FunctionEvaluation {
     fun createFunction(token: Token, parent: Type? = null): Function {

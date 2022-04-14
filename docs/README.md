@@ -6,8 +6,6 @@ a [VPL](https://en.wikipedia.org/wiki/Visual_programming_language#:~:text=In%20c
 # PLOV
 Programming Language Oriented on Visuals
 
-[] = () but not for functions
-
 ## Conventions
 
 Variables start with a letter and contain letters (a-z, A-Z), digits (0-9) and underscores (_)

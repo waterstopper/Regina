@@ -1,7 +1,7 @@
 package properties
 
-import lexer.Token
-import structure.SymbolTable.Type
+import token.Token
+import SymbolTable.Type
 
 open class Function(name: String, val args: List<String>, val body: Token, parent: Type? = null) :
     Property(name, parent), Invokable {

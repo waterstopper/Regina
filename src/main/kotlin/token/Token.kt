@@ -2,9 +2,12 @@
  * AST building algorithm was taken and rewritten from:
  * https://www.cristiandima.com/top-down-operator-precedence-parsing-in-go
  */
-package lexer
+package token
 
-class Token(
+import lexer.Parser
+import SymbolTable
+
+open class Token(
     var symbol: String = "",
     var value: String = "",
     val position: Pair<Int, Int> = Pair(0, 0),
@@ -21,7 +24,6 @@ class Token(
 
     fun copy(): Token =
         Token(symbol, value, position, bindingPower, nud, led, std, children.map { it.copy() }.toMutableList())
-
 
     fun toTreeString(indentation: Int = 0): String {
         val res = StringBuilder()
@@ -56,4 +58,8 @@ class Token(
     }
 
     override fun toString(): String = if (symbol == value) symbol else "$symbol:$value"
+
+    open fun evaluate(symbolTable: SymbolTable): Any {
+        TODO("Not yet implemented")
+    }
 }

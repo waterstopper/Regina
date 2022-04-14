@@ -3,9 +3,9 @@ package evaluation
 import evaluation.Evaluation.evaluateInvocation
 import evaluation.Evaluation.globalTable
 import lexer.PositionalException
-import lexer.Token
+import token.Token
 import properties.Assignment
-import structure.SymbolTable.Type
+import SymbolTable.Type
 import properties.primitive.Primitive
 import java.util.*
 

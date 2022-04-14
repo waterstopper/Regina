@@ -1,9 +1,9 @@
 package properties.primitive
 
 import lexer.PositionalException
-import lexer.Token
+import token.Token
 import properties.Property
-import structure.SymbolTable.Type
+import SymbolTable.Type
 
 /**
  * Stores Array, String, Int, Double values
@@ -37,7 +37,7 @@ abstract class Primitive(name: String, var value: Any, parent: Type?) : Property
     }
 
     companion object {
-        fun createPrimitive(value: Any, parent: Type?, token: Token=Token()): Primitive {
+        fun createPrimitive(value: Any, parent: Type?, token: Token = Token()): Primitive {
             return when (value) {
                 is String -> PString(value, parent)
                 is List<*> -> PArray(value as MutableList<Any>, parent)

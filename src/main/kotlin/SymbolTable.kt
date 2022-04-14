@@ -1,8 +1,6 @@
-package structure
-
 import evaluation.FunctionEvaluation.initializeEmbedded
 import lexer.PositionalException
-import lexer.Token
+import token.Token
 import properties.*
 import properties.Function
 
@@ -18,6 +16,8 @@ class SymbolTable(
         private val functions: MutableMap<String, MutableMap<String, Function>> = mutableMapOf()
         private val objects: MutableMap<String, MutableMap<String, Object>> = mutableMapOf()
         private val embedded: MutableMap<String, Function> = initializeEmbedded()
+
+        fun getEmbeddedNames():MutableSet<String> = embedded.keys.toMutableSet()
     }
 
     fun getImportOrNull(to: String, from: String) = importMap[to]?.contains(from) ?: false

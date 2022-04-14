@@ -1,9 +1,9 @@
-import imported
+//import imported
+
+class FED : A export ter{
+}
 
 fun main(){
-log(addition(2,3))
-
-/*
 //log([0]+1)
 //log(("t"+"t")[0])
 //log(5/2)
@@ -11,12 +11,13 @@ log(addition(2,3))
 
 //log(rndInt(64,999))
 //log(rndInt(64,999))
-c = Segment()
-arr  =[c,"a",1]
+//c = Segment()
+arr  =[2,"a",1]
 log(arr)
 add(arr,2)
 add(arr,1,2)
 log(arr)
+arr[0] = 1
 
 log(remove(arr,c))
 log(arr)
@@ -29,12 +30,13 @@ log(a==b)
 log([0]==[0.0])
 //whileFun()
 //Root()
-c=Segment()
+a[rew+2] = 3
+c=Segment(a=2,v=2)
 d = c
 c.e = Segment()
 log(c)
 log(d)
-*/
+
 
 /* d = Segment()
 log(d)
@@ -110,7 +112,7 @@ b = a
 
 fun toDegrees(rad) {
 return
-a=b.c.d.e.f().g.h.parent.(if(a==true) u else b).t
+a=b.c.d.e.f.g.h.parent.(if(a==true) u else b).t
 }
 
 
@@ -144,7 +146,7 @@ fun all(classRef) {
     res = []
     stack = [Root]
     while(stack.size > 0) {
-        current = stack.pop()
+      //  current = stack.pop()
         if(current is classRef) {
             res.add(current)
         } else {

@@ -1,8 +1,8 @@
 package properties
 
 import lexer.PositionalException
-import lexer.Token
-import structure.SymbolTable
+import token.Token
+import SymbolTable
 
 class EmbeddedFunction(
     name: String, args: List<String>,

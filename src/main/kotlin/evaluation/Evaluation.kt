@@ -6,14 +6,14 @@ import evaluation.FunctionEvaluation.evaluateFunction
 import evaluation.TypeEvaluation.resolveTree
 import evaluation.TypeEvaluation.resolving
 import lexer.PositionalException
-import lexer.Token
+import token.Token
 import properties.Function
 
 import readFile
-import structure.SymbolTable
+import SymbolTable
 
-import structure.SymbolTable.Type
-import structure.SymbolTable.Type.Companion.initializeSuperTypes
+import SymbolTable.Type
+import SymbolTable.Type.Companion.initializeSuperTypes
 import java.util.*
 import kotlin.random.Random
 

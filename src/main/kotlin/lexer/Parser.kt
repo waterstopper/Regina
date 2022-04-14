@@ -6,6 +6,8 @@
  */
 package lexer
 
+import token.Token
+
 class Parser() {
     lateinit var lexer: Lexer
 

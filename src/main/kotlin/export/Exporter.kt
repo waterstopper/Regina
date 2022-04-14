@@ -4,7 +4,7 @@ import properties.primitive.PArray
 import properties.primitive.PDouble
 import properties.primitive.PInt
 import properties.primitive.PString
-import structure.SymbolTable
+import SymbolTable
 
 interface Exporter {
     fun visit(type: SymbolTable.Type)

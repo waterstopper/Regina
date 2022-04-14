@@ -9,6 +9,9 @@
  */
 package lexer
 
+import token.Token
+import token.TokenNumber
+
 class Lexer() {
 
     private var source: String = ""
@@ -74,7 +77,8 @@ class Lexer() {
                 move()
             }
         }
-        return tokReg.token("(NUMBER)", res.toString(), Pair(position.first - res.toString().length, position.second))
+        return TokenNumber(res.toString(), Pair(position.first - res.toString().length, position.second))
+        // return tokReg.token("(NUMBER)", res.toString(), Pair(position.first - res.toString().length, position.second))
     }
 
     private fun nextOperator(): Token {
@@ -83,7 +87,7 @@ class Lexer() {
             move()
             move()
             move()
-            return tokReg.token(
+            return tokReg.operator(
                 source.substring(index - 3 until index),
                 source.substring(index - 3 until index),
                 Pair(position.first - 3, position.second)
@@ -94,7 +98,7 @@ class Lexer() {
         ) {
             move()
             move()
-            return tokReg.token(
+            return tokReg.operator(
                 source[index - 2].toString() + source[index - 1].toString(),
                 source[index - 2].toString() + source[index - 1].toString(),
                 Pair(position.first - 2, position.second)
@@ -104,7 +108,7 @@ class Lexer() {
             toNextLine()
         else if (tokReg.defined(source[index].toString())) move()
         else throw PositionalException("invalid operator", position = position, length = 1)
-        return tokReg.token(
+        return tokReg.operator(
             source[index - 1].toString(),
             source[index - 1].toString(), Pair(position.first - 1, position.second)
         )
@@ -132,7 +136,6 @@ class Lexer() {
 
             position = Pair(0, position.second + 1)
         }
-
         return if (source[index] == '"')
             nextString()
         else if (isFirstIdentChar(source[index]))
@@ -406,7 +409,6 @@ class Lexer() {
                     token.children.add(parser.statement())
                 else
                     token.children.add(parser.block())
-
             }
             token
         }
