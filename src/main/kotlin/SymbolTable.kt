@@ -1,15 +1,17 @@
 import evaluation.FunctionEvaluation.initializeEmbedded
+import evaluation.FunctionEvaluation.toVariable
 import lexer.PositionalException
 import token.Token
 import properties.*
 import properties.Function
+import token.TokenIdentifier
+import token.TokenLink
 
 class SymbolTable(
     private val variables: MutableMap<String, Variable> = mutableMapOf(),
-    var currentFile: String = ""
+    var currentFile: String = "",
+    var parent: Type? = null
 ) {
-
-
     companion object {
         private val importMap: MutableMap<String, MutableSet<String>> = mutableMapOf()
         private val types: MutableMap<String, MutableMap<String, Type>> = mutableMapOf()
@@ -17,7 +19,51 @@ class SymbolTable(
         private val objects: MutableMap<String, MutableMap<String, Object>> = mutableMapOf()
         private val embedded: MutableMap<String, Function> = initializeEmbedded()
 
-        fun getEmbeddedNames():MutableSet<String> = embedded.keys.toMutableSet()
+        fun getEmbeddedNames(): MutableSet<String> = embedded.keys.toMutableSet()
+    }
+
+    fun assignLValue(token: Token, value: Any, parent: Type?) {
+        if (getVariableOrNull(token) != null)
+            variables[token.value] = value.toVariable(token, parent)
+        if (token is TokenIdentifier)
+            throw PositionalException("unknown identifier", token)
+        var importTable = this
+        var current = token
+        while (current is TokenLink) {
+            // left is type
+            if (importTable.getVariableOrNull(current.left) != null) {
+                val type = importTable.getVariableOrNull(current.left)
+                if (type is Type) {
+                    importTable = type.symbolTable
+                    current = current.right
+                }
+                throw PositionalException("primitive does not contain properties", current.left)
+            } else if (importTable.getObjectOrNull(current.left) != null) {
+                importTable = importTable.getObjectOrNull(current.left)!!.symbolTable
+                current = current.right
+            } else if (importTable.getImportOrNull(current.left) != null) {
+                importTable = SymbolTable(currentFile = current.left.value)
+                current = current.right
+            }
+        }
+        if (current is TokenIdentifier)
+            importTable.variables[current.value] = value.toVariable(current, parent)
+        throw PositionalException("expected identifier or link", current)
+    }
+
+    fun getObjectOrNull(token: Token): Object? {
+        val declarations = objects[token.value] ?: return null
+        if (declarations[currentFile] != null)
+            return declarations[currentFile]
+        val filtered = declarations.filter { importMap[currentFile]!!.contains(it.key) }
+        if (filtered.size == 1)
+            return filtered.values.first()
+        return null
+    }
+
+    fun getImportOrNull(token: Token): String? {
+        val imports = importMap[currentFile] ?: return null
+        return imports.find { it == token.value }
     }
 
     fun getImportOrNull(to: String, from: String) = importMap[to]?.contains(from) ?: false
@@ -28,24 +74,24 @@ class SymbolTable(
         else importMap[importedTo]!!.add(importedFrom)
     }
 
-    private fun getDeclared(nameToken: Token, map: MutableMap<String, MutableMap<String, Invokable>>): Invokable {
-        if (nameToken.value == ".") {
-//            if (nameToken.left.value == currentFile)
-//                return map[nameToken.right.value]?.get(currentFile) ?: throw PositionalException(
+    fun getDeclared(nameToken: Token, map: MutableMap<String, MutableMap<String, Invokable>>): Invokable {
+//        if (nameToken.value == ".") {
+////            if (nameToken.left.value == currentFile)
+////                return map[nameToken.right.value]?.get(currentFile) ?: throw PositionalException(
+////                    "identifier not found",
+////                    nameToken.right
+////                )
+//            if (nameToken.right.value == "(") {
+//                return map[nameToken.right.left.value]?.get(nameToken.left.value) ?: throw PositionalException(
 //                    "identifier not found",
 //                    nameToken.right
 //                )
-            if (nameToken.right.value == "(") {
-                return map[nameToken.right.left.value]?.get(nameToken.left.value) ?: throw PositionalException(
-                    "identifier not found",
-                    nameToken.right
-                )
-            }
-            return map[nameToken.right.value]?.get(nameToken.left.value) ?: throw PositionalException(
-                "identifier not found",
-                nameToken.right
-            )
-        }
+//            }
+//            return map[nameToken.right.value]?.get(nameToken.left.value) ?: throw PositionalException(
+//                "identifier not found",
+//                nameToken.right
+//            )
+//        }
         val declarations =
             map[nameToken.value] ?: throw PositionalException(
                 "identifier ${nameToken.value} not found in $currentFile",
@@ -60,8 +106,25 @@ class SymbolTable(
         return filtered.values.first()
     }
 
+    private fun getDeclaredOrNull(
+        nameToken: Token,
+        map: MutableMap<String, MutableMap<String, Invokable>>
+    ): Invokable? {
+        val declarations = map[nameToken.value] ?: return null
+        if (declarations[currentFile] != null)
+            return declarations[currentFile]
+        val filtered =
+            declarations.filter { importMap[currentFile]?.contains(it.key) ?: false }
+        if (filtered.size != 1)
+            return null
+        else return filtered.values.first()
+    }
+
     // TODO rewrite bullshit code
     fun getType(name: String): Type? = types[name]?.get(currentFile)
+
+    fun getTypeOrNull(token: Token): Type? =
+        getDeclaredOrNull(token, types as MutableMap<String, MutableMap<String, Invokable>>) as Type?
 
     private fun getType(token: Token): Type {
         return (getDeclared(token, types as MutableMap<String, MutableMap<String, Invokable>>) as Type).copy()
@@ -198,6 +261,19 @@ class SymbolTable(
         res = res.substring(0, res.length - 2)
         res += "${assignments.joinToString(separator = ",")}}"
 
+        return res
+    }
+
+    fun getInvokableOrNull(token: Token): Invokable? {
+        val res = try {
+            getType(token)
+        } catch (e: PositionalException) {
+            try {
+                getFunction(token)
+            } catch (e: PositionalException) {
+                return null
+            }
+        }
         return res
     }
 

@@ -26,6 +26,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 "fun" -> {
                     Evaluation.globalTable.addFunction(FunctionEvaluation.createFunction(token), fileName)
                     functions.add(token.left.left.value)
+                    checkParams(token.left.children.subList(1, token.left.children.size))
                 }
                 else -> {
                 }
@@ -46,6 +47,22 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 token.children[index] = createSpecificIdentifierFromInvocation(child, classes, functions)
             changeIdentToken(child)
         }
+    }
+
+    private fun checkParams(params: List<Token>) {
+        for (param in params)
+            if (param.symbol != "(IDENT)") throw PositionalException("expected identifier as function parameter", param)
+    }
+
+    /**
+     * constructor params are assignments, because of the dynamic structure of type
+     */
+    private fun checkConstructorParams(params: List<Token>) {
+        for (param in params)
+            if (param.value != "=") throw PositionalException(
+                "expected assignment as constructor parameter",
+                param
+            )
     }
 
     private fun getExport(token: Token): Token {

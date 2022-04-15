@@ -15,18 +15,6 @@ object ValueEvaluation {
             "(IDENT)" -> evaluateIdentifier(token, symbolTable)
             "(NUMBER)" -> if (token.value.contains(".")) token.value.toDouble() else token.value.toInt()
             "(STRING)" -> token.value
-            "(" -> {
-                val res = evaluateInvocation(token, symbolTable)
-                if (res is Unit)
-                    throw PositionalException("expected value but nothing was returned from function", token)
-                res
-            }
-            "[" -> {
-                val element = evaluateIndex(token, symbolTable)
-                if (element is Primitive)
-                    return element.value
-                return element
-            }
             "true" -> 1
             "false" -> 0
             "!" -> evaluateNot(token, symbolTable)
@@ -47,6 +35,19 @@ object ValueEvaluation {
             ).toInt()
             "is" -> evaluateTypeCheck(token, symbolTable).toInt()
             "!is" -> (!evaluateTypeCheck(token, symbolTable)).toInt()
+
+            "(" -> {
+                val res = evaluateInvocation(token, symbolTable)
+                if (res is Unit)
+                    throw PositionalException("expected value but nothing was returned from function", token)
+                res
+            }
+            "[" -> {
+                val element = evaluateIndex(token, symbolTable)
+                if (element is Primitive)
+                    return element.value
+                return element
+            }
             else -> evaluateInfixArithmetic(token, symbolTable)
         }
     }

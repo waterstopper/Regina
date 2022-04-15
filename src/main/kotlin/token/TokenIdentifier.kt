@@ -1,6 +1,8 @@
 package token
 
+import SymbolTable
 import lexer.Parser
+import properties.primitive.Primitive
 
 open class TokenIdentifier(
     symbol: String,
@@ -13,5 +15,11 @@ open class TokenIdentifier(
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?
 ) : Token(symbol, value, position, bindingPower, nud, led, std) {
+    override fun evaluate(symbolTable: SymbolTable): Any {
+        val variable = symbolTable.getIdentifier(this)
+        if (variable is Primitive)
+            return variable.value
+        return variable
+    }
 }
 

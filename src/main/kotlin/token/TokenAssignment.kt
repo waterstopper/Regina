@@ -1,5 +1,6 @@
 package token
 
+import SymbolTable
 import lexer.Parser
 
 class TokenAssignment(
@@ -13,4 +14,9 @@ class TokenAssignment(
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?
 ) : Token(symbol, value, position, bindingPower, nud, led, std) {
+    override fun evaluate(symbolTable: SymbolTable): Any {
+        val value = right.evaluate(symbolTable)
+        symbolTable.assignLValue(this, value, symbolTable.parent)
+        return value
+    }
 }

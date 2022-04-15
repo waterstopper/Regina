@@ -15,7 +15,6 @@ class TokenInvocation(
     std: ((token: Token, parser: Parser) -> Token)?
 ) : Token(symbol, value, position, bindingPower, nud, led, std) {
     override fun evaluate(symbolTable: SymbolTable): Any {
-        val localTable = symbolTable
-        return left.evaluate(localTable)
+        return left.evaluate(symbolTable)
     }
 }

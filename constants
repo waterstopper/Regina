@@ -1,9 +1,7 @@
 //import imported
 
-class FED : A export ter{
-}
-
 fun main(){
+a.Segment()
 //log([0]+1)
 //log(("t"+"t")[0])
 //log(5/2)
@@ -12,7 +10,7 @@ fun main(){
 //log(rndInt(64,999))
 //log(rndInt(64,999))
 //c = Segment()
-arr  =[2,"a",1]
+arr = [2,"a",1]
 log(arr)
 add(arr,2)
 add(arr,1,2)
