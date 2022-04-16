@@ -4,6 +4,7 @@ import lexer.PositionalException
 import token.Token
 import properties.Property
 import SymbolTable.Type
+import properties.Variable
 
 /**
  * Stores Array, String, Int, Double values
@@ -40,10 +41,10 @@ abstract class Primitive(name: String, var value: Any, parent: Type?) : Property
         fun createPrimitive(value: Any, parent: Type?, token: Token = Token()): Primitive {
             return when (value) {
                 is String -> PString(value, parent)
-                is List<*> -> PArray(value as MutableList<Any>, parent)
+                is List<*> -> PArray(value as MutableList<Variable>, parent)
                 is Int -> PInt(value, parent)
                 is Double -> PDouble(value, parent)
-                else -> throw PositionalException("cannot create variable of type ${value.javaClass}", token)
+                else -> throw PositionalException("cannot create variable of type ${value::class}", token)
             }
         }
     }

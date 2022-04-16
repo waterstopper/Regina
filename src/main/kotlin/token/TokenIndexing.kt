@@ -1,10 +1,11 @@
 package token
 
-import evaluation.ValueEvaluation
 import lexer.Parser
 import lexer.PositionalException
 import properties.primitive.Primitive
 import SymbolTable
+import properties.Variable
+import properties.primitive.PArray
 
 class TokenIndexing(
     symbol: String,
@@ -15,11 +16,22 @@ class TokenIndexing(
     led: ((
         token: Token, parser: Parser, token2: Token
     ) -> Token)?,
-    std: ((token: Token, parser: Parser) -> Token)?
+    std: ((token: Token, parser: Parser) -> Token)?, children: List<Token> = listOf()
 ) : Token(symbol, value, position, bindingPower, nud, led, std) {
-    // get array
-    fun getParent(): Any {
-        return ""
+    constructor(token: Token) : this(
+        token.symbol,
+        token.value,
+        token.position,
+        token.bindingPower,
+        token.nud,
+        token.led,
+        token.std,
+        token.children
+    )
+
+    init {
+        this.children.clear()
+        this.children.addAll(children)
     }
 
     override fun evaluate(symbolTable: SymbolTable): Any {
@@ -30,8 +42,8 @@ class TokenIndexing(
     }
 
     private fun evaluateIndex(symbolTable: SymbolTable): Any {
-        val array = ValueEvaluation.evaluateValue(left, symbolTable)
-        val index = ValueEvaluation.evaluateValue(right, symbolTable)
+        val array = left.evaluate(symbolTable)
+        val index = right.evaluate(symbolTable)
         if (index is Int) {
             println(array)
             return when (array) {
@@ -42,5 +54,27 @@ class TokenIndexing(
                 else -> throw PositionalException("array or string expected", this)
             }
         } else throw PositionalException("expected Int as index", this)
+    }
+
+    /**
+     * TODO make method better
+     */
+    fun getIndexedVariable(symbolTable: SymbolTable): Variable {
+        val number = right.evaluate(symbolTable)
+        if (left is TokenIdentifier && number is Int) {
+            val variable = symbolTable.getVariable(left)
+            if (variable is PArray)
+                return variable.getByIndex(this, number)
+            throw PositionalException("expected array", left)
+        }
+        throw PositionalException("expected array as left and int as right", this)
+    }
+
+    fun getArrayAndIndex(symbolTable: SymbolTable): Pair<PArray, Int> {
+        val array = symbolTable.getVariable(left)
+        val number = right.evaluate(symbolTable)
+        if (array is PArray && number is Int)
+            return Pair(array, number)
+        throw PositionalException("expected array and number", this)
     }
 }

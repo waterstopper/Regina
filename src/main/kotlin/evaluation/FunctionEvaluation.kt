@@ -1,7 +1,6 @@
 package evaluation
 
 import SymbolTable
-import evaluation.Evaluation.evaluateInvocation
 import evaluation.Evaluation.globalTable
 import evaluation.Evaluation.rnd
 import lexer.PositionalException
@@ -9,7 +8,6 @@ import token.Token
 import evaluation.ValueEvaluation.evaluateValue
 import evaluation.ValueEvaluation.toBoolean
 import properties.*
-import properties.Assignment.Companion.evaluateAssignment
 import properties.Function
 import properties.primitive.*
 import SymbolTable.Type
@@ -33,7 +31,7 @@ object FunctionEvaluation {
                 it,
                 symbolTable
             ).toVariable(token)//(function.args[index])
-        }, function.args)
+        }, function.params)
         if (function is EmbeddedFunction)
             return function.executeFunction(token, localTable)
         return evaluateBlock(function.body, localTable)
@@ -42,14 +40,15 @@ object FunctionEvaluation {
     fun evaluateBlock(token: Token, symbolTable: SymbolTable): Any {
         for (stmt in token.children) {
             when (stmt.value) {
-                "while" -> evaluateWhile(stmt, symbolTable)
-                "if" -> evaluateIf(stmt, symbolTable)
-                "=" -> evaluateAssignment(stmt, symbolTable)
-                "(" -> evaluateInvocation(stmt, symbolTable)
+             //   "while" -> evaluateWhile(stmt, symbolTable)
+                //"if" -> evaluateIf(stmt, symbolTable)
+               // "=" -> stmt.evaluate(symbolTable)
+               // "(" -> stmt.evaluate(symbolTable)
+                // important to specifically evaluate it, because it will return different value
                 "return" -> {
                     return if (stmt.children.size == 0)
                         Unit
-                    else evaluateValue(stmt.left, symbolTable)
+                    else stmt.left.evaluate(symbolTable)
                 }
                 "." -> {
                     val func = symbolTable.getFunction(stmt)
@@ -59,7 +58,7 @@ object FunctionEvaluation {
                     )
                     println(func)
                 }
-                else -> throw PositionalException("expected assignment, invocation or block", stmt)
+                else -> stmt.evaluate(symbolTable)//throw PositionalException("expected assignment, invocation or block", stmt)
             }
         }
         return Unit

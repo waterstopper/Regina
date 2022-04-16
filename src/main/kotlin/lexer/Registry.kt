@@ -6,6 +6,8 @@ package lexer
 
 import token.Token
 import token.TokenFactory
+import token.TokenIdentifier
+import token.TokenString
 
 class Registry {
     private val table = mutableMapOf<String, Token>()
@@ -54,6 +56,17 @@ class Registry {
         )
     }
 
+    fun string(symbol: String, value: String, position: Pair<Int, Int>): TokenString =
+        TokenString(
+            symbol,
+            value,
+            position,
+            table[symbol]!!.bindingPower,
+            table[symbol]!!.nud,
+            table[symbol]!!.led,
+            table[symbol]!!.std
+        )
+
     fun token(symbol: String, value: String, position: Pair<Int, Int>): Token =
         Token(
             symbol,
@@ -98,5 +111,15 @@ class Registry {
     }
 
     fun defined(symbol: String): Boolean = table[symbol] != null
+
+    fun identifier(symbol: String, value: String, position: Pair<Int, Int>) = TokenIdentifier(
+        symbol,
+        value,
+        position,
+        table[symbol]!!.bindingPower,
+        table[symbol]!!.nud,
+        table[symbol]!!.led,
+        table[symbol]!!.std
+    )
 
 }

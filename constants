@@ -1,39 +1,34 @@
 //import imported
 
 fun main(){
-a.Segment()
-//log([0]+1)
-//log(("t"+"t")[0])
-//log(5/2)
-//a = toRadians(32)
-
-//log(rndInt(64,999))
-//log(rndInt(64,999))
-//c = Segment()
+a = 2
 arr = [2,"a",1]
 log(arr)
 add(arr,2)
 add(arr,1,2)
 log(arr)
 arr[0] = 1
-
-log(remove(arr,c))
+log(arr)
+log(remove(arr,"a"))
 log(arr)
 removeAt(arr,1)
 log(arr)
 log(has(arr,2))
-a = []
+a = [1]
 b=[]
 log(a==b)
 log([0]==[0.0])
 //whileFun()
 //Root()
+rew = -2
 a[rew+2] = 3
 c=Segment(a=2,v=2)
 d = c
 c.e = Segment()
 log(c)
+c.v = 2
 log(d)
+log(Segment())
 
 
 /* d = Segment()

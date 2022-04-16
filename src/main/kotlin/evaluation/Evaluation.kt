@@ -69,7 +69,7 @@ object Evaluation {
             }
         }
         //initializeSuperTypes()
-        initializeSuperTypes()
+        //initializeSuperTypes()
         val main = globalTable.getMain()
         evaluateBlock(main.body, globalTable)
         println()

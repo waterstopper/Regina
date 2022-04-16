@@ -3,10 +3,10 @@ package properties
 import token.Token
 import SymbolTable.Type
 
-open class Function(name: String, val args: List<String>, val body: Token, parent: Type? = null) :
+open class Function(name: String, val params: List<String>, val body: Token, parent: Type? = null) :
     Property(name, parent), Invokable {
     override fun toString(): String {
-        return "$name(${args.joinToString(separator = ",")})     ${parent ?: ""}"
+        return "$name(${params.joinToString(separator = ",")})     ${parent ?: ""}"
     }
 
     fun getFunctionName() = name
@@ -16,14 +16,14 @@ open class Function(name: String, val args: List<String>, val body: Token, paren
         if (other !is Function) return false
         if (!super.equals(other)) return false
 
-        if (args.size != other.args.size) return false
+        if (params.size != other.params.size) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + args.size.hashCode()
+        result = 31 * result + params.size.hashCode()
         return result
     }
 }

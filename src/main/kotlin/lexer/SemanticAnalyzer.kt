@@ -5,6 +5,8 @@ import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
 import SymbolTable
 import evaluation.Evaluation
 import evaluation.FunctionEvaluation
+import token.TokenArray
+import token.TokenIndexing
 
 class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
     private val classes = mutableSetOf<String>()
@@ -38,14 +40,20 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
 
     private fun changeIdentTokens() {
         for (token in tokens)
-            changeIdentToken(token)
+            changeTokenType(token)
     }
 
-    private fun changeIdentToken(token: Token) {
+    private fun changeTokenType(token: Token) {
         for ((index, child) in token.children.withIndex()) {
-            if (child.symbol == "(" && token.value != "fun")
-                token.children[index] = createSpecificIdentifierFromInvocation(child, classes, functions)
-            changeIdentToken(child)
+            when (child.symbol) {
+                "(" -> {
+                    if (token.value != "fun")
+                        token.children[index] = createSpecificIdentifierFromInvocation(child, classes, functions)
+                }
+                // "[]" -> token.children[index] = TokenArray(child)
+                //"[" -> token.children[index] = TokenIndexing(child)
+            }
+            changeTokenType(token.children[index])
         }
     }
 

@@ -17,22 +17,22 @@ object ValueEvaluation {
             "(STRING)" -> token.value
             "true" -> 1
             "false" -> 0
-            "!" -> evaluateNot(token, symbolTable)
+            //"!" -> evaluateNot(token, symbolTable)
             "[]" -> token.children.map { evaluateValue(it, symbolTable).toVariable(it) }.toMutableList()
             "if" -> evaluateTernary(token, symbolTable)
-            "+" -> evaluateValue(token.left, symbolTable) + evaluateValue(token.right, symbolTable)
-            "==" -> evaluateValue(token.left, symbolTable).eq(
-                evaluateValue(
-                    token.right,
-                    symbolTable
-                )
-            ).toInt()
-            "!=" -> evaluateValue(token.left, symbolTable).neq(
-                evaluateValue(
-                    token.right,
-                    symbolTable
-                )
-            ).toInt()
+            //"+" -> evaluateValue(token.left, symbolTable) + evaluateValue(token.right, symbolTable)
+//            "==" -> evaluateValue(token.left, symbolTable).eq(
+//                evaluateValue(
+//                    token.right,
+//                    symbolTable
+//                )
+//            ).toInt()
+//            "!=" -> evaluateValue(token.left, symbolTable).neq(
+//                evaluateValue(
+//                    token.right,
+//                    symbolTable
+//                )
+//            ).toInt()
             "is" -> evaluateTypeCheck(token, symbolTable).toInt()
             "!is" -> (!evaluateTypeCheck(token, symbolTable)).toInt()
 
@@ -172,52 +172,8 @@ object ValueEvaluation {
         else evaluateValue(token.children[2], symbolTable)
     }
 
-    operator fun Any.plus(other: Any): Any {
-        if (this is MutableList<*>) {
-            return if (other is MutableList<*>) {
-                val res = this.toMutableList()
-                res.addAll(other)
-                res
-            } else {
-                val res = this.toMutableList()
-                res.add(other)
-                res
-            }
-        }
-        if (this is String || other is String)
-            return this.toString() + other.toString()
-        if (this is Double && other is Number || this is Number && other is Double)
-            return this.toString().toDouble() + other.toString().toDouble()
-        if (this is Int && other is Int)
-            return this + other
-        else throw Exception("operator not applicable to operands")
-    }
-
-    fun evaluateNot(token: Token, symbolTable: SymbolTable): Int {
-        val res = (evaluateValue(token.left, symbolTable))
-        if (res is Number)
-            return (res == 0).toInt()
-        throw PositionalException("! operator applicable to numeric", token)
-    }
-
-    fun Any.eq(other: Any): Boolean {
-        if (this is Number && other is Number)
-            return this.toDouble() == other.toDouble()
-        if (this is MutableList<*> && other is MutableList<*>) {
-            var res = true
-            this.forEachIndexed { index, _ ->
-                if (!this[index]!!.eq(other[index]!!)) {
-                    res = false
-                }
-            }
-            return res
-        }
-        return this == other
-    }
-
-    fun Any.neq(other: Any) = !this.eq(other)
-
     fun Boolean.toInt(): Int = if (this) 1 else 0
+
     fun Any.toBoolean(token: Token): Boolean {
         try {
             return this.toString().toDouble() != 0.0

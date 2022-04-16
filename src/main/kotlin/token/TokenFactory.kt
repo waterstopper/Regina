@@ -4,7 +4,23 @@ import lexer.Parser
 import lexer.PositionalException
 
 class TokenFactory {
-    private val nonArithmetcOperators = listOf("+", "==", "!=")
+    private val nonArithmeticOperators = listOf("+", "==", "!=")
+    private val arithmeticOperators = listOf("-", "*", "/", "%", ">=", "<=", ">", "<", "!", "&", "|")
+    private val wordOperators = listOf("if", "is", "!is")
+
+    fun createWordToken(
+        symbol: String,
+        value: String,
+        position: Pair<Int, Int>,
+        bindingPower: Int,
+        nud: ((token: Token, parser: Parser) -> Token)?,
+        led: ((token: Token, parser: Parser, token2: Token) -> Token)?,
+        std: ((token: Token, parser: Parser) -> Token)?
+    ) {
+        when (symbol) {
+            in wordOperators -> TokenWordOperator(symbol, value, position, bindingPower, nud, led, std)
+        }
+    }
 
     fun createOperator(
         symbol: String,
@@ -18,10 +34,10 @@ class TokenFactory {
         return when (symbol) {
             "." -> TokenLink(("(LINK)"), value, position, bindingPower, nud, led, std)
             "=" -> TokenAssignment("(ASSIGNMENT)", value, position, bindingPower, nud, led, std)
-            "[" -> TokenIndexing(symbol, value, position, bindingPower, nud, led, std)
-            else -> return if (nonArithmetcOperators.contains(value))
-                TokenOperator(symbol, value, position, bindingPower, nud, led, std)
-            else TokenArithmeticOperator(symbol, value, position, bindingPower, nud, led, std)
+            // "[" -> TokenIndexing(symbol, value, position, bindingPower, nud, led, std)
+            in nonArithmeticOperators -> TokenOperator(symbol, value, position, bindingPower, nud, led, std)
+            in arithmeticOperators -> TokenArithmeticOperator(symbol, value, position, bindingPower, nud, led, std)
+            else -> Token(symbol, value, position, bindingPower, nud, led, std)
         }
 
     }

@@ -80,7 +80,7 @@ b = a
 
 fun toDegrees(rad) {
 return
-a=b.c.d.e.f().g.h.parent.(if(a==true) u else b).t
+a=b.c.d.e.f.g.h.parent.(if(a==true) u else b).t
 }
 
 
@@ -96,9 +96,12 @@ fun abs(x) {
     return if (x < 0) -x else x
 }
 
+// here two blocks inside each other. Return won't be passed.
 fun toRadians(deg) {
+    if(deg>3){
     return abs( \
     -deg) * 3 / 180
+    } else {return 0}
 }
 
 // returns random int in range [a,b]
@@ -114,7 +117,7 @@ fun all(classRef) {
     res = []
     stack = [Root]
     while(stack.size > 0) {
-        current = stack.pop()
+        current = remove(stack)
         if(current is classRef) {
             res.add(current)
         } else {

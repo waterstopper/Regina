@@ -6,6 +6,7 @@ package token
 
 import lexer.Parser
 import SymbolTable
+import lexer.PositionalException
 
 open class Token(
     var symbol: String = "",
@@ -60,6 +61,6 @@ open class Token(
     override fun toString(): String = if (symbol == value) symbol else "$symbol:$value"
 
     open fun evaluate(symbolTable: SymbolTable): Any {
-        TODO("Not yet implemented")
+        throw PositionalException("not implemented", this)
     }
 }

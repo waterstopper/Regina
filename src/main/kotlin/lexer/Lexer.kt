@@ -9,8 +9,7 @@
  */
 package lexer
 
-import token.Token
-import token.TokenNumber
+import token.*
 
 class Lexer() {
 
@@ -39,7 +38,7 @@ class Lexer() {
         }
         res.append(source[index])
         move()
-        return tokReg.token(
+        return tokReg.string(
             "(STRING)",
             res.toString().substring(1, res.toString().length - 1),
             Pair(position.first - res.toString().length, position.second)
@@ -52,12 +51,20 @@ class Lexer() {
             res.append(source[index])
             move()
         }
-        if (tokReg.defined(res.toString()))
+        if (tokReg.defined(res.toString())) {
+            if (res.toString() == "if")
+                println()
             return tokReg.token(
                 res.toString(),
                 res.toString(),
                 Pair(position.first - res.toString().length, position.second)
             )
+        }
+        return tokReg.identifier(
+            "(IDENT)",
+            res.toString(),
+            Pair(position.first - res.toString().length, position.second)
+        )
         return tokReg.token("(IDENT)", res.toString(), Pair(position.first - res.toString().length, position.second))
     }
 
@@ -304,14 +311,15 @@ class Lexer() {
         tokReg.infixLed("[", 80) { token: Token, parser: Parser, left: Token ->
 //            if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(")
 //                throw  PositionalException("bad func call left operand $left", left)
-            token.children.add(left)
+            val res = TokenIndexing(token)
+            res.children.add(left)
             val t = parser.lexer.peek()
             if (t.symbol != "]") {
-                sequence(token, parser)
+                sequence(res, parser)
                 parser.advance("]")
             } else
                 parser.advance("]")
-            token
+            res
         }
 
         // tuples
@@ -338,54 +346,56 @@ class Lexer() {
         }
 
         tokReg.prefixNud("[") { token: Token, parser: Parser ->
+            val res = TokenArray(token)
             if (parser.lexer.peek().symbol != "]") {
                 while (true) {
                     if (parser.lexer.peek().symbol == "]")
                         break
-                    token.children.add(parser.expression(0))
+                    res.children.add(parser.expression(0))
                     if (parser.lexer.peek().symbol != ",")
                         break
                     parser.advance(",")
                 }
             }
             parser.advance("]")
-            token.symbol = "[]"
-            token.value = "ARRAY"
-            token
+            res.symbol = "[]"
+            res.value = "ARRAY"
+            res
         }
 
         // functions
-        tokReg.infixRightLed("->", 10) { token: Token, parser: Parser, left: Token ->
-            if (left.symbol != "()" && left.symbol != "(IDENT)")
-                throw PositionalException("invalid function declaration tuple $left", left)
-            if (left.symbol == "()" && left.children.size != 0) {
-                var named = true
-                for (child in left.children) {
-                    if (child.symbol != "(IDENT)") {
-                        named = false
-                        break
-                    }
-                }
-                if (!named)
-                    throw PositionalException("invalid function declaration tuple $left", left)
-            }
-            token.children.add(left)
-            if (parser.lexer.peek().symbol == "{")
-                token.children.add(parser.block())
-            else
-                token.children.add(parser.expression(0))
-            token
-        }
+//        tokReg.infixRightLed("->", 10) { token: Token, parser: Parser, left: Token ->
+//            if (left.symbol != "()" && left.symbol != "(IDENT)")
+//                throw PositionalException("invalid function declaration tuple $left", left)
+//            if (left.symbol == "()" && left.children.size != 0) {
+//                var named = true
+//                for (child in left.children) {
+//                    if (child.symbol != "(IDENT)") {
+//                        named = false
+//                        break
+//                    }
+//                }
+//                if (!named)
+//                    throw PositionalException("invalid function declaration tuple $left", left)
+//            }
+//            token.children.add(left)
+//            if (parser.lexer.peek().symbol == "{")
+//                token.children.add(parser.block())
+//            else
+//                token.children.add(parser.expression(0))
+//            token
+//        }
 
         tokReg.prefixNud("if") { token: Token, parser: Parser ->
+            val res = TokenTernary(token)
             parser.advance("(")
             val cond = parser.expression(0)
-            token.children.add(cond)
+            res.children.add(cond)
             parser.advance(")")
-            token.children.add(parser.expression(0))
+            res.children.add(parser.expression(0))
             parser.advance("else")
-            token.children.add(parser.expression(0))
-            token
+            res.children.add(parser.expression(0))
+            res
         }
 
 //        tokReg.infixLed("if", 20) { token: Token, parser: Parser, left: Token ->
@@ -399,18 +409,19 @@ class Lexer() {
 
         // statements
         tokReg.stmt("if") { token: Token, parser: Parser ->
-            token.children.add(parser.expression(0))
-            token.children.add(parser.block())
+            val res = TokenConditional(token)
+            res.children.add(parser.expression(0))
+            res.children.add(parser.block())
             var next = parser.lexer.peek()
             if (next.value == "else") {
                 parser.lexer.next()
                 next = parser.lexer.peek()
                 if (next.value == "if")
-                    token.children.add(parser.statement())
+                    res.children.add(parser.statement())
                 else
-                    token.children.add(parser.block())
+                    res.children.add(parser.block())
             }
-            token
+            res
         }
 
         tokReg.stmt("class") { token: Token, parser: Parser ->
@@ -432,9 +443,10 @@ class Lexer() {
         }
 
         tokReg.stmt("while") { token: Token, parser: Parser ->
-            token.children.add(parser.expression(0))
-            token.children.add(parser.block())
-            token
+            val res = TokenWordStatement(token)
+            res.children.add(parser.expression(0))
+            res.children.add(parser.block())
+            res
         }
 
         tokReg.stmt("{") { token: Token, parser: Parser ->
@@ -444,28 +456,30 @@ class Lexer() {
         }
 
         tokReg.stmt("while") { token: Token, parser: Parser ->
-            token.children.add(parser.expression(0))
-            token.children.add(parser.block())
-            token
+            val res = TokenWordStatement(token)
+            res.children.add(parser.expression(0))
+            res.children.add(parser.block())
+            res
         }
 
         tokReg.stmt("break") { token: Token, parser: Parser ->
             if (parser.lexer.peek().symbol != "}")
                 parser.advance("\n")
-            token
+            TokenWordStatement(token)
         }
 
         tokReg.stmt("continue") { token: Token, parser: Parser ->
             if (parser.lexer.peek().symbol != "}")
                 parser.advance("\n")
-            token
+            TokenWordStatement(token)
         }
 
         tokReg.stmt("return") { token: Token, parser: Parser ->
+            val res = TokenWordStatement(token)
             if (parser.lexer.peek().symbol != "}" && parser.lexer.peek().symbol != "\n")
-                token.children.add(parser.expression(0))
+                res.children.add(parser.expression(0))
             //parser.advance("\n")
-            token
+            res
         }
 
         return tokReg

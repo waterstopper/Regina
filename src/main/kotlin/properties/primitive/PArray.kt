@@ -5,8 +5,25 @@ import lexer.PositionalException
 import properties.EmbeddedFunction
 import properties.Function
 import SymbolTable.Type
+import properties.Variable
+import token.Token
 
-class PArray(value: MutableList<Any>, parent: Type?) : Primitive("", value, parent) {
+class PArray(value: MutableList<Variable>, parent: Type?) : Primitive("", value, parent) {
+    fun getArray() = value as MutableList<Variable>
+
+    fun getByIndex(token: Token, index: Int): Variable {
+        checkBounds(token, index)
+        return (value as MutableList<*>)[index]!! as Variable
+    }
+
+    private fun checkBounds(token: Token, index: Int) {
+        if (index > (value as MutableList<*>).lastIndex)
+            throw PositionalException(
+                "index $index out of bounds for array of size ${(value as MutableList<*>).size}",
+                token
+            )
+    }
+
     companion object {
         fun initializeEmbeddedArrayFunctions(): MutableMap<String, Function> {
             val res = mutableMapOf<String, Function>()
@@ -37,7 +54,7 @@ class PArray(value: MutableList<Any>, parent: Type?) : Primitive("", value, pare
                                 break
                             }
                         }
-                        removed
+                        removed.toInt()
                     } else (list.value as MutableList<*>).remove(argument).toInt()
                 } else throw PositionalException("remove is not applicable for this type", token.children[1])
             }, 2..2)

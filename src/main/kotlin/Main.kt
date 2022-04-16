@@ -1,3 +1,4 @@
+import evaluation.Evaluation.evaluate
 import token.Token
 import lexer.Parser
 import lexer.PositionalException
@@ -8,7 +9,7 @@ import java.io.FileNotFoundException
 fun main() {
     val statements = readFile("constants")
     println(statements.treeView())
-    // (statements, "constants")
+    evaluate(statements, "constants")
 }
 
 fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {
