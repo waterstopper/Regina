@@ -1,0 +1,7 @@
+object A {
+    prop = 2
+}
+
+fun i(){
+return 2
+}

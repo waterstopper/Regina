@@ -1,8 +1,12 @@
 import evaluation.FunctionEvaluation.initializeEmbedded
 import lexer.PositionalException
-import token.Token
-import properties.*
 import properties.Function
+import properties.Invokable
+import properties.Object
+import properties.Variable
+import token.Token
+import token.TokenFactory
+import token.statement.TokenAssignment
 
 typealias importType = MutableMap<String, MutableMap<String, Invokable>>
 
@@ -17,6 +21,12 @@ class SymbolTable(
         private val functions: MutableMap<String, MutableMap<String, Function>> = mutableMapOf()
         private val objects: MutableMap<String, MutableMap<String, Object>> = mutableMapOf()
         private val embedded: MutableMap<String, Function> = initializeEmbedded()
+        fun clear() {
+            types.clear()
+            functions.clear()
+            objects.clear()
+            Type.clear()
+        }
 
         fun getEmbeddedNames(): MutableSet<String> = embedded.keys.toMutableSet()
     }
@@ -122,7 +132,7 @@ class SymbolTable(
         Type.assignName(
             Type.assignType(
                 Type.assignExported(token.left),
-                currentFile
+                fileName
             )
         )
 //        val name = token.left.left.symbol
@@ -131,14 +141,16 @@ class SymbolTable(
 //            throw PositionalException("type redeclared", token.left.right.position)
 //        if (types[type] == null)
 //            throw PositionalException("undefined superclass", token.left.right.position)
-        val res = mutableListOf<Assignment>()
+        val res = mutableListOf<TokenAssignment>()
         val functions = mutableListOf<Token>()
         for (a in token.right.children) {
-            if (a.symbol == "fun")
+            if (a is TokenAssignment)
+                res.add(a)
+            else if (a.symbol == "fun")
                 functions.add(a)
-            else res.add(Assignment(a))
+            else throw PositionalException("expected assignment or function", a)
         }
-        val added = Type("", Type.name, null, res, Type.exported)
+        val added = Type("", Type.name, null, res, fileName, Type.exported)
         if (types[Type.name] == null)
             types[Type.name] = mutableMapOf(fileName to added)
         types[Type.name]!![fileName] = added
@@ -224,7 +236,7 @@ class SymbolTable(
     override fun toString(): String =
         "variables:${variables}"//"variables:${variables}${if (functions.isNotEmpty()) "\n functions:$functions" else ""}"
 
-    fun toStringWithAssignments(assignments: List<Assignment>): String {
+    fun toStringWithAssignments(assignments: List<TokenAssignment>): String {
         if (assignments.isEmpty())
             return this.toString()
         var res = "variables:${variables}$"
@@ -247,25 +259,49 @@ class SymbolTable(
         return res
     }
 
+    fun addObject(token: Token, fileName: String) {
+        val res = mutableListOf<TokenAssignment>()
+        for (a in token.right.children) {
+            if (a is TokenAssignment)
+                res.add(a)
+            else throw PositionalException("expected assignment", a)
+        }
+
+        if (objects[token.value] == null)
+            objects[token.value] = mutableMapOf(fileName to Object(token.value, res))
+        else objects[token.value]!![fileName] = Object(token.value, res)
+    }
+
 
     class Type(
         name: String,
         val typeName: String,
         parent: Type?,
-        val assignments: MutableList<Assignment>,
+        val assignments: MutableList<TokenAssignment>,
+        private val file: String,
         private val exported: Any? = null,
-        private var type: Type? = null
+        private var supertype: Type? = null
     ) :
-        Property(name, parent), Invokable {
+        Variable(name, parent), Invokable {
 
-        val symbolTable = baseSymbolTable()
+        override val symbolTable = baseSymbolTable()
 
         override fun toString(): String {
-            return "$typeName${if (type != null) ":${type!!.typeName}" else ""}{parent:${parent ?: "-"}, ${
+            return "$typeName${if (supertype != null) ":${supertype!!.typeName}" else ""}{parent:${parent ?: "-"}, ${
                 symbolTable.toStringWithAssignments(
                     assignments
                 )
             }${if (exported != null) ",to $exported" else ""}}"
+        }
+
+        fun inherits(other: Type): Boolean {
+            var type: Type? = this
+            do {
+                if (type == other && file == other.file)
+                    return true
+                type = type!!.supertype
+            } while (type != null)
+            return false
         }
 
         fun copy(): Type {
@@ -274,9 +310,10 @@ class SymbolTable(
                     "",
                     typeName,
                     parent?.copy(),
-                    assignments.map { it.copy() }.toMutableList(),
+                    assignments.map { TokenFactory().copy(it) }.toMutableList() as MutableList<TokenAssignment>,
+                    this.file,
                     this.exported,
-                    this.type
+                    this.supertype
                 )
             copy.assignments.forEach { it.parent = copy }
             return copy
@@ -306,6 +343,10 @@ class SymbolTable(
         }
 
         companion object {
+            fun clear() {
+                superTypes.clear()
+            }
+
             /**
              * similar to ValueEvaluation.evaluateLink()
              */
@@ -331,7 +372,7 @@ class SymbolTable(
                 for ((pair, token) in superTypes) {
                     val (type, fileName) = pair
                     if (token.value == ".")
-                        types[type]!![fileName]!!.type = types[token.right.value]!![token.left.value]
+                        types[type]!![fileName]!!.supertype = types[token.right.value]!![token.left.value]
                     else {
                         val parents = types[token.value]!!.filter {
                             importMap[fileName]?.contains(it.key) ?: false
@@ -344,10 +385,9 @@ class SymbolTable(
                                 "superclass ambiguity. There are ${parents.size} applicable supertypes in files ${parents.keys}",
                                 token
                             )
-                        types[type]!![fileName]!!.type = parents[parents.keys.first()]
+                        types[type]!![fileName]!!.supertype = parents[parents.keys.first()]
                     }
                 }
-                superTypes.clear()
             }
 
             fun assignExported(token: Token): Token {

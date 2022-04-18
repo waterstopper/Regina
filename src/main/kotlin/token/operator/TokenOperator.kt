@@ -1,9 +1,10 @@
-package token
+package token.operator
 
 import evaluation.ValueEvaluation.toInt
 import lexer.Parser
 import lexer.PositionalException
 import SymbolTable
+import token.Token
 
 open class TokenOperator(
     symbol: String,

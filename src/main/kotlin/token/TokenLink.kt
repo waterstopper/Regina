@@ -3,6 +3,8 @@ package token
 import lexer.Parser
 import SymbolTable
 import lexer.PositionalException
+import token.invocation.TokenCall
+import token.invocation.TokenInvocation
 
 class TokenLink(
     symbol: String,

@@ -23,8 +23,8 @@ open class Token(
     val right: Token
         get() = children[1]
 
-    fun copy(): Token =
-        Token(symbol, value, position, bindingPower, nud, led, std, children.map { it.copy() }.toMutableList())
+//    open fun copy(): Token =
+//        Token(symbol, value, position, bindingPower, nud, led, std, children.map { it.copy() }.toMutableList())
 
     fun toTreeString(indentation: Int = 0): String {
         val res = StringBuilder()
@@ -48,6 +48,12 @@ open class Token(
         }
         return null
     }
+
+//    fun findAndReplace(symbol: String,newValue:String):Token?{
+//        for(t in children){
+//            //if(t.symbol==symbol)
+//        }
+//    }
 
     private fun findAndRemove(symbol: String) {
         val inChildren = children.find { it.value == symbol }

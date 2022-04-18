@@ -1,11 +1,11 @@
-package token
+package token.operator
 
+import SymbolTable
 import lexer.Parser
 import lexer.PositionalException
-import properties.primitive.Primitive
-import SymbolTable
-import properties.Variable
 import properties.primitive.PArray
+import properties.primitive.Primitive
+import token.Token
 
 class TokenIndexing(
     symbol: String,
@@ -45,7 +45,6 @@ class TokenIndexing(
         val array = left.evaluate(symbolTable)
         val index = right.evaluate(symbolTable)
         if (index is Int) {
-            println(array)
             return when (array) {
                 is MutableList<*> -> if (index < array.size) array[index]!!
                 else throw PositionalException("index $index out of bounds for array of size ${array.size}", this)
@@ -54,20 +53,6 @@ class TokenIndexing(
                 else -> throw PositionalException("array or string expected", this)
             }
         } else throw PositionalException("expected Int as index", this)
-    }
-
-    /**
-     * TODO make method better
-     */
-    fun getIndexedVariable(symbolTable: SymbolTable): Variable {
-        val number = right.evaluate(symbolTable)
-        if (left is TokenIdentifier && number is Int) {
-            val variable = symbolTable.getVariable(left)
-            if (variable is PArray)
-                return variable.getByIndex(this, number)
-            throw PositionalException("expected array", left)
-        }
-        throw PositionalException("expected array as left and int as right", this)
     }
 
     fun getArrayAndIndex(symbolTable: SymbolTable): Pair<PArray, Int> {

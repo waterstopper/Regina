@@ -1,11 +1,11 @@
-package token
+package token.invocation
 
-import evaluation.Evaluation
-import evaluation.FunctionEvaluation
 import evaluation.FunctionEvaluation.toVariable
 import lexer.Parser
 import properties.EmbeddedFunction
 import SymbolTable
+import token.Token
+import token.TokenIdentifier
 
 class TokenCall(
     symbol: String,
@@ -36,7 +36,7 @@ class TokenCall(
 //        }, function.args)
         if (function is EmbeddedFunction)
             return function.executeFunction(this, localTable)
-        return FunctionEvaluation.evaluateBlock(function.body, localTable)
+        return function.body.evaluate(localTable)
     }
 
     /**

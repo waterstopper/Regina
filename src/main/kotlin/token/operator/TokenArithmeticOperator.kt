@@ -1,10 +1,11 @@
-package token
+package token.operator
 
 import evaluation.ValueEvaluation
 import evaluation.ValueEvaluation.toInt
 import lexer.Parser
 import lexer.PositionalException
 import SymbolTable
+import token.Token
 
 class TokenArithmeticOperator(
     symbol: String,
@@ -77,7 +78,7 @@ class TokenArithmeticOperator(
     private fun evaluateUnaryMinus(number: Number): Number = if (number is Double) -number else -(number as Int)
 
     private fun evaluateNot(symbolTable: SymbolTable): Int {
-        val res = (ValueEvaluation.evaluateValue(left, symbolTable))
+        val res = left.evaluate(symbolTable)
         if (res is Number)
             return (res == 0).toInt()
         throw PositionalException("! operator applicable to numeric", this)

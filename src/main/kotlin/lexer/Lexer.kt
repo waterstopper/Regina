@@ -9,7 +9,13 @@
  */
 package lexer
 
-import token.*
+import token.Token
+import token.operator.TokenIndexing
+import token.operator.TokenTernary
+import token.statement.TokenBlock
+import token.statement.TokenWordStatement
+import token.variable.TokenArray
+import token.variable.TokenNumber
 
 class Lexer() {
 
@@ -31,8 +37,9 @@ class Lexer() {
         val res = StringBuilder(source[index].toString())
         move()
         while (source[index] != '"') {
-            if (source[index] == '\n')
-                throw Exception("Unterminated string at ${position.second}:${position.first}")
+            // TODO probably out of bounds if multiline string
+//            if (source[index] == '\n')
+//                throw Exception("Unterminated string at ${position.second}:${position.first}")
             res.append(source[index])
             move()
         }
@@ -52,9 +59,7 @@ class Lexer() {
             move()
         }
         if (tokReg.defined(res.toString())) {
-            if (res.toString() == "if")
-                println()
-            return tokReg.token(
+            return tokReg.definedIdentifier(
                 res.toString(),
                 res.toString(),
                 Pair(position.first - res.toString().length, position.second)
@@ -65,7 +70,7 @@ class Lexer() {
             res.toString(),
             Pair(position.first - res.toString().length, position.second)
         )
-        return tokReg.token("(IDENT)", res.toString(), Pair(position.first - res.toString().length, position.second))
+        //return tokReg.token("(IDENT)", res.toString(), Pair(position.first - res.toString().length, position.second))
     }
 
 
@@ -89,17 +94,17 @@ class Lexer() {
     }
 
     private fun nextOperator(): Token {
-        // for !is
-        if (index + 1 < source.lastIndex && tokReg.defined(source.substring(index..index + 2))) {
-            move()
-            move()
-            move()
-            return tokReg.operator(
-                source.substring(index - 3 until index),
-                source.substring(index - 3 until index),
-                Pair(position.first - 3, position.second)
-            )
-        }
+//        // for !is
+//        if (index + 1 < source.lastIndex && tokReg.defined(source.substring(index..index + 2))) {
+//            move()
+//            move()
+//            move()
+//            return tokReg.operator(
+//                source.substring(index - 3 until index),
+//                source.substring(index - 3 until index),
+//                Pair(position.first - 3, position.second)
+//            )
+//        }
         if (index < source.lastIndex && isOperatorChar(source[index + 1]) &&
             tokReg.defined(source[index].toString() + source[index + 1].toString())
         ) {
@@ -154,12 +159,15 @@ class Lexer() {
         else throw PositionalException("invalid character", position = position, length = 1)
     }
 
-    private fun consumeWhitespaceAndComments() {
+    private fun consumeWhitespaceAndComments(): Boolean {
+        var iter = 0
         var (whitespace, comments) = listOf(true, true)
         while (whitespace || comments) {
             whitespace = consumeWhitespace()
             comments = consumeComments()
+            iter++
         }
+        return iter > 1
     }
 
     private fun consumeComments(): Boolean {
@@ -268,7 +276,7 @@ class Lexer() {
         tokReg.infix(":", 20)
 
         tokReg.infix("is", 15)
-        tokReg.infix("!is", 15)
+        tokReg.infix("isnot", 15)
 
 
         tokReg.prefix("-")
@@ -294,8 +302,8 @@ class Lexer() {
         //tokReg.prefixNud("if")
 
         // function use
-        tokReg.infixLed("(", 90) { token: Token, parser: Parser, left: Token ->
-            if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(" && left.symbol != "->")
+        tokReg.infixLed("(", 120) { token: Token, parser: Parser, left: Token ->
+            if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(" && left.symbol != "->" && left.symbol != "!")
                 throw  PositionalException("bad func call left operand $left", left)
             token.children.add(left)
             val t = parser.lexer.peek()
@@ -308,7 +316,7 @@ class Lexer() {
         }
 
         // array indexing
-        tokReg.infixLed("[", 80) { token: Token, parser: Parser, left: Token ->
+        tokReg.infixLed("[", 110) { token: Token, parser: Parser, left: Token ->
 //            if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(")
 //                throw  PositionalException("bad func call left operand $left", left)
             val res = TokenIndexing(token)
@@ -409,7 +417,7 @@ class Lexer() {
 
         // statements
         tokReg.stmt("if") { token: Token, parser: Parser ->
-            val res = TokenConditional(token)
+            val res = TokenBlock(token)
             res.children.add(parser.expression(0))
             res.children.add(parser.block())
             var next = parser.lexer.peek()
@@ -442,21 +450,15 @@ class Lexer() {
             token
         }
 
-        tokReg.stmt("while") { token: Token, parser: Parser ->
-            val res = TokenWordStatement(token)
-            res.children.add(parser.expression(0))
-            res.children.add(parser.block())
+        tokReg.stmt("{") { token: Token, parser: Parser ->
+            val res = TokenBlock(token)
+            res.children.addAll(parser.statements())
+            parser.advance("}")
             res
         }
 
-        tokReg.stmt("{") { token: Token, parser: Parser ->
-            token.children.addAll(parser.statements())
-            parser.advance("}")
-            token
-        }
-
         tokReg.stmt("while") { token: Token, parser: Parser ->
-            val res = TokenWordStatement(token)
+            val res = TokenBlock(token)
             res.children.add(parser.expression(0))
             res.children.add(parser.block())
             res
@@ -467,7 +469,7 @@ class Lexer() {
                 parser.advance("\n")
             TokenWordStatement(token)
         }
-
+        // TODO advance comment
         tokReg.stmt("continue") { token: Token, parser: Parser ->
             if (parser.lexer.peek().symbol != "}")
                 parser.advance("\n")
@@ -495,4 +497,7 @@ class Lexer() {
             parser.advance(",")
         }
     }
+
+    fun hasCommentAhead(): Boolean = consumeWhitespaceAndComments()
+
 }

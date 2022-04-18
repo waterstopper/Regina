@@ -45,9 +45,9 @@ open class Formula(open var content: String) {
     }
 
     fun neededForEvaluation(): List<String> {
-        if(findFirstChain()=="Segment"){
-            println()
-        }
+//        if(findFirstChain()=="Segment"){
+//            println()
+//        }
         return findFirstChain().split('.')
     }
 

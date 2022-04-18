@@ -1,8 +1,6 @@
 package evaluation
 
 import evaluation.FunctionEvaluation.createFunction
-import evaluation.FunctionEvaluation.evaluateBlock
-import evaluation.FunctionEvaluation.evaluateFunction
 import evaluation.TypeEvaluation.resolveTree
 import evaluation.TypeEvaluation.resolving
 import lexer.PositionalException
@@ -40,63 +38,33 @@ object Evaluation {
 //    }
 
     fun evaluate(tokens: List<Token>, fileName: String) {
-        globalTable.currentFile = fileName
-
-        val queue = ArrayDeque<Pair<Token, String>>()
-        queue.addAll(tokens.map { Pair(it, fileName) })
-        while (queue.isNotEmpty()) {
-            val (token, currentFileName) = queue.pop()
-            when (token.symbol) {
-                "fun" -> globalTable.addFunction(createFunction(token), currentFileName)
-                "class" -> {
-                    globalTable.addType(token, currentFileName)
-                }
-                "object" -> {
-                }
-                "import" -> {
-                    if (!globalTable.getImportOrNull(currentFileName, token.left.value)) {
-                        globalTable.addImport(currentFileName, token.left.value)
-                        queue.addAll(readFile(tokenPath = token.left).map { Pair(it, token.left.value) })
-                    }
-                    /**
-                     * TODO: warn about this code (doubling imports):
-                     * import abc
-                     * import abc
-                     * ...
-                     */
-                }
-                else -> throw PositionalException("class or function can be top level declaration", token)
-            }
-        }
-        //initializeSuperTypes()
-        //initializeSuperTypes()
         val main = globalTable.getMain()
-        evaluateBlock(main.body, globalTable)
-        println()
+        main.body.evaluate(globalTable)
+        //println()
     }
 
-    fun evaluateInvocation(token: Token, symbolTable: SymbolTable): Any {
-        val invokable = symbolTable.getInvokable(token.left)
-        if (invokable is Function)
-            return evaluateFunction(
-                token,
-                invokable,
-                token.children.subList(1, token.children.size),
-                symbolTable
-            )
-        else return if (resolving) invokable as Type else resolveTree(invokable as Type)
-//        return if (symbolTable.findFunction(token.left.value) != null)
-//            evaluateFunction(
-//                token, symbolTable.findFunction(token.left.value)!!,
-//                token.children.subList(1, token.children.size), symbolTable
+//    fun evaluateInvocation(token: Token, symbolTable: SymbolTable): Any {
+//        val invokable = symbolTable.getInvokable(token.left)
+//        if (invokable is Function)
+//            return evaluateFunction(
+//                token,
+//                invokable,
+//                token.children.subList(1, token.children.size),
+//                symbolTable
 //            )
-//        else {
-//            // bad for properties inside class. Need to create some global variable in TypeEvaluation
-//            // if it is true then resolve tree, else just add type-property to existing instance
-//            return if (resolving) types[token.left.value]!!.copy()
-//            else resolveTree(types[token.left.value]!!.copy())
-//        }
-    }
+//        else return if (resolving) invokable as Type else resolveTree(invokable as Type)
+////        return if (symbolTable.findFunction(token.left.value) != null)
+////            evaluateFunction(
+////                token, symbolTable.findFunction(token.left.value)!!,
+////                token.children.subList(1, token.children.size), symbolTable
+////            )
+////        else {
+////            // bad for properties inside class. Need to create some global variable in TypeEvaluation
+////            // if it is true then resolve tree, else just add type-property to existing instance
+////            return if (resolving) types[token.left.value]!!.copy()
+////            else resolveTree(types[token.left.value]!!.copy())
+////        }
+//    }
 
 //    private fun evaluateType(token: Token) {
 //        getTypeName(token.children[0])

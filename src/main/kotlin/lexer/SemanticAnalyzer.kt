@@ -1,16 +1,15 @@
 package lexer
 
-import token.Token
-import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
 import SymbolTable
+import SymbolTable.Type.Companion.initializeSuperTypes
 import evaluation.Evaluation
 import evaluation.FunctionEvaluation
-import token.TokenArray
-import token.TokenIndexing
+import readFile
+import token.Token
+import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
+import java.util.*
 
 class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
-    private val classes = mutableSetOf<String>()
-    private val functions = SymbolTable.getEmbeddedNames()
 
     fun analyze(): List<Token> {
         createAssociations()
@@ -19,23 +18,36 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
     }
 
     private fun createAssociations() {
-        for (token in tokens)
-            when (token.value) {
+        Evaluation.globalTable.currentFile = fileName
+
+        val queue = ArrayDeque<Pair<Token, String>>()
+        queue.addAll(tokens.map { Pair(it, fileName) })
+        while (queue.isNotEmpty()) {
+            val (token, currentFileName) = queue.pop()
+            when (token.symbol) {
+                "fun" -> Evaluation.globalTable.addFunction(FunctionEvaluation.createFunction(token), currentFileName)
                 "class" -> {
-                    Evaluation.globalTable.addType(token, fileName)
-                    classes.add(getSupertype(getExport(token.left)).value)
+                    Evaluation.globalTable.addType(token, currentFileName)
                 }
-                "fun" -> {
-                    Evaluation.globalTable.addFunction(FunctionEvaluation.createFunction(token), fileName)
-                    functions.add(token.left.left.value)
-                    checkParams(token.left.children.subList(1, token.left.children.size))
+                "object" -> {
+                    Evaluation.globalTable.addObject(token, currentFileName)
                 }
-                else -> {
+                "import" -> {
+                    if (!Evaluation.globalTable.getImportOrNull(currentFileName, token.left.value)) {
+                        Evaluation.globalTable.addImport(currentFileName, token.left.value)
+                        queue.addAll(readFile(tokenPath = token.left).map { Pair(it, token.left.value) })
+                    }
+                    /**
+                     * TODO: warn about this code (doubling imports):
+                     * import abc
+                     * import abc
+                     * ...
+                     */
                 }
+                else -> throw PositionalException("class or function can be top level declaration", token)
             }
-        val intersections = classes.intersect(functions)
-        if (intersections.isNotEmpty())
-            throw PositionalException("$fileName contains functions and classes with same names: $intersections")
+        }
+        initializeSuperTypes()
     }
 
     private fun changeIdentTokens() {
@@ -57,6 +69,37 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
         }
     }
 
+    private fun checkIntersections(tokens: List<Token>) {
+        val classes = mutableSetOf<String>()
+        val functions = SymbolTable.getEmbeddedNames()
+        for (token in tokens) {
+            when (token.symbol) {
+                "class" -> {
+                    classes.add(getSupertype((getExport(token.left))).value)
+                }
+                "fun" -> {
+                    functions.add(token.left.left.value)
+                    checkParams(token.left.children.subList(1, token.left.children.size))
+                }
+            }
+        }
+        val intersections = classes.intersect(functions)
+        if (intersections.isNotEmpty())
+            throw PositionalException("$fileName contains functions and classes with same names: $intersections")
+    }
+
+    private fun getExport(token: Token): Token {
+        return if (token.value == "export")
+            token.left
+        else token
+    }
+
+    private fun getSupertype(token: Token): Token {
+        return if (token.value == ":")
+            token.left
+        else token
+    }
+
     private fun checkParams(params: List<Token>) {
         for (param in params)
             if (param.symbol != "(IDENT)") throw PositionalException("expected identifier as function parameter", param)
@@ -71,17 +114,5 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 "expected assignment as constructor parameter",
                 param
             )
-    }
-
-    private fun getExport(token: Token): Token {
-        return if (token.value == "export")
-            token.left
-        else token
-    }
-
-    private fun getSupertype(token: Token): Token {
-        return if (token.value == ":")
-            token.left
-        else token
     }
 }

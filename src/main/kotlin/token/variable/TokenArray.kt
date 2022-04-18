@@ -1,11 +1,13 @@
-package token
+package token.variable
 
-import evaluation.TypeEvaluation.resolveTree
-import evaluation.TypeEvaluation.resolving
-import lexer.Parser
 import SymbolTable
+import evaluation.FunctionEvaluation.toVariable
+import evaluation.ValueEvaluation
+import lexer.Parser
+import token.Token
+import token.TokenIdentifier
 
-class TokenConstructor(
+class TokenArray(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
@@ -16,13 +18,24 @@ class TokenConstructor(
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?, children: List<Token>
 ) : TokenIdentifier(symbol, value, position, bindingPower, nud, led, std) {
+    constructor(token: Token) : this(
+        token.symbol,
+        token.value,
+        token.position,
+        token.bindingPower,
+        token.nud,
+        token.led,
+        token.std,
+        token.children
+    )
     init {
         this.children.clear()
         this.children.addAll(children)
     }
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        val type = symbolTable.getInvokable(left)
-        return if (resolving) type as SymbolTable.Type else resolveTree(type as SymbolTable.Type)
+        return children.map { ValueEvaluation.evaluateValue(it, symbolTable).toVariable(it) }.toMutableList()
     }
+
+
 }

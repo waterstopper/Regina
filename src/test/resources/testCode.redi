@@ -1,0 +1,191 @@
+import imported
+
+fun main(){
+    a = [2]
+    add(a,[1])
+    add(a,a)
+    log(a)
+    checkType()
+    checkArray()
+    checkWhile()
+    test(checkNestedReturn()==1)
+  //  b = i()
+//	log([0] + 1)
+//	log(("t" + "t")[0])
+//	log(5 / 2)
+//	a = toRadians(32)
+//	log(rndInt(64,999))
+//	log(rndInt(64,999))
+//	c = Segment()
+//	arr = [c,"a",1]
+//	log(arr)
+//	add(arr,2)
+//	add(arr,1,2)
+//	log(arr)
+//	log(remove(arr,c))
+//	log(arr)
+//	removeAt(arr,1)
+//	log(arr)
+//	log(has(arr,2))
+//	a = []
+//	b = []
+//	log(a == b)
+//	log([0] == [0.0])
+//	whileFun()
+	//Root()
+	//c = Segment()
+	//d = c
+	//c.e = Segment()
+//	log(c)
+//	log(d)
+
+
+	log(if(-1) 1 else 0)
+	a = [5,2]
+	a[0] = "fads"
+	log(a)
+}
+
+fun checkWhile() {
+	arg = 0
+	if(1 == 1){
+		while(arg < 10) {
+			if(arg > 5){
+				break
+			}
+			test(arg <= 5)
+			arg = arg + 1
+			continue // leave before wrong test
+			test(1==2)
+		}
+	}
+}
+
+fun checkNestedReturn() {
+    if(1 == 1) {
+        while(1 == 1) {
+            if(1 == 1) {
+                return 1
+            }
+        }
+    }
+}
+
+fun checkType() {
+	test(0.0 is Double)
+	test(0 is Int)
+	test("" is String)
+	test([] is Array)
+	test(A() is A)
+	test(B() is A)
+	test(0 isnot Array)
+}
+
+fun checkArray() {
+    a = []
+    add(a,0,a)
+    add(a,[1,2])
+    test(str(a)=="[this, [1, 2]]")
+    test(a[0][0][1]==[1,2])
+    removeAt(a,0)
+    test(a==[[1,2]])
+    remove(a,[1,2])
+    test(a==[])
+    test(!has(a,0))
+    add(a,0)
+    test(has(a,0))
+    test(has([1,2,3],1))
+}
+
+class Segment{
+	c = a + b + a
+	iter = 1
+	a = 5
+	b = a
+}
+
+fun whileFun() {
+	a = 1
+	while(a < 5) {
+		if(a % 2 == 0){
+			log(a)
+		} else{
+			log(a + 1)
+		}
+		a = a + 1
+	}
+	log(a)
+}
+
+class A{}
+
+class B:A{}
+
+class Colors {
+	BLACK = "000000"
+	WHITE = "FFFFFF"
+	GRAY = "929292"
+	RED = "BF3011"
+	ORANGE = "DF8022"
+	YELLOW = "E5B527"
+	MINT = "26D07E"
+	GREEN = "06694A"
+	BLUE = "3896D4"
+	INDIGO = "253092"
+	PURPLE = "820D7C"
+	CHERRY = "FD5FF0"
+	CHERRY = "69122D"
+}
+
+class Root {
+	segm = Segment()
+	iter = 0
+}
+
+fun toDegrees(rad) {
+	return
+	a = b.c.d.e.f.g.h.parent.(if(a == true) u else b).t
+}
+
+
+class Math {
+	RANDOM_SEED = 42
+	PI = 3.1415926
+}
+
+fun rotate(point, pivot, angle) {
+break}
+
+fun abs(x) {
+	return if (x < 0) -x else x
+}
+
+// here two blocks inside each other. Return won't be passed.
+fun toRadians(deg) {
+	if(deg > 3){
+		return abs( \
+		-deg) * 3 / 180
+} else {return 0}
+}
+
+// returns random int in range [a,b]
+fun rndInt(a,b)  {
+	t = int(rnd() * ((b - a) + 1))
+	log("t:" + t)
+	log(t)
+	return a + t
+}
+
+// get all classes of classRef type
+fun all(classRef) {
+	res = []
+	stack = [Root]
+	while(stack.size > 0) {
+		current = remove(stack)
+		if(current is classRef) {
+			res.add(current)
+		} else {
+		}
+	}
+	stack.add(res.properties isnot Value)
+}

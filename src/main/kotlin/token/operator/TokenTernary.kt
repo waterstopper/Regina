@@ -1,7 +1,8 @@
-package token
+package token.operator
 
 import SymbolTable
 import lexer.PositionalException
+import token.Token
 
 class TokenTernary(token: Token) :
     Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {

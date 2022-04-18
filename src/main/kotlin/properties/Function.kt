@@ -1,10 +1,12 @@
 package properties
 
-import token.Token
+import SymbolTable
 import SymbolTable.Type
+import token.Token
 
 open class Function(name: String, val params: List<String>, val body: Token, parent: Type? = null) :
     Property(name, parent), Invokable {
+    override val symbolTable: SymbolTable = SymbolTable()
     override fun toString(): String {
         return "$name(${params.joinToString(separator = ",")})     ${parent ?: ""}"
     }

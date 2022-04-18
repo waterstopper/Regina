@@ -1,7 +1,7 @@
 package evaluation
 
 import SymbolTable
-import evaluation.Evaluation.evaluateInvocation
+
 import evaluation.FunctionEvaluation.toVariable
 import lexer.PositionalException
 import token.Token
@@ -34,14 +34,14 @@ object ValueEvaluation {
 //                )
 //            ).toInt()
             "is" -> evaluateTypeCheck(token, symbolTable).toInt()
-            "!is" -> (!evaluateTypeCheck(token, symbolTable)).toInt()
+            "isnot" -> (!evaluateTypeCheck(token, symbolTable)).toInt()
 
-            "(" -> {
-                val res = evaluateInvocation(token, symbolTable)
-                if (res is Unit)
-                    throw PositionalException("expected value but nothing was returned from function", token)
-                res
-            }
+//            "(" -> {
+//                val res = evaluateInvocation(token, symbolTable)
+//                if (res is Unit)
+//                    throw PositionalException("expected value but nothing was returned from function", token)
+//                res
+//            }
             "[" -> {
                 val element = evaluateIndex(token, symbolTable)
                 if (element is Primitive)

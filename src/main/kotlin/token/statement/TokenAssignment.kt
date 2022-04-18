@@ -1,9 +1,14 @@
-package token
+package token.statement
 
 import SymbolTable
 import evaluation.FunctionEvaluation.toVariable
 import lexer.Parser
 import lexer.PositionalException
+import token.Token
+import token.TokenIdentifier
+import token.operator.TokenIndexing
+import token.TokenLink
+import token.operator.TokenOperator
 
 class TokenAssignment(
     symbol: String,
@@ -14,13 +19,37 @@ class TokenAssignment(
     led: ((
         token: Token, parser: Parser, token2: Token
     ) -> Token)?,
-    std: ((token: Token, parser: Parser) -> Token)?
-) : Token(symbol, value, position, bindingPower, nud, led, std) {
+    std: ((token: Token, parser: Parser) -> Token)?,
+    children: MutableList<Token> = mutableListOf()
+) : TokenOperator(symbol, value, position, bindingPower, nud, led, std) {
+    init {
+        this.children.clear()
+        this.children.addAll(children)
+    }
+
+    var parent: SymbolTable.Type? = null
+    val name: String get() = left.value
+
+    fun canEvaluate(): Boolean = right.find("(IDENT)") == null
+            && right.find("parent") == null
+
     override fun evaluate(symbolTable: SymbolTable): Any {
         val value = right.evaluate(symbolTable)
         assignLValue(left, value, symbolTable.parent, symbolTable)
         return value
     }
+
+//    override fun copy(): TokenAssignment = TokenAssignment(
+//        symbol,
+//        value,
+//        position,
+//        bindingPower,
+//        nud,
+//        led,
+//        std,
+//        children.map { it.copy() }.toMutableList()
+//    )
+
 
     private fun assignLValue(token: Token, value: Any, parent: SymbolTable.Type?, symbolTable: SymbolTable) {
         if (token is TokenIdentifier) {

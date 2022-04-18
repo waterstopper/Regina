@@ -36,6 +36,9 @@ class Parser() {
     }
 
     fun advance(symbol: String): Token {
+        // to make possible writing comments on same line after statements
+        if (symbol == "\n" && lexer.hasCommentAhead())
+            return Token()
         var token = lexer.next()
         // program can end without line break
         if (symbol == "\n" && token.symbol == "(EOF)")

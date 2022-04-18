@@ -1,15 +1,18 @@
 import evaluation.Evaluation.evaluate
-import token.Token
 import lexer.Parser
 import lexer.PositionalException
 import lexer.SemanticAnalyzer
+import token.Token
 import java.io.File
 import java.io.FileNotFoundException
 
 fun main() {
-    val statements = readFile("constants")
-    println(statements.treeView())
-    evaluate(statements, "constants")
+//    val statements = readFile("constants")
+//    println(statements.treeView())
+//    evaluate(statements, "constants")
+    val s = readFile("src/test/resources/testCode.redi")
+    //println(s.treeView())
+    evaluate(s, "testCode.redi")
 }
 
 fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {

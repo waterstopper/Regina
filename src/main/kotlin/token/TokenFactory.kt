@@ -2,11 +2,17 @@ package token
 
 import lexer.Parser
 import lexer.PositionalException
+import token.invocation.TokenCall
+import token.invocation.TokenConstructor
+import token.operator.TokenArithmeticOperator
+import token.operator.TokenOperator
+import token.operator.TokenTypeOperator
+import token.statement.TokenAssignment
 
 class TokenFactory {
     private val nonArithmeticOperators = listOf("+", "==", "!=")
     private val arithmeticOperators = listOf("-", "*", "/", "%", ">=", "<=", ">", "<", "!", "&", "|")
-    private val wordOperators = listOf("if", "is", "!is")
+    private val wordOperators = listOf("is", "isnot")
 
     fun createWordToken(
         symbol: String,
@@ -16,10 +22,25 @@ class TokenFactory {
         nud: ((token: Token, parser: Parser) -> Token)?,
         led: ((token: Token, parser: Parser, token2: Token) -> Token)?,
         std: ((token: Token, parser: Parser) -> Token)?
-    ) {
-        when (symbol) {
-            in wordOperators -> TokenWordOperator(symbol, value, position, bindingPower, nud, led, std)
+    ): Token {
+        return when (symbol) {
+            in wordOperators -> TokenTypeOperator(symbol, value, position, bindingPower, nud, led, std)
+            else -> TokenIdentifier(symbol, value, position, bindingPower, nud, led, std)
         }
+    }
+
+    fun copy(token: Token): Token {
+        val res = token::class.constructors.toMutableList()[0].call(
+            token.symbol,
+            token.value,
+            token.position,
+            token.bindingPower,
+            token.nud,
+            token.led,
+            token.std,
+            token.children
+        )
+        return res
     }
 
     fun createOperator(

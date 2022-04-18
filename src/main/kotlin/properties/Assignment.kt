@@ -9,6 +9,7 @@ import lexer.PositionalException
 import properties.primitive.Primitive
 import SymbolTable
 import SymbolTable.Type
+import token.TokenFactory
 
 class Assignment(val token: Token) {
     val name: String get() = token.left.value
@@ -16,7 +17,7 @@ class Assignment(val token: Token) {
     // should be val, but no way to do it
     lateinit var parent: Type
 
-    fun copy() = Assignment(token.copy())
+    fun copy() = Assignment(TokenFactory().copy(token))
 
     fun canEvaluate(): Boolean = token.right.find("(IDENT)") == null
             && token.right.find("parent") == null
@@ -31,7 +32,7 @@ class Assignment(val token: Token) {
     }
 
 
-    fun evaluate(): Property {
+    fun evaluate(): Variable {
         val value = evaluateValue(
             token.right,
             globalTable//SymbolTable((TypeManager.types) as (MutableMap<String, Variable>), FunctionEvaluation.functions)

@@ -23,63 +23,63 @@ object FunctionEvaluation {
         return Function(nameToken.value, argsTokens.map { it.value }, body, parent)
     }
 
-    fun evaluateFunction(token: Token, function: Function, args: List<Token>, symbolTable: SymbolTable): Any {
-        // this table is used for function execution. Hence, it should contain only function arguments
-        val localTable = globalTable.copy()
-        localTable.addVariables(args.map {
-            evaluateValue(
-                it,
-                symbolTable
-            ).toVariable(token)//(function.args[index])
-        }, function.params)
-        if (function is EmbeddedFunction)
-            return function.executeFunction(token, localTable)
-        return evaluateBlock(function.body, localTable)
-    }
+//    fun evaluateFunction(token: Token, function: Function, args: List<Token>, symbolTable: SymbolTable): Any {
+//        // this table is used for function execution. Hence, it should contain only function arguments
+//        val localTable = globalTable.copy()
+//        localTable.addVariables(args.map {
+//            evaluateValue(
+//                it,
+//                symbolTable
+//            ).toVariable(token)//(function.args[index])
+//        }, function.params)
+//        if (function is EmbeddedFunction)
+//            return function.executeFunction(token, localTable)
+//        return evaluateBlock(function.body, localTable)
+//    }
 
-    fun evaluateBlock(token: Token, symbolTable: SymbolTable): Any {
-        for (stmt in token.children) {
-            when (stmt.value) {
-             //   "while" -> evaluateWhile(stmt, symbolTable)
-                //"if" -> evaluateIf(stmt, symbolTable)
-               // "=" -> stmt.evaluate(symbolTable)
-               // "(" -> stmt.evaluate(symbolTable)
-                // important to specifically evaluate it, because it will return different value
-                "return" -> {
-                    return if (stmt.children.size == 0)
-                        Unit
-                    else stmt.left.evaluate(symbolTable)
-                }
-                "." -> {
-                    val func = symbolTable.getFunction(stmt)
-                    evaluateFunction(
-                        stmt.right, func, stmt.right.children.subList(1, stmt.right.children.size),
-                        SymbolTable(symbolTable.getVariables(), currentFile = stmt.left.value)
-                    )
-                    println(func)
-                }
-                else -> stmt.evaluate(symbolTable)//throw PositionalException("expected assignment, invocation or block", stmt)
-            }
-        }
-        return Unit
-    }
+//    fun evaluateBlock(token: Token, symbolTable: SymbolTable): Any {
+//        for (stmt in token.children) {
+//            when (stmt.value) {
+//                //   "while" -> evaluateWhile(stmt, symbolTable)
+//                //"if" -> evaluateIf(stmt, symbolTable)
+//                // "=" -> stmt.evaluate(symbolTable)
+//                // "(" -> stmt.evaluate(symbolTable)
+////                "." -> {
+////                    val func = symbolTable.getFunction(stmt)
+////                    evaluateFunction(
+////                        stmt.right, func, stmt.right.children.subList(1, stmt.right.children.size),
+////                        SymbolTable(symbolTable.getVariables(), currentFile = stmt.left.value)
+////                    )
+////                    println(func)
+////                }
+//                // important to specifically evaluate it, because it will return different value
+//                "return" -> {
+//                    return if (stmt.children.size == 0)
+//                        Unit
+//                    else stmt.left.evaluate(symbolTable)
+//                }
+//                else -> stmt.evaluate(symbolTable)//throw PositionalException("expected assignment, invocation or block", stmt)
+//            }
+//        }
+//        return Unit
+//    }
 
-    private fun evaluateWhile(token: Token, symbolTable: SymbolTable) {
-        val condition = token.left
-        val block = token.right
-        while (evaluateValue(condition, symbolTable).toBoolean(condition)) {
-            evaluateBlock(block, symbolTable)
-        }
-    }
+//    private fun evaluateWhile(token: Token, symbolTable: SymbolTable) {
+//        val condition = token.left
+//        val block = token.right
+//        while (evaluateValue(condition, symbolTable).toBoolean(condition)) {
+//            evaluateBlock(block, symbolTable)
+//        }
+//    }
 
-    private fun evaluateIf(token: Token, symbolTable: SymbolTable) {
-        val condition = token.left
-        val trueBlock = token.right
-        if (evaluateValue(condition, symbolTable).toBoolean(condition))
-            evaluateBlock(trueBlock, symbolTable)
-        else if (token.children.size == 3)
-            evaluateBlock(token.children[2], symbolTable)
-    }
+//    private fun evaluateIf(token: Token, symbolTable: SymbolTable) {
+//        val condition = token.left
+//        val trueBlock = token.right
+//        if (evaluateValue(condition, symbolTable).toBoolean(condition))
+//            evaluateBlock(trueBlock, symbolTable)
+//        else if (token.children.size == 3)
+//            evaluateBlock(token.children[2], symbolTable)
+//    }
 
     fun Any.toVariable(token: Token, parent: Type? = null): Variable {
         if (this is Type)
@@ -91,6 +91,10 @@ object FunctionEvaluation {
         val res = mutableMapOf<String, Function>()
         res["log"] = EmbeddedFunction("log", listOf("x"), { _, args ->
             println(args.getVariable("x"))
+        })
+        res["test"] = EmbeddedFunction("test", listOf("x"), { token, args ->
+            if (args.getVariable("x") !is PInt || (args.getVariable("x") as PInt).value == 0)
+                throw PositionalException("test failed", token)
         })
         res["rnd"] = EmbeddedFunction("rnd", listOf(), { _, _ ->
             rnd.nextDouble()

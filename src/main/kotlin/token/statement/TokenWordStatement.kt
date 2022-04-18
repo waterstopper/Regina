@@ -1,7 +1,7 @@
-package token
+package token.statement
 
 import SymbolTable
-import lexer.Parser
+import token.Token
 
 class TokenWordStatement(token: Token) :
     Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {

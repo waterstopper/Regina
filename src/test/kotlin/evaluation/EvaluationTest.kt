@@ -3,7 +3,6 @@ package evaluation
 import evaluation.Evaluation.evaluate
 import org.junit.Test
 import readFile
-import treeView
 
 
 internal class EvaluationTest {
@@ -11,8 +10,8 @@ internal class EvaluationTest {
     @Test
     fun evaluateTest() {
       //  val text = File("src/test/resources/testCode").readText()
-        val s = readFile("src/test/resources/testCode")
+        val s = readFile("src/test/resources/testCode.redi")
         //println(s.treeView())
-        evaluate(s,"testCode")
+        evaluate(s,"testCode.redi")
     }
 }

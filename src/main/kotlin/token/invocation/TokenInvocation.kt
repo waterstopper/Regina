@@ -1,9 +1,10 @@
-package token
+package token.invocation
 
-import SymbolTable
 import lexer.Parser
+import SymbolTable
+import token.Token
 
-class TokenString(
+class TokenInvocation(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
@@ -14,6 +15,7 @@ class TokenString(
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?
 ) : Token(symbol, value, position, bindingPower, nud, led, std) {
-
-    override fun evaluate(symbolTable: SymbolTable): Any = value
+    override fun evaluate(symbolTable: SymbolTable): Any {
+        return left.evaluate(symbolTable)
+    }
 }

@@ -1,8 +1,10 @@
 package properties
 
+import SymbolTable
 import SymbolTable.Type
 
 abstract class Variable(name: String, val parent: Type?) {
+    abstract val symbolTable:SymbolTable
     protected var name = name
         set(_) {
             println("BAD")
