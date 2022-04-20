@@ -1,10 +1,10 @@
 package token.operator
 
-import evaluation.ValueEvaluation.toInt
 import lexer.Parser
 import lexer.PositionalException
 import table.SymbolTable
 import token.Token
+import utils.Utils.toInt
 
 class TokenArithmeticOperator(
     symbol: String,

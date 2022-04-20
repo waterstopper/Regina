@@ -2,6 +2,7 @@ package token
 
 import lexer.Parser
 import lexer.PositionalException
+import table.SymbolTable
 import token.invocation.TokenCall
 import token.invocation.TokenConstructor
 import token.operator.TokenArithmeticOperator
@@ -64,10 +65,9 @@ class TokenFactory {
     companion object {
         fun createSpecificIdentifierFromInvocation(
             tokenIdentifier: Token,
-            classes: MutableSet<String>,
-            functions: MutableSet<String>
+            symbolTable: SymbolTable
         ): TokenIdentifier {
-            if (classes.contains(tokenIdentifier.left.value))
+            if (symbolTable.getTypeOrNull(tokenIdentifier.left) != null)
                 return TokenConstructor(
                     "(CONSTRUCTOR)",
                     tokenIdentifier.value,
@@ -78,7 +78,7 @@ class TokenFactory {
                     tokenIdentifier.std,
                     tokenIdentifier.children
                 )
-            if (functions.contains(tokenIdentifier.left.value))
+            if (symbolTable.getFunctionOrNull(tokenIdentifier.left) != null)
                 return TokenCall(
                     "(CALL)",
                     tokenIdentifier.value,

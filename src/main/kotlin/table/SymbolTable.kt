@@ -16,9 +16,18 @@ class SymbolTable(
 ) {
     companion object {
         private val imports = mutableMapOf<FileTable, MutableSet<FileTable>>()
-        private val embedded: MutableMap<String, Function> = initializeEmbedded()
 
-        fun getEmbeddedNames(): MutableSet<String> = embedded.keys.toMutableSet()
+        //private val embedded: MutableMap<String, Function> = initializeEmbedded()
+        private val globalFile = initializeGlobal()
+
+        private fun initializeGlobal(): FileTable {
+            val res = FileTable("@global")
+            for (i in initializeEmbedded())
+                res.addFunction(i.value)
+            return res
+        }
+
+        fun getEmbeddedNames(): MutableSet<String> = globalFile.getFunctionNames()
     }
 
     private fun checkImports(check: (table: FileTable) -> Any?): List<Any> {
@@ -84,7 +93,7 @@ class SymbolTable(
     fun changeType(type: Type) = SymbolTable(scopeTable, type, fileTable)
 
     fun addFile(fileName: String) {
-        imports[FileTable(fileName)] = mutableSetOf()
+        imports[FileTable(fileName)] = mutableSetOf(globalFile)
     }
 
     fun addImport(fileName: Token) {
@@ -96,6 +105,8 @@ class SymbolTable(
     fun addObject(token: Token) = fileTable.addObject(token)
     fun addVariable(name: String, value: Variable) = scopeTable!!.addVariable(name, value)
 
+
+    fun getImportOrNull(fileName: String) = imports[fileTable]!!.find { it.fileName == fileName }
     fun getType(token: Token): Type =
         getFromFiles(token) { it.getTypeOrNull(token.value)!!.copy() } as Type? ?: throw PositionalException(
             "Type ${token.value} not found",
@@ -103,7 +114,7 @@ class SymbolTable(
         )
 
     fun getFunction(token: Token): Function {
-        val res = embedded[token.value] ?: getFromFilesOrNull { it.getFunctionOrNull(token.value) } as Function?
+        val res = getFromFilesOrNull { it.getFunctionOrNull(token.value) } as Function?
         if (res == null) {
             if (typeTable == null) throw PositionalException("Function ${token.value} not found", token)
             return typeTable!!.getFunction(token)
@@ -112,6 +123,9 @@ class SymbolTable(
     }
 
     fun getObjectOrNull(token: Token): Object? = getFromFilesOrNull { it.getObjectOrNull(token.value) } as Object?
+    fun getTypeOrNull(token: Token): Type? = getFromFilesOrNull { it.getTypeOrNull(token.value) } as Type?
+    fun getFunctionOrNull(token: Token): Function? =
+        getFromFilesOrNull { it.getFunctionOrNull(token.value) } as Function?
 
     fun getMain(): Function {
         val mains = getFromFilesOrNull { it.getFunctionOrNull("main") }
@@ -121,6 +135,26 @@ class SymbolTable(
 
     fun getVariable(token: Token) = scopeTable!!.getVariable(token)
     fun getVariable(name: String) = scopeTable!!.getVariable(name)
+    fun getVariableOrNull(name: String): Variable? = scopeTable!!.getVariableOrNull(name)
+    fun getIdentifier(token: Token): Any {
+        val variable = scopeTable?.getVariableOrNull(token.value)
+        if (variable != null)
+            return variable
+        val type = getTypeOrNull(token)
+        if (type != null)
+            return type
+        val property = typeTable?.getPropertyOrNull(token.value)
+        if (property != null)
+            return property
+        return getObjectOrNull(token) ?: throw PositionalException("Identfier ${token.value} not found", token)
+    }
+
+    fun getCurrentType() = typeTable
+
+    private fun addGlobal() {
+
+    }
+
 }
 
 

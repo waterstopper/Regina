@@ -1,6 +1,6 @@
 import token.Token
 
-class Logger {
+object Logger {
     val warnings = mutableListOf<Pair<Pair<Int, Int>, String>>()
     var error = Pair(Pair(-1, -1), "")
 

@@ -1,10 +1,10 @@
 package lexer
 
-import table.SymbolTable
-import evaluation.Evaluation
+import Logger
 import evaluation.Evaluation.globalTable
 import evaluation.FunctionEvaluation
 import readFile
+import table.SymbolTable
 import token.Token
 import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
 import java.util.*
@@ -12,12 +12,13 @@ import java.util.*
 class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
 
     fun analyze(): List<Token> {
-        createAssociations()
+        createAssociations(tokens, fileName)
+        // TODO do the same for all imports
         changeIdentTokens()
         return tokens
     }
 
-    private fun createAssociations() {
+    private fun createAssociations(tokens: List<Token>, fileName: String) {
         globalTable.addFile(fileName)
         globalTable = globalTable.changeFile(fileName)
 
@@ -34,22 +35,18 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                     globalTable.addObject(token)
                 }
                 "import" -> {
-                    if (!globalTable.getImportOrNull(token.left.value)) {
+                    if (globalTable.getImportOrNull(token.left.value) == null) {
                         globalTable.addFile(token.left.value)
-                        globalTable.addImport(token.left.value)
-                        queue.addAll(readFile(tokenPath = token.left).map { Pair(it, token.left.value) })
-                    }
-                    /**
-                     * TODO: warn about this code (doubling imports):
-                     * import abc
-                     * import abc
-                     * ...
-                     */
+                        globalTable.addImport(token.left)
+                        createAssociations(readFile(token.left.value + ".redi"), token.left.value)
+                        //queue.addAll(readFile(tokenPath = token.left).map { Pair(it, token.left.value) })
+                    } else Logger.addWarning(token.left, "Same import found above")
                 }
                 else -> throw PositionalException("class or function can be top level declaration", token)
             }
         }
-        initializeSuperTypes()
+        // TODO implement
+        // initializeSuperTypes()
     }
 
     private fun changeIdentTokens() {
@@ -62,7 +59,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             when (child.symbol) {
                 "(" -> {
                     if (token.value != "fun")
-                        token.children[index] = createSpecificIdentifierFromInvocation(child, classes, functions)
+                        token.children[index] = createSpecificIdentifierFromInvocation(child, globalTable)
                 }
                 // "[]" -> token.children[index] = TokenArray(child)
                 //"[" -> token.children[index] = TokenIndexing(child)
@@ -80,7 +77,13 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                     classes.add(getSupertype((getExport(token.left))).value)
                 }
                 "fun" -> {
-                    functions.add(token.left.left.value)
+                    val added = functions.add(token.left.left.value)
+                    if (!added)
+                        throw  PositionalException(
+                            if (SymbolTable.getEmbeddedNames()
+                                    .contains(functions.last())
+                            ) "reserved function name" else "same function name within one file", token.left.left
+                        )
                     checkParams(token.left.children.subList(1, token.left.children.size))
                 }
             }

@@ -7,8 +7,8 @@ import properties.Type
 import table.SymbolTable
 import token.Token
 import token.TokenIdentifier
-import token.operator.TokenIndexing
 import token.TokenLink
+import token.operator.TokenIndexing
 import token.operator.TokenOperator
 
 class TokenAssignment(
@@ -36,7 +36,7 @@ class TokenAssignment(
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         val value = right.evaluate(symbolTable)
-        assignLValue(left, value, symbolTable.parent, symbolTable)
+        assignLValue(left, value, symbolTable.getCurrentType(), symbolTable)
         return value
     }
 
@@ -52,7 +52,7 @@ class TokenAssignment(
 //    )
 
 
-    private fun assignLValue(token: Token, value: Any, parent: SymbolTable.Type?, symbolTable: SymbolTable) {
+    private fun assignLValue(token: Token, value: Any, parent: Type?, symbolTable: SymbolTable) {
         if (token is TokenIdentifier) {
             symbolTable.addVariable(token.value, value.toVariable(token, parent))
             return
@@ -67,17 +67,17 @@ class TokenAssignment(
         var current = token
         while (current is TokenLink) {
             // left is type
-            if (importTable.getVariableOrNull(current.left) != null) {
-                val type = importTable.getVariableOrNull(current.left)
+            if (importTable.getVariableOrNull(current.left.value) != null) {
+                val type = importTable.getVariableOrNull(current.left.value)
                 if (type is Type) {
-                    importTable = type.symbolTable
+                    importTable = symbolTable.changeType(type)
                     current = current.right
                 } else throw PositionalException("primitive does not contain properties", current.left)
             } else if (importTable.getObjectOrNull(current.left) != null) {
-                importTable = importTable.getObjectOrNull(current.left)!!.symbolTable
+                importTable = symbolTable.changeType(importTable.getObjectOrNull(current.left)!!)
                 current = current.right
-            } else if (importTable.getImportOrNull(current.left) != null) {
-                importTable = SymbolTable(currentFile = current.left.value)
+            } else if (importTable.getImportOrNull(current.left.value) != null) {
+                importTable = symbolTable.changeFile(current.left.value)
                 current = current.right
             }
         }

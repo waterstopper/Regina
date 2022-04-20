@@ -25,17 +25,9 @@ fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {
     }
 
     val statements = Parser(text).statements()
-    return SemanticAnalyzer(path, statements).analyze()
+    return SemanticAnalyzer(parseFilePath(path), statements).analyze()
 }
-
-fun List<Token>.treeView(): String {
-    val res = StringBuilder()
-    for (t in this) {
-        res.append(t.toTreeString(0))
-        res.append('\n')
-    }
-    return res.toString()
-}
+fun parseFilePath(path:String):String = path.split("/").last()
 
 //private fun createDefs() {
 //    val root = OldContainer("Root", null, mutableMapOf())

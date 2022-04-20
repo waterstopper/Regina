@@ -1,9 +1,9 @@
 package token.statement
 
-import evaluation.ValueEvaluation.toBoolean
 import lexer.PositionalException
 import table.SymbolTable
 import token.Token
+import utils.Utils.toBoolean
 
 class TokenBlock(token: Token) :
     Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {

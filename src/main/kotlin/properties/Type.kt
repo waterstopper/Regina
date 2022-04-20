@@ -10,6 +10,7 @@ open class Type(
     val name: String,
     parent: Type?,
     val assignments: MutableList<TokenAssignment>,
+    val fileName: String,
     private val exported: Any? = null,
     private var supertype: Type? = null
 ) :
@@ -25,6 +26,7 @@ open class Type(
         ?: throw PositionalException("unknown property", token)
 
     fun getProperties() = properties.toMutableMap()
+    fun getPropertyOrNull(name: String) = properties[name] ?: assignments.find { it.left.value == name }
 
     override fun toString(): String {
         return "$name${if (supertype != null) ":${supertype!!.name}" else ""}{parent:${parent ?: "-"}, " +
@@ -33,11 +35,11 @@ open class Type(
 
     fun inherits(other: Type): Boolean {
         var type: Type? = this
-        do {
-            if (type == other)
+        while (type != null) {
+            if (type.name == other.name && type.fileName == other.fileName)
                 return true
-            type = type!!.supertype
-        } while (type != null)
+            type = type.supertype
+        }
         return false
     }
 
@@ -47,6 +49,7 @@ open class Type(
                 name,
                 parent?.copy(),
                 assignments.map { TokenFactory().copy(it) }.toMutableList() as MutableList<TokenAssignment>,
+                fileName,
                 this.exported,
                 this.supertype
             )

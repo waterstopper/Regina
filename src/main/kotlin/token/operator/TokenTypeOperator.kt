@@ -1,7 +1,6 @@
 package token.operator
 
 import evaluation.FunctionEvaluation.toVariable
-import evaluation.ValueEvaluation.toInt
 import lexer.Parser
 import lexer.PositionalException
 import properties.Type
@@ -11,6 +10,7 @@ import properties.primitive.PInt
 import properties.primitive.PString
 import table.SymbolTable
 import token.Token
+import utils.Utils.toInt
 
 class TokenTypeOperator(
     symbol: String,

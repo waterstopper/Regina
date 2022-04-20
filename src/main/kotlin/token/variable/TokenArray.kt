@@ -1,7 +1,6 @@
 package token.variable
 
 import evaluation.FunctionEvaluation.toVariable
-import evaluation.ValueEvaluation
 import lexer.Parser
 import table.SymbolTable
 import token.Token
@@ -28,14 +27,13 @@ class TokenArray(
         token.std,
         token.children
     )
+
     init {
         this.children.clear()
         this.children.addAll(children)
     }
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        return children.map { ValueEvaluation.evaluateValue(it, symbolTable).toVariable(it) }.toMutableList()
+        return children.map { it.evaluate(symbolTable).toVariable(it) }.toMutableList()
     }
-
-
 }

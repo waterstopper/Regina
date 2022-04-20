@@ -1,12 +1,12 @@
 package properties.primitive
 
-import evaluation.ValueEvaluation.toInt
 import lexer.PositionalException
 import properties.EmbeddedFunction
 import properties.Function
+import properties.Type
 import properties.Variable
-import table.SymbolTable.Type
 import token.Token
+import utils.Utils.toInt
 
 class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, parent) {
     override fun getPValue() = value as MutableList<Variable>
@@ -30,6 +30,17 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 "index $index out of bounds for array of size ${(value as MutableList<*>).size}",
                 token
             )
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is PArray) return false
+        if (getPValue() == other.getPValue())
+            return true
+        return false
+    }
+
+    override fun hashCode(): Int {
+        return getPValue().hashCode()
     }
 
     companion object {
@@ -92,5 +103,5 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             return res
         }
     }
-}
 
+}

@@ -171,15 +171,9 @@ package evaluation
 //        else evaluateValue(token.children[2], symbolTable)
 //    }
 //
-//    fun Boolean.toInt(): Int = if (this) 1 else 0
 //
-//    fun Any.toBoolean(token: Token): Boolean {
-//        try {
-//            return this.toString().toDouble() != 0.0
-//        } catch (e: NumberFormatException) {
-//            throw PositionalException("expected numeric value", token)
-//        }
-//    }
+//
+//
 //}
 //
 //

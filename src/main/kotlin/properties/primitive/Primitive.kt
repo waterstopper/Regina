@@ -25,8 +25,6 @@ abstract class Primitive(open var value: Any, parent: Type?) : Property(parent) 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Primitive) return false
-        if (!super.equals(other)) return false
-
         if (value != other.value) return false
 
         return true

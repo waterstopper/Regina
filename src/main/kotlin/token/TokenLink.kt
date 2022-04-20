@@ -34,22 +34,23 @@ class TokenLink(
         if (left is TokenInvocation) {
             val instance = left.evaluate(symbolTable)
             if (instance is Type)
-                return right.evaluate(instance.symbolTable)
+                return right.evaluate(symbolTable.changeType(instance))
             throw PositionalException(
                 "expected class instance${if (left is TokenCall) " as return value" else ""}",
                 left
             )
         }
-        if (symbolTable.getVariableOrNull(left) != null) {
-            val variable = symbolTable.getVariableOrNull(left)
-            if (variable is SymbolTable.Type)
-                return right.evaluate(variable.symbolTable)
+        if (symbolTable.getVariableOrNull(left.value) != null) {
+            val variable = symbolTable.getVariableOrNull(left.value)
+            if (variable is Type)
+                return right.evaluate(symbolTable.changeType(variable))
             throw PositionalException("expected class instance", left)
         }
         if (symbolTable.getObjectOrNull(left) != null)
-            return right.evaluate(symbolTable.getObjectOrNull(left)!!.symbolTable)
-        if (symbolTable.getImportOrNull(left) != null) {
-            val importTable = SymbolTable(symbolTable.getVariables(), currentFile = left.value)
+            return right.evaluate(symbolTable.changeType(symbolTable.getObjectOrNull(left)!!))
+        if (symbolTable.getImportOrNull(left.value) != null) {
+            val importTable =
+                symbolTable.changeFile(left.value)//SymbolTable(symbolTable.getVariables(), currentFile = left.value)
             return right.evaluate(importTable)
 //            if (right is TokenLink)
 //                return right.evaluate(importTable)

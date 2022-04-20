@@ -24,7 +24,7 @@ class FileTable(
     fun addType(token: Token) {
         assignName(assignType(assignExported(token.left), fileName))
         val (assignments, functions) = createAssignmentsAndFunctions(token)
-        val added = Type(name, null, assignments, exported)
+        val added = Type(name, null, assignments, fileName, exported)
         if (types.find { it.name == name } != null)
             throw PositionalException("found class with same name in $fileName", token)
         types.add(added)
@@ -35,7 +35,7 @@ class FileTable(
     fun addObject(token: Token) {
         val name = token.left.value
         val (assignments, functions) = createAssignmentsAndFunctions(token)
-        objects.add(Object(name, assignments))
+        objects.add(Object(name, assignments, fileName))
     }
 
     fun addFunction(function: Function) = functions.add(function)
@@ -43,6 +43,7 @@ class FileTable(
     fun getTypeOrNull(name: String) = types.find { it.name == name }
     fun getObjectOrNull(name: String) = objects.find { it.name == name }
     fun getFunctionOrNull(name: String) = functions.find { it.name == name }
+    fun getFunctionNames() = functions.map { it.name }.toMutableSet()
 
     fun assignExported(token: Token): Token {
         if (token.value == "export") {
@@ -90,4 +91,6 @@ class FileTable(
     }
 
     override fun hashCode(): Int = fileName.hashCode()
+
+    override fun toString(): String = fileName
 }
