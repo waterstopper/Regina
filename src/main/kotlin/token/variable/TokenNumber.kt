@@ -1,7 +1,7 @@
 package token.variable
 
 import lexer.Parser
-import SymbolTable
+import table.SymbolTable
 import token.Token
 
 class TokenNumber(value: String, position: Pair<Int, Int>) :

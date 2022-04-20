@@ -1,8 +1,8 @@
 package token.invocation
 
-import SymbolTable
-import SymbolTable.Type
 import lexer.Parser
+import properties.Type
+import table.SymbolTable
 import token.Token
 import token.TokenIdentifier
 import token.statement.TokenAssignment
@@ -25,11 +25,11 @@ class TokenConstructor(
     }
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        val type = symbolTable.getInvokable(left)
-        return if (resolving) type as Type else resolveTree(type as Type)
+        val type = symbolTable.getType(left)
+        return if (resolving) type else resolveTree(type)
     }
 
-    fun resolveTree(root: Type): Type {
+    private fun resolveTree(root: Type): Type {
         resolving = true
         do {
             val current = bfs(root) ?: break
@@ -53,7 +53,7 @@ class TokenConstructor(
             val current = stack.pop()
             if (current.assignments.isNotEmpty())
                 return current.assignments.first()
-            val containers = current.symbolTable.getVariableValues().filterIsInstance<Type>()
+            val containers = current.getProperties().values.filterIsInstance<Type>()
             stack.addAll(containers)
         }
         return null

@@ -1,9 +1,10 @@
 package token.statement
 
-import SymbolTable
 import evaluation.FunctionEvaluation.toVariable
 import lexer.Parser
 import lexer.PositionalException
+import properties.Type
+import table.SymbolTable
 import token.Token
 import token.TokenIdentifier
 import token.operator.TokenIndexing
@@ -27,7 +28,7 @@ class TokenAssignment(
         this.children.addAll(children)
     }
 
-    var parent: SymbolTable.Type? = null
+    var parent: Type? = null
     val name: String get() = left.value
 
     fun canEvaluate(): Boolean = right.find("(IDENT)") == null
@@ -59,7 +60,7 @@ class TokenAssignment(
         // all variables inside PArray property of type won't have such type as parent
         if (token is TokenIndexing) {
             val (array, index) = token.getArrayAndIndex(symbolTable)
-            array.getArray()[index] = value.toVariable(right, null)
+            array.getPValue()[index] = value.toVariable(right, null)
             return
         }
         var importTable = symbolTable
@@ -68,7 +69,7 @@ class TokenAssignment(
             // left is type
             if (importTable.getVariableOrNull(current.left) != null) {
                 val type = importTable.getVariableOrNull(current.left)
-                if (type is SymbolTable.Type) {
+                if (type is Type) {
                     importTable = type.symbolTable
                     current = current.right
                 } else throw PositionalException("primitive does not contain properties", current.left)

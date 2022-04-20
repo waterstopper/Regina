@@ -30,7 +30,7 @@ class TokenFactory {
     }
 
     fun copy(token: Token): Token {
-        val res = token::class.constructors.toMutableList()[0].call(
+        return token::class.constructors.toMutableList()[0].call(
             token.symbol,
             token.value,
             token.position,
@@ -40,7 +40,6 @@ class TokenFactory {
             token.std,
             token.children
         )
-        return res
     }
 
     fun createOperator(
@@ -60,7 +59,6 @@ class TokenFactory {
             in arithmeticOperators -> TokenArithmeticOperator(symbol, value, position, bindingPower, nud, led, std)
             else -> Token(symbol, value, position, bindingPower, nud, led, std)
         }
-
     }
 
     companion object {

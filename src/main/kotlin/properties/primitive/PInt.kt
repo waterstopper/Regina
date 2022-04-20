@@ -1,8 +1,7 @@
 package properties.primitive
 
-import SymbolTable
-import SymbolTable.Type
+import table.SymbolTable.Type
 
-class PInt(value: Int, parent: Type?) : Primitive("", value, parent) {
-    override val symbolTable: SymbolTable = SymbolTable()
+class PInt(value: Int, parent: Type?) : Primitive(value, parent){
+    override fun getPValue() = value as Int
 }

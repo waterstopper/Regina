@@ -1,21 +1,20 @@
 package properties.primitive
 
-import SymbolTable
-import SymbolTable.Type
 import evaluation.ValueEvaluation.toInt
 import lexer.PositionalException
 import properties.EmbeddedFunction
 import properties.Function
 import properties.Variable
+import table.SymbolTable.Type
 import token.Token
 
-class PArray(value: MutableList<Variable>, parent: Type?) : Primitive("", value, parent) {
-    override val symbolTable: SymbolTable = SymbolTable()
-    fun getArray() = value as MutableList<Variable>
+class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, parent) {
+    override fun getPValue() = value as MutableList<Variable>
+
 
     override fun toString(): String {
         val res = StringBuilder("[")
-        for (e in getArray())
+        for (e in getPValue())
             res.append("${if (e == this) "this" else e.toString()}, ")
         return res.removeRange(res.lastIndex - 1..res.lastIndex).toString() + ']'
     }

@@ -5,8 +5,8 @@
 package token
 
 import lexer.Parser
-import SymbolTable
 import lexer.PositionalException
+import table.SymbolTable
 
 open class Token(
     var symbol: String = "",

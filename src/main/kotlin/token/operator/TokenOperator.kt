@@ -3,7 +3,7 @@ package token.operator
 import evaluation.ValueEvaluation.toInt
 import lexer.Parser
 import lexer.PositionalException
-import SymbolTable
+import table.SymbolTable
 import token.Token
 
 open class TokenOperator(

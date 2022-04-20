@@ -3,7 +3,7 @@ package token.invocation
 import evaluation.FunctionEvaluation.toVariable
 import lexer.Parser
 import properties.EmbeddedFunction
-import SymbolTable
+import table.SymbolTable
 import token.Token
 import token.TokenIdentifier
 
@@ -26,21 +26,24 @@ class TokenCall(
     private val arguments: List<Token>
         get() = children.subList(1, children.size)
 
+    /**
+     * For function evaluation, new scope table is needed, to which all arguments will be
+     * passed, named like parameters
+     */
     override fun evaluate(symbolTable: SymbolTable): Any {
         val function = symbolTable.getFunction(left)
+        val newFileTable = symbolTable.getFileOfValue(left) { it.getFunctionOrNull(left.value) }
 
-        val localTable = SymbolTable(currentFile = symbolTable.currentFile)
-        argumentsToParameters(symbolTable, localTable)
-//        localTable.addVariables(children.subList(1, children.size).map {
-//            it.evaluate(localTable).toVariable(it)
-//        }, function.args)
+        val tableWithNewScope = SymbolTable(fileTable = newFileTable)
+        argumentsToParameters(symbolTable, tableWithNewScope)
+
         if (function is EmbeddedFunction)
-            return function.executeFunction(this, localTable)
-        return function.body.evaluate(localTable)
+            return function.executeFunction(this, tableWithNewScope)
+        return function.body.evaluate(tableWithNewScope)
     }
 
     /**
-     * write arguments to parameters
+     * Write arguments to parameters
      */
     private fun argumentsToParameters(argTable: SymbolTable, paramTable: SymbolTable) {
         val function = paramTable.getFunction(left)

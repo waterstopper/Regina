@@ -1,9 +1,9 @@
 package token.variable
 
-import SymbolTable
 import evaluation.FunctionEvaluation.toVariable
 import evaluation.ValueEvaluation
 import lexer.Parser
+import table.SymbolTable
 import token.Token
 import token.TokenIdentifier
 

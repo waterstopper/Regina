@@ -1,6 +1,8 @@
 package properties.primitive
 
-import SymbolTable
-import SymbolTable.Type
+import properties.Variable
+import table.SymbolTable.Type
 
-class PString(value: String, parent: Type?, override val symbolTable: SymbolTable = SymbolTable()) : Primitive("", value, parent)
+class PString(value: String, parent: Type?) : Primitive(value, parent){
+    override fun getPValue() = value as String
+}

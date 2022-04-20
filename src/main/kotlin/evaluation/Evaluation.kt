@@ -1,24 +1,13 @@
 package evaluation
 
-import evaluation.FunctionEvaluation.createFunction
-import evaluation.TypeEvaluation.resolveTree
-import evaluation.TypeEvaluation.resolving
-import lexer.PositionalException
+import table.SymbolTable
 import token.Token
-import properties.Function
-
-import readFile
-import SymbolTable
-
-import SymbolTable.Type
-import SymbolTable.Type.Companion.initializeSuperTypes
-import java.util.*
 import kotlin.random.Random
 
 object Evaluation {
     private const val SEED = 42
     val rnd = Random(SEED)
-    val globalTable = SymbolTable(mutableMapOf())
+    var globalTable = SymbolTable()
     private lateinit var declarations: List<Token>
 
 //    private fun initializeObjects() {

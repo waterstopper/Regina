@@ -1,8 +1,9 @@
 package token
 
 import lexer.Parser
-import SymbolTable
 import lexer.PositionalException
+import properties.Type
+import table.SymbolTable
 import token.invocation.TokenCall
 import token.invocation.TokenInvocation
 
@@ -32,7 +33,7 @@ class TokenLink(
     override fun evaluate(symbolTable: SymbolTable): Any {
         if (left is TokenInvocation) {
             val instance = left.evaluate(symbolTable)
-            if (instance is SymbolTable.Type)
+            if (instance is Type)
                 return right.evaluate(instance.symbolTable)
             throw PositionalException(
                 "expected class instance${if (left is TokenCall) " as return value" else ""}",

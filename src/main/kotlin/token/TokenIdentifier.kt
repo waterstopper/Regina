@@ -1,8 +1,9 @@
 package token
 
-import SymbolTable
+
 import lexer.Parser
 import properties.primitive.Primitive
+import table.SymbolTable
 
 open class TokenIdentifier(
     symbol: String,

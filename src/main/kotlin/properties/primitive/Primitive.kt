@@ -1,15 +1,16 @@
 package properties.primitive
 
 import lexer.PositionalException
-import token.Token
 import properties.Property
-import SymbolTable.Type
+import properties.Type
 import properties.Variable
+import token.Token
 
 /**
  * Stores Array, String, Int, Double values
  */
-abstract class Primitive(name: String, var value: Any, parent: Type?) : Property(name, parent) {
+abstract class Primitive(open var value: Any, parent: Type?) : Property(parent) {
+    open fun getPValue() = value
 
     fun getSymbol(): String {
         return when (value) {

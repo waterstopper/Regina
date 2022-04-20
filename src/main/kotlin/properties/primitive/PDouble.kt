@@ -1,8 +1,8 @@
 package properties.primitive
 
-import SymbolTable
-import SymbolTable.Type
+import properties.Variable
+import table.SymbolTable.Type
 
-class PDouble(value: Double, parent: Type?) : Primitive("", value, parent){
-    override val symbolTable: SymbolTable = SymbolTable()
+class PDouble(value: Double, parent: Type?) : Primitive(value, parent) {
+    override fun getPValue() = value as Double
 }

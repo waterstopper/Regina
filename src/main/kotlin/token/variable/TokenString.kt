@@ -1,7 +1,7 @@
 package token.variable
 
-import SymbolTable
 import lexer.Parser
+import table.SymbolTable
 import token.Token
 
 class TokenString(

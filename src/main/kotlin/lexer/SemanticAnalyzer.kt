@@ -1,8 +1,8 @@
 package lexer
 
-import SymbolTable
-import SymbolTable.Type.Companion.initializeSuperTypes
+import table.SymbolTable
 import evaluation.Evaluation
+import evaluation.Evaluation.globalTable
 import evaluation.FunctionEvaluation
 import readFile
 import token.Token
@@ -18,23 +18,25 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
     }
 
     private fun createAssociations() {
-        Evaluation.globalTable.currentFile = fileName
+        globalTable.addFile(fileName)
+        globalTable = globalTable.changeFile(fileName)
 
         val queue = ArrayDeque<Pair<Token, String>>()
         queue.addAll(tokens.map { Pair(it, fileName) })
         while (queue.isNotEmpty()) {
             val (token, currentFileName) = queue.pop()
             when (token.symbol) {
-                "fun" -> Evaluation.globalTable.addFunction(FunctionEvaluation.createFunction(token), currentFileName)
+                "fun" -> globalTable.addFunction(FunctionEvaluation.createFunction(token))
                 "class" -> {
-                    Evaluation.globalTable.addType(token, currentFileName)
+                    globalTable.addType(token)
                 }
                 "object" -> {
-                    Evaluation.globalTable.addObject(token, currentFileName)
+                    globalTable.addObject(token)
                 }
                 "import" -> {
-                    if (!Evaluation.globalTable.getImportOrNull(currentFileName, token.left.value)) {
-                        Evaluation.globalTable.addImport(currentFileName, token.left.value)
+                    if (!globalTable.getImportOrNull(token.left.value)) {
+                        globalTable.addFile(token.left.value)
+                        globalTable.addImport(token.left.value)
                         queue.addAll(readFile(tokenPath = token.left).map { Pair(it, token.left.value) })
                     }
                     /**

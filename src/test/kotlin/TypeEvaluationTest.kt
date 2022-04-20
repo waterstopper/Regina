@@ -1,6 +1,5 @@
 import deprecated.Formula
 import deprecated.OldContainer
-import deprecated.TreeBuilder
 import org.junit.Test
 @Deprecated("")
 internal class TypeEvaluationTest {

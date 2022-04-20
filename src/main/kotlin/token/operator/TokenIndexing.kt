@@ -1,10 +1,10 @@
 package token.operator
 
-import SymbolTable
 import lexer.Parser
 import lexer.PositionalException
 import properties.primitive.PArray
 import properties.primitive.Primitive
+import table.SymbolTable
 import token.Token
 
 class TokenIndexing(

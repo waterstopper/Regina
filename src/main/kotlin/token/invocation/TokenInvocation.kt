@@ -1,7 +1,7 @@
 package token.invocation
 
 import lexer.Parser
-import SymbolTable
+import table.SymbolTable
 import token.Token
 
 class TokenInvocation(

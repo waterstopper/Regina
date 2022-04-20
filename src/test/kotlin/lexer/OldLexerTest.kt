@@ -1,6 +1,5 @@
 package lexer
 
-import deprecated.Symbol
 import org.junit.Assert
 import org.junit.Test
 @Deprecated("")

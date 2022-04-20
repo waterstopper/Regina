@@ -1,14 +1,15 @@
 package token.operator
 
-import SymbolTable
 import evaluation.FunctionEvaluation.toVariable
 import evaluation.ValueEvaluation.toInt
 import lexer.Parser
 import lexer.PositionalException
+import properties.Type
 import properties.primitive.PArray
 import properties.primitive.PDouble
 import properties.primitive.PInt
 import properties.primitive.PString
+import table.SymbolTable
 import token.Token
 
 class TokenTypeOperator(
@@ -40,9 +41,9 @@ class TokenTypeOperator(
             "Array" -> checked is PArray
             else -> {
                 val type = right.evaluate(symbolTable)
-                if (checked is SymbolTable.Type && type is SymbolTable.Type
+                if (checked is Type && type is Type
                     && checked.assignments.isEmpty()
-                    && type.symbolTable.isEmpty()
+                    && type.assignments.isEmpty()
                 )
                     return checked.inherits(type)
                 throw PositionalException(

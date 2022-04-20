@@ -1,6 +1,6 @@
 package token.statement
 
-import SymbolTable
+import table.SymbolTable
 import token.Token
 
 class TokenWordStatement(token: Token) :
