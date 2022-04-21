@@ -1,14 +1,15 @@
 package evaluation
 
+import properties.Type
 import table.SymbolTable
 import token.Token
+import java.util.*
 import kotlin.random.Random
 
 object Evaluation {
     private const val SEED = 42
     val rnd = Random(SEED)
     var globalTable = SymbolTable()
-    private lateinit var declarations: List<Token>
 
 //    private fun initializeObjects() {
 //        declarations.filter { it.value == "object" }.forEach { TypeManager.addObject(it) }
@@ -58,32 +59,5 @@ object Evaluation {
 //    private fun evaluateType(token: Token) {
 //        getTypeName(token.children[0])
 //        interpretClassBlock(token.children[1])
-//    }
-
-//    private fun initializeSuperTypes() {
-//        for(type in globalTable.getTypes())
-//        val stack = Stack<Type>()
-//        val classDeclarations = types.values.toMutableList()
-//        while (true) {
-//            if (stack.isEmpty()) {
-//                if (classDeclarations.isEmpty())
-//                    break
-//                stack.push(classDeclarations.first())
-//                classDeclarations.removeAt(0)
-//            }
-//            while (stack.isNotEmpty()) {
-//                val type = stack.pop()
-//                //val supertypeName = TypeManager.resolvedSupertype(type)
-//                if (supertypeName == "")
-//                // addType(type)
-//                else {
-//                    val foundSupertype = classDeclarations.find { TypeManager.getName(it) == supertypeName }
-//                        ?: throw Exception("no class with name $supertypeName")
-//                    stack.push(type)
-//                    stack.push(foundSupertype)
-//                    classDeclarations.remove(foundSupertype)
-//                }
-//            }
-//        }
 //    }
 }

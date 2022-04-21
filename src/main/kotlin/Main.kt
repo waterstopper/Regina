@@ -2,6 +2,7 @@ import evaluation.Evaluation.evaluate
 import lexer.Parser
 import lexer.PositionalException
 import lexer.SemanticAnalyzer
+import properties.primitive.PArray
 import token.Token
 import java.io.File
 import java.io.FileNotFoundException
@@ -10,6 +11,8 @@ fun main() {
 //    val statements = readFile("constants")
 //    println(statements.treeView())
 //    evaluate(statements, "constants")
+    val add = PArray(mutableListOf(),null)
+    println(add.getFunctionOrNull("add"))
     val s = readFile("src/test/resources/testCode.redi")
     //println(s.treeView())
     evaluate(s, "testCode.redi")

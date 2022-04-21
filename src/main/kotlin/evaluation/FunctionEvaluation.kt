@@ -15,7 +15,7 @@ object FunctionEvaluation {
         val body = token.children[1]
         val argsTokens = token.left.children - nameToken
 
-        return Function(nameToken.value, argsTokens.map { it.value }, body, parent)
+        return Function(nameToken.value, argsTokens.map { it.value }, body)
     }
 
 //    fun evaluateFunction(token: Token, function: Function, args: List<Token>, symbolTable: SymbolTable): Any {
@@ -114,6 +114,6 @@ object FunctionEvaluation {
             }
         })
 
-        return (res + PArray.initializeEmbeddedArrayFunctions()) as MutableMap<String, Function>
+        return res
     }
 }

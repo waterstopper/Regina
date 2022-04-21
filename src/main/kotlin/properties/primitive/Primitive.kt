@@ -1,6 +1,7 @@
 package properties.primitive
 
 import lexer.PositionalException
+import properties.Function
 import properties.Property
 import properties.Type
 import properties.Variable
@@ -36,7 +37,10 @@ abstract class Primitive(open var value: Any, parent: Type?) : Property(parent) 
         return result
     }
 
+    open fun getFunctionOrNull(name: String) = functions.find { it.name == name }
+
     companion object {
+        val functions = mutableListOf<Function>()
         fun createPrimitive(value: Any, parent: Type?, token: Token = Token()): Primitive {
             return when (value) {
                 is String -> PString(value, parent)

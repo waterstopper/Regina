@@ -16,7 +16,7 @@ open class Type(
 ) :
     Variable(parent), Invokable {
     private val properties = mutableMapOf<String, Property>()
-    private val functions = listOf<Function>()
+    val functions = mutableListOf<Function>()
 
     fun getFunction(token: Token) = functions.find { it.name == token.value }
         ?: throw PositionalException("\"$name\" class does not contain \"${token.value}\" function", token)

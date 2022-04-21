@@ -121,6 +121,8 @@ class A{}
 
 class B:A{}
 
+class D:imported.A {}
+
 class Colors {
 	BLACK = "000000"
 	WHITE = "FFFFFF"

@@ -10,7 +10,7 @@ import utils.Utils.toInt
 
 class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, parent) {
     override fun getPValue() = value as MutableList<Variable>
-
+    override fun getFunctionOrNull(name:String) = functions.find{it.name==name}
 
     override fun toString(): String {
         val res = StringBuilder("[")
@@ -44,10 +44,11 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
     }
 
     companion object {
-        fun initializeEmbeddedArrayFunctions(): MutableMap<String, Function> {
-            val res = mutableMapOf<String, Function>()
-            res["add"] = EmbeddedFunction("add", listOf("arr", "i", "x"), { token, args ->
-                val list = args.getVariable("arr")
+        val functions = initializeEmbeddedArrayFunctions()
+        fun initializeEmbeddedArrayFunctions(): MutableList<Function> {
+            val res = mutableListOf<Function>()
+            res.add(EmbeddedFunction("add", listOf("(this)", "i", "x"), { token, args ->
+                val list = args.getVariable("(this)")
                 if (list is PArray) {
                     val argument =
                         if (args.getVariableOrNull("x") != null) args.getVariable("x") else args.getVariable("i")
@@ -59,9 +60,9 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                         } else throw PositionalException("expected integer as index", token.children[2])
                     (list.value as MutableList<Any>).add(index, argument)
                 } else throw PositionalException("add is not applicable for this type", token.children[1])
-            }, 2..3)
-            res["remove"] = EmbeddedFunction("remove", listOf("arr", "x"), { token, args ->
-                val list = args.getVariable("arr")
+            }, 2..3))
+            res.add(EmbeddedFunction("remove", listOf("(this)", "x"), { token, args ->
+                val list = args.getVariable("(this)")
                 if (list is PArray) {
                     val argument = args.getVariable("x")
                     if (argument is Primitive) {
@@ -76,9 +77,9 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                         removed.toInt()
                     } else (list.value as MutableList<*>).remove(argument).toInt()
                 } else throw PositionalException("remove is not applicable for this type", token.children[1])
-            }, 2..2)
-            res["removeAt"] = EmbeddedFunction("removeAt", listOf("arr", "i"), { token, args ->
-                val list = args.getVariable("arr")
+            }, 2..2))
+            res.add(EmbeddedFunction("removeAt", listOf("(this)", "i"), { token, args ->
+                val list = args.getVariable("(this)")
                 val index = args.getVariable("i")
                 if (list is PArray) {
                     if (index is PInt)
@@ -89,17 +90,16 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                         }
                     else throw PositionalException("expected integer as index", token.children[2])
                 } else throw PositionalException("removeAt is not applicable for this type", token.children[1])
-            }, 2..2)
-            res["has"] = EmbeddedFunction("has", listOf("arr", "x"), { token, args ->
-                val list = args.getVariable("arr")
+            }, 2..2))
+            res.add(EmbeddedFunction("has", listOf("(this)", "x"), { token, args ->
+                val list = args.getVariable("(this)")
                 val element = args.getVariable("x")
                 if (list is PArray) {
                     if (element is Primitive)
                         (list.value as MutableList<*>).any { (it is Primitive && it == element) }.toInt()
                     else (list.value as MutableList<*>).any { it == element }.toInt()
                 } else throw PositionalException("has is not applicable for this type", token.children[1])
-            }, 2..2)
-
+            }, 2..2))
             return res
         }
     }

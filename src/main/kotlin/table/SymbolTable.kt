@@ -30,6 +30,7 @@ class SymbolTable(
         fun getEmbeddedNames(): MutableSet<String> = globalFile.getFunctionNames()
     }
 
+
     private fun checkImports(check: (table: FileTable) -> Any?): List<Any> {
         val suitable = mutableListOf<Any>()
         for (table in imports[fileTable]!!) {
@@ -81,7 +82,7 @@ class SymbolTable(
     }
 
     fun changeScope(): SymbolTable {
-        return SymbolTable()
+        return SymbolTable(typeTable = typeTable, fileTable = fileTable)
     }
 
     fun changeFile(fileName: String): SymbolTable {
@@ -153,6 +154,13 @@ class SymbolTable(
 
     private fun addGlobal() {
 
+    }
+
+    fun getTypes(): List<Type> {
+        val res = mutableListOf<Type>()
+        for (i in imports.keys)
+            res.addAll(i.getTypes())
+        return res
     }
 
 }

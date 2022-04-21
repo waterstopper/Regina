@@ -7,9 +7,11 @@ import readFile
 import table.SymbolTable
 import token.Token
 import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
+import token.TokenLink
 import java.util.*
 
 class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
+    private lateinit var declarations: MutableList<Pair<Token,String>>
 
     fun analyze(): List<Token> {
         createAssociations(tokens, fileName)
@@ -29,6 +31,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             when (token.symbol) {
                 "fun" -> globalTable.addFunction(FunctionEvaluation.createFunction(token))
                 "class" -> {
+                    declarations.add(Pair(token.left,fileName))
                     globalTable.addType(token)
                 }
                 "object" -> {
@@ -120,4 +123,47 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 param
             )
     }
+
+//    private fun getTypeNameAndSuperTypeToken(token: Token):Pair<String,Token?>{
+//
+//    }
+
+    fun initializeSuperTypes(){
+        val types = globalTable.getTypes()
+        for((typeToken,fileName) in declarations){
+            val token = getExport(typeToken.left)
+            if(token.value!=":")
+                continue
+            val typeName = token.left
+            val superTypeName = if(token.right is TokenLink) token.right else token.right
+
+        }
+    }
+
+//    private fun initializeSuperTypes() {
+//        for (type in globalTable.getTypes())
+//        val stack = Stack<Type>()
+//        val classDeclarations = types.values.toMutableList()
+//        while (true) {
+//            if (stack.isEmpty()) {
+//                if (classDeclarations.isEmpty())
+//                    break
+//                stack.push(classDeclarations.first())
+//                classDeclarations.removeAt(0)
+//            }
+//            while (stack.isNotEmpty()) {
+//                val type = stack.pop()
+//                //val supertypeName = TypeManager.resolvedSupertype(type)
+//                if (supertypeName == "")
+//                // addType(type)
+//                else {
+//                    val foundSupertype = classDeclarations.find { TypeManager.getName(it) == supertypeName }
+//                        ?: throw Exception("no class with name $supertypeName")
+//                    stack.push(type)
+//                    stack.push(foundSupertype)
+//                    classDeclarations.remove(foundSupertype)
+//                }
+//            }
+//        }
+//    }
 }

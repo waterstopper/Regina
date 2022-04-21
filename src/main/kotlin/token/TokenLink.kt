@@ -3,6 +3,7 @@ package token
 import lexer.Parser
 import lexer.PositionalException
 import properties.Type
+import properties.primitive.Primitive
 import table.SymbolTable
 import token.invocation.TokenCall
 import token.invocation.TokenInvocation
@@ -44,7 +45,11 @@ class TokenLink(
             val variable = symbolTable.getVariableOrNull(left.value)
             if (variable is Type)
                 return right.evaluate(symbolTable.changeType(variable))
-            throw PositionalException("expected class instance", left)
+            else if (variable is Primitive && right is TokenCall) {
+                if(variable.getFunctionOrNull(right.left.value)!=null)
+                    return right.left.evaluate(symbolTable.changeScope())variable.getFunctionOrNull(right.left.value)
+                    else throw PositionalException("expected class instance", left)
+            }
         }
         if (symbolTable.getObjectOrNull(left) != null)
             return right.evaluate(symbolTable.changeType(symbolTable.getObjectOrNull(left)!!))

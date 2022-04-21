@@ -93,4 +93,5 @@ class FileTable(
     override fun hashCode(): Int = fileName.hashCode()
 
     override fun toString(): String = fileName
+    fun getTypes(): List<Type> = types.toMutableList()
 }
