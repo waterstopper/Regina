@@ -1,0 +1,9 @@
+fun getFileName() {
+    return "same"
+}
+
+fun addition(a, b) {
+    test(getFileName() \
+        ==" same ")
+    return a + b + 1
+}

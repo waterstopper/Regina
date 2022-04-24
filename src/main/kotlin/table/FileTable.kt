@@ -5,7 +5,8 @@ import properties.Function
 import properties.Object
 import properties.Type
 import token.Token
-import token.statement.TokenAssignment
+import token.invocation.Call
+import token.statement.Assignment
 
 class FileTable(
     val fileName: String
@@ -40,8 +41,20 @@ class FileTable(
 
     fun addFunction(function: Function) = functions.add(function)
 
-    fun getTypeOrNull(name: String) = types.find { it.name == name }
+    fun getTypeOrNull(name: String): Type? = types.find { it.name == name }?.copy()
+    fun getType(token: Token): Type = types.find { it.name == token.value }?.copy() ?: throw PositionalException(
+        "Type ${token.value} not found",
+        token
+    )
+
+
     fun getObjectOrNull(name: String) = objects.find { it.name == name }
+    fun getFunction(call: Call): Function =
+        functions.find { it.name == call.name.value } ?: throw PositionalException(
+            "${call.name} not found",
+            call
+        )
+
     fun getFunctionOrNull(name: String) = functions.find { it.name == name }
     fun getFunctionNames() = functions.map { it.name }.toMutableSet()
 
@@ -67,11 +80,11 @@ class FileTable(
         name = token.value
     }
 
-    private fun createAssignmentsAndFunctions(token: Token): Pair<MutableList<TokenAssignment>, List<Token>> {
-        val res = mutableListOf<TokenAssignment>()
+    private fun createAssignmentsAndFunctions(token: Token): Pair<MutableList<Assignment>, List<Token>> {
+        val res = mutableListOf<Assignment>()
         val functions = mutableListOf<Token>()
         for (a in token.right.children) {
-            if (a is TokenAssignment)
+            if (a is Assignment)
                 res.add(a)
             else if (a.symbol == "fun")
                 functions.add(a)
@@ -93,5 +106,18 @@ class FileTable(
     override fun hashCode(): Int = fileName.hashCode()
 
     override fun toString(): String = fileName
+    fun stringNotation(): String {
+        val res = StringBuilder(fileName)
+        if (types.isNotEmpty())
+            res.append("\n")
+        for (type in types)
+            res.append("\t$type\n")
+        if (functions.isNotEmpty())
+            res.append("\n")
+        for (func in functions)
+            res.append("\t$func\n")
+        return res.toString()
+    }
+
     fun getTypes(): List<Type> = types.toMutableList()
 }

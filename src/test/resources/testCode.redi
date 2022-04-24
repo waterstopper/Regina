@@ -1,9 +1,10 @@
 import imported
 
 fun main(){
+    test(addition(2, 3) == 5)
     a = [2]
-    add(a,[1])
-    add(a,a)
+    a.add([1])
+    a.add(a)
     log(a)
     checkType()
     checkArray()
@@ -83,18 +84,18 @@ fun checkType() {
 
 fun checkArray() {
     a = []
-    add(a,0,a)
-    add(a,[1,2])
+    a.add(0,a)
+    a.add([1,2])
     test(str(a)=="[this, [1, 2]]")
     test(a[0][0][1]==[1,2])
-    removeAt(a,0)
+    a.removeAt(0)
     test(a==[[1,2]])
-    remove(a,[1,2])
+    a.remove([1,2])
     test(a==[])
-    test(!has(a,0))
-    add(a,0)
-    test(has(a,0))
-    test(has([1,2,3],1))
+    test(!a.has(0))
+    a.add(0)
+    test(a.has(0))
+    test([1,2,3].has(1))
 }
 
 class Segment{
@@ -183,7 +184,7 @@ fun all(classRef) {
 	res = []
 	stack = [Root]
 	while(stack.size > 0) {
-		current = remove(stack)
+		current = stack.remove(i)
 		if(current is classRef) {
 			res.add(current)
 		} else {

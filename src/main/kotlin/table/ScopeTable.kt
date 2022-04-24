@@ -27,6 +27,12 @@ class ScopeTable {
             return res
         }
     }
+
+    fun copy(): ScopeTable {
+        val res = ScopeTable()
+        res.variables.putAll(variables.toMutableMap())
+        return res
+    }
 }
 
 

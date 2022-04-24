@@ -10,10 +10,11 @@
 package lexer
 
 import token.Token
-import token.operator.TokenIndexing
+import token.TokenDeclaration
+import token.operator.Indexing
 import token.operator.TokenTernary
-import token.statement.TokenBlock
-import token.statement.TokenWordStatement
+import token.statement.Block
+import token.statement.WordStatement
 import token.variable.TokenArray
 import token.variable.TokenNumber
 
@@ -272,7 +273,7 @@ class Lexer() {
         tokReg.infix("==", 30)
 
         tokReg.infix("export", 10)
-        tokReg.prefix("import")
+        //tokReg.prefix("import")
         tokReg.infix(":", 20)
 
         tokReg.infix("is", 15)
@@ -286,7 +287,7 @@ class Lexer() {
         tokReg.infixRight("|", 25)
         tokReg.infixRight("=", 10)
 
-        tokReg.infixRight(".", 80)
+        tokReg.infixRight(".", 105)
 //        tokReg.infixRight("+=", 10)
 //        tokReg.infixRight("-=", 10)
 
@@ -319,7 +320,7 @@ class Lexer() {
         tokReg.infixLed("[", 110) { token: Token, parser: Parser, left: Token ->
 //            if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(")
 //                throw  PositionalException("bad func call left operand $left", left)
-            val res = TokenIndexing(token)
+            val res = Indexing(token)
             res.children.add(left)
             val t = parser.lexer.peek()
             if (t.symbol != "]") {
@@ -417,7 +418,7 @@ class Lexer() {
 
         // statements
         tokReg.stmt("if") { token: Token, parser: Parser ->
-            val res = TokenBlock(token)
+            val res = Block(token)
             res.children.add(parser.expression(0))
             res.children.add(parser.block())
             var next = parser.lexer.peek()
@@ -432,33 +433,42 @@ class Lexer() {
             res
         }
 
+        tokReg.stmt("import") { token: Token, parser: Parser ->
+            val res = TokenDeclaration(token)
+            res.children.add(parser.expression(0))
+            res
+        }
+
         tokReg.stmt("class") { token: Token, parser: Parser ->
-            token.children.add(parser.expression(0))
-            token.children.add(parser.block())
-            token
+            val res = TokenDeclaration(token)
+            res.children.add(parser.expression(0))
+            res.children.add(parser.block())
+            res
         }
 
         tokReg.stmt("object") { token: Token, parser: Parser ->
-            token.children.add(parser.expression(0))
-            token.children.add(parser.block())
-            token
+            val res = TokenDeclaration(token)
+            res.children.add(parser.expression(0))
+            res.children.add(parser.block())
+            res
         }
 
         tokReg.stmt("fun") { token: Token, parser: Parser ->
-            token.children.add(parser.expression(0))
-            token.children.add(parser.block())
-            token
+            val res = TokenDeclaration(token)
+            res.children.add(parser.expression(0))
+            res.children.add(parser.block())
+            res
         }
 
         tokReg.stmt("{") { token: Token, parser: Parser ->
-            val res = TokenBlock(token)
+            val res = Block(token)
             res.children.addAll(parser.statements())
             parser.advance("}")
             res
         }
 
         tokReg.stmt("while") { token: Token, parser: Parser ->
-            val res = TokenBlock(token)
+            val res = Block(token)
             res.children.add(parser.expression(0))
             res.children.add(parser.block())
             res
@@ -467,17 +477,17 @@ class Lexer() {
         tokReg.stmt("break") { token: Token, parser: Parser ->
             if (parser.lexer.peek().symbol != "}")
                 parser.advance("\n")
-            TokenWordStatement(token)
+            WordStatement(token)
         }
         // TODO advance comment
         tokReg.stmt("continue") { token: Token, parser: Parser ->
             if (parser.lexer.peek().symbol != "}")
                 parser.advance("\n")
-            TokenWordStatement(token)
+            WordStatement(token)
         }
 
         tokReg.stmt("return") { token: Token, parser: Parser ->
-            val res = TokenWordStatement(token)
+            val res = WordStatement(token)
             if (parser.lexer.peek().symbol != "}" && parser.lexer.peek().symbol != "\n")
                 res.children.add(parser.expression(0))
             //parser.advance("\n")

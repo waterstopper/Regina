@@ -6,68 +6,81 @@ import evaluation.FunctionEvaluation
 import readFile
 import table.SymbolTable
 import token.Token
+import token.TokenDeclaration
 import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
-import token.TokenLink
-import java.util.*
+import token.link.Link
 
 class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
-    private lateinit var declarations: MutableList<Pair<Token,String>>
+    private var declarations = mutableListOf<Pair<TokenDeclaration, String>>()
 
     fun analyze(): List<Token> {
-        createAssociations(tokens, fileName)
+        println("Analyzing:$fileName")
+        createAssociations()
         // TODO do the same for all imports
-        changeIdentTokens()
+        changeIdentTokens(fileName)
         return tokens
     }
 
-    private fun createAssociations(tokens: List<Token>, fileName: String) {
+    private fun createAssociations() {
         globalTable.addFile(fileName)
         globalTable = globalTable.changeFile(fileName)
-
-        val queue = ArrayDeque<Pair<Token, String>>()
-        queue.addAll(tokens.map { Pair(it, fileName) })
-        while (queue.isNotEmpty()) {
-            val (token, currentFileName) = queue.pop()
+        for (token in tokens)
             when (token.symbol) {
                 "fun" -> globalTable.addFunction(FunctionEvaluation.createFunction(token))
                 "class" -> {
-                    declarations.add(Pair(token.left,fileName))
+                    declarations.add(Pair(token as TokenDeclaration, fileName))
                     globalTable.addType(token)
                 }
-                "object" -> {
-                    globalTable.addObject(token)
-                }
+                "object" -> globalTable.addObject(token)
                 "import" -> {
                     if (globalTable.getImportOrNull(token.left.value) == null) {
-                        globalTable.addFile(token.left.value)
+                        val isNewFile = globalTable.addFile(token.left.value)
                         globalTable.addImport(token.left)
-                        createAssociations(readFile(token.left.value + ".redi"), token.left.value)
-                        //queue.addAll(readFile(tokenPath = token.left).map { Pair(it, token.left.value) })
+                        if (isNewFile) {
+                            readFile(token.left.value)
+                            globalTable = globalTable.changeFile(fileName)
+                        }
                     } else Logger.addWarning(token.left, "Same import found above")
                 }
                 else -> throw PositionalException("class or function can be top level declaration", token)
             }
-        }
+
         // TODO implement
         // initializeSuperTypes()
     }
 
-    private fun changeIdentTokens() {
-        for (token in tokens)
-            changeTokenType(token)
+    private fun changeIdentTokens(fileName: String) {
+        for (token in tokens) {
+            var table = globalTable.copy()
+            if (token.symbol == "fun")
+                table = table.changeScope()
+            else if (token.symbol == "object")
+                table = table.changeType(globalTable.getObjectOrNull((token as TokenDeclaration).name)!!)
+            else if (token.symbol == "class")
+                table = table.changeType(globalTable.getTypeOrNull((token as TokenDeclaration).name)!!)
+            changeTokenType(token, table, 0)
+        }
     }
 
-    private fun changeTokenType(token: Token) {
+    private fun changeTokenType(token: Token, symbolTable: SymbolTable, linkLevel: Int) {
         for ((index, child) in token.children.withIndex()) {
             when (child.symbol) {
+                // ignoring assignments like: a.b = ...
+                "(ASSIGNMENT)" -> symbolTable.addVariableOrNot(child.left)
                 "(" -> {
-                    if (token.value != "fun")
-                        token.children[index] = createSpecificIdentifierFromInvocation(child, globalTable)
+                    if (token.value != "fun") {
+                        token.children[index] =
+                            createSpecificIdentifierFromInvocation(child, symbolTable, linkLevel, token)
+                    }
                 }
                 // "[]" -> token.children[index] = TokenArray(child)
                 //"[" -> token.children[index] = TokenIndexing(child)
             }
-            changeTokenType(token.children[index])
+            changeTokenType(
+                token.children[index],
+                if (token.children[index].symbol == "fun") symbolTable.changeScope() else symbolTable,
+                if (token.children[index] is Link) linkLevel + 1 else 0
+            )
         }
     }
 
@@ -77,7 +90,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
         for (token in tokens) {
             when (token.symbol) {
                 "class" -> {
-                    classes.add(getSupertype((getExport(token.left))).value)
+                    classes.add((token as TokenDeclaration).name.value)
                 }
                 "fun" -> {
                     val added = functions.add(token.left.left.value)
@@ -96,17 +109,6 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             throw PositionalException("$fileName contains functions and classes with same names: $intersections")
     }
 
-    private fun getExport(token: Token): Token {
-        return if (token.value == "export")
-            token.left
-        else token
-    }
-
-    private fun getSupertype(token: Token): Token {
-        return if (token.value == ":")
-            token.left
-        else token
-    }
 
     private fun checkParams(params: List<Token>) {
         for (param in params)
@@ -128,14 +130,12 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
 //
 //    }
 
-    fun initializeSuperTypes(){
+    fun initializeSuperTypes() {
         val types = globalTable.getTypes()
-        for((typeToken,fileName) in declarations){
-            val token = getExport(typeToken.left)
-            if(token.value!=":")
-                continue
-            val typeName = token.left
-            val superTypeName = if(token.right is TokenLink) token.right else token.right
+        for ((typeToken, fileName) in declarations) {
+//            val token = typeToken.export
+//            val typeName = token.left
+//            val superTypeName = if (token.right is TokenLink) token.right else token.right
 
         }
     }

@@ -3,7 +3,7 @@ package formatter
 import lexer.Parser
 import lexer.SemanticAnalyzer
 import token.Token
-import token.operator.TokenOperator
+import token.operator.Operator
 import java.io.File
 
 // TODO:
@@ -50,7 +50,7 @@ class Formatter(filePath: String) {
             lineAdditions = 0
             line = token.position.second
         }
-        if (token is TokenOperator && token.children.size > 1) {
+        if (token is Operator && token.children.size > 1) {
             if (result[token.position.second][token.position.first - 1 + lineAdditions] != ' ') {
                 result[token.position.second].insert(token.position.first + lineAdditions, " ")
                 lineAdditions++

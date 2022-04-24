@@ -1,4 +1,0 @@
-fun addition(a,b){
-log("imported2")
-return a+b
-}

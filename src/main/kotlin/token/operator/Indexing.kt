@@ -7,7 +7,7 @@ import properties.primitive.Primitive
 import table.SymbolTable
 import token.Token
 
-class TokenIndexing(
+class Indexing(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,

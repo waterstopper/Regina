@@ -6,7 +6,7 @@ import table.SymbolTable
 import token.Token
 import utils.Utils.toInt
 
-open class TokenOperator(
+open class Operator(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,

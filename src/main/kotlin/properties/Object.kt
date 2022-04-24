@@ -1,7 +1,7 @@
 package properties
 
-import token.statement.TokenAssignment
+import token.statement.Assignment
 
-class Object(name: String, assignments: MutableList<TokenAssignment>, fileName: String) :
+class Object(name: String, assignments: MutableList<Assignment>, fileName: String) :
     Type(name, null, assignments, fileName) {
 }

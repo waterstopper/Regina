@@ -1,9 +1,11 @@
+import evaluation.Evaluation
 import evaluation.Evaluation.evaluate
 import lexer.Parser
 import lexer.PositionalException
 import lexer.SemanticAnalyzer
 import properties.primitive.PArray
 import token.Token
+import utils.Utils.treeView
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -11,10 +13,9 @@ fun main() {
 //    val statements = readFile("constants")
 //    println(statements.treeView())
 //    evaluate(statements, "constants")
-    val add = PArray(mutableListOf(),null)
-    println(add.getFunctionOrNull("add"))
+    val add = PArray(mutableListOf(), null)
     val s = readFile("src/test/resources/testCode.redi")
-    //println(s.treeView())
+    println(Evaluation.globalTable)
     evaluate(s, "testCode.redi")
 }
 
@@ -28,9 +29,11 @@ fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {
     }
 
     val statements = Parser(text).statements()
+    //println(statements.treeView())
     return SemanticAnalyzer(parseFilePath(path), statements).analyze()
 }
-fun parseFilePath(path:String):String = path.split("/").last()
+
+fun parseFilePath(path: String): String = path.split("/").last()
 
 //private fun createDefs() {
 //    val root = OldContainer("Root", null, mutableMapOf())

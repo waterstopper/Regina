@@ -22,4 +22,10 @@ object Utils {
         }
         return res.toString()
     }
+
+    operator fun Number.unaryMinus(): Any {
+        return if (this is Double)
+            -this
+        else -this.toInt()
+    }
 }

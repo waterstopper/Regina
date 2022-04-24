@@ -1,7 +1,13 @@
-import imported2
+import same
 
-fun addition(a,b){
-imported2.addition(a,b)
-log("imported")
-return a+b
+fun getFileName() {
+    return "imported"
+}
+
+fun addition(a, b) {
+    test(same.addition(a,b) \
+        == a + b + 1)
+    log(getFileName() \
+        == "imported")
+    return a + b
 }

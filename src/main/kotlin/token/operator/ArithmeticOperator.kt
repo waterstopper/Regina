@@ -6,7 +6,7 @@ import table.SymbolTable
 import token.Token
 import utils.Utils.toInt
 
-class TokenArithmeticOperator(
+class ArithmeticOperator(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
@@ -16,7 +16,7 @@ class TokenArithmeticOperator(
         token: Token, parser: Parser, token2: Token
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?
-) : TokenOperator(symbol, value, position, bindingPower, nud, led, std) {
+) : Operator(symbol, value, position, bindingPower, nud, led, std) {
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         if (children.size == 1) {

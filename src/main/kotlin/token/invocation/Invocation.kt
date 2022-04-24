@@ -4,7 +4,7 @@ import lexer.Parser
 import table.SymbolTable
 import token.Token
 
-class TokenInvocation(
+class Invocation(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,

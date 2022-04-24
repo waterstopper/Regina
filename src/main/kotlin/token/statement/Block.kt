@@ -5,7 +5,7 @@ import table.SymbolTable
 import token.Token
 import utils.Utils.toBoolean
 
-class TokenBlock(token: Token) :
+class Block(token: Token) :
     Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {
     override fun evaluate(symbolTable: SymbolTable): Any {
         return when (symbol) {
@@ -46,7 +46,7 @@ class TokenBlock(token: Token) :
 
     private fun evaluateBlock(symbolTable: SymbolTable): Any {
         for (token in children) {
-            if (token is TokenBlock) {
+            if (token is Block) {
                 val res = token.evaluate(symbolTable)
                 if (res !is Unit)
                     return res

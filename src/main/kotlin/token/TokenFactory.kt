@@ -3,12 +3,17 @@ package token
 import lexer.Parser
 import lexer.PositionalException
 import table.SymbolTable
-import token.invocation.TokenCall
-import token.invocation.TokenConstructor
-import token.operator.TokenArithmeticOperator
-import token.operator.TokenOperator
-import token.operator.TokenTypeOperator
-import token.statement.TokenAssignment
+import token.invocation.Call
+import token.invocation.Constructor
+import token.link.Link
+import token.operator.ArithmeticOperator
+import token.operator.Indexing
+import token.operator.Operator
+import token.operator.TypeOperator
+import token.statement.Assignment
+import token.variable.TokenArray
+import token.variable.TokenNumber
+import token.variable.TokenString
 
 class TokenFactory {
     private val nonArithmeticOperators = listOf("+", "==", "!=")
@@ -25,7 +30,7 @@ class TokenFactory {
         std: ((token: Token, parser: Parser) -> Token)?
     ): Token {
         return when (symbol) {
-            in wordOperators -> TokenTypeOperator(symbol, value, position, bindingPower, nud, led, std)
+            in wordOperators -> TypeOperator(symbol, value, position, bindingPower, nud, led, std)
             else -> TokenIdentifier(symbol, value, position, bindingPower, nud, led, std)
         }
     }
@@ -53,11 +58,11 @@ class TokenFactory {
         std: ((token: Token, parser: Parser) -> Token)?
     ): Token {
         return when (symbol) {
-            "." -> TokenLink(("(LINK)"), value, position, bindingPower, nud, led, std)
-            "=" -> TokenAssignment("(ASSIGNMENT)", value, position, bindingPower, nud, led, std)
+            "." -> Link(("(LINK)"), value, position, bindingPower, nud, led, std)
+            "=" -> Assignment("(ASSIGNMENT)", value, position, bindingPower, nud, led, std)
             // "[" -> TokenIndexing(symbol, value, position, bindingPower, nud, led, std)
-            in nonArithmeticOperators -> TokenOperator(symbol, value, position, bindingPower, nud, led, std)
-            in arithmeticOperators -> TokenArithmeticOperator(symbol, value, position, bindingPower, nud, led, std)
+            in nonArithmeticOperators -> Operator(symbol, value, position, bindingPower, nud, led, std)
+            in arithmeticOperators -> ArithmeticOperator(symbol, value, position, bindingPower, nud, led, std)
             else -> Token(symbol, value, position, bindingPower, nud, led, std)
         }
     }
@@ -65,11 +70,22 @@ class TokenFactory {
     companion object {
         fun createSpecificIdentifierFromInvocation(
             tokenIdentifier: Token,
-            symbolTable: SymbolTable
+            symbolTable: SymbolTable,
+            linkLevel: Int,
+            upperToken: Token
         ): TokenIdentifier {
-            if (symbolTable.getTypeOrNull(tokenIdentifier.left) != null)
-                return TokenConstructor(
-                    "(CONSTRUCTOR)",
+            // TODO not checking that variable contains function
+            // TODO not checking a[i].b where a[i] is object
+            if (symbolTable.getFunctionOrNull(tokenIdentifier.left) != null
+                || linkLevel >= 2
+                || (upperToken is Link && (symbolTable.getVariableOrNull(upperToken.left.value) != null
+                        || upperToken.left is TokenArray
+                        || upperToken.left is TokenString
+                        || upperToken.left is TokenNumber
+                        || upperToken.left is Indexing))
+            ) {
+                return Call(
+                    "(CALL)",
                     tokenIdentifier.value,
                     tokenIdentifier.position,
                     tokenIdentifier.bindingPower,
@@ -78,9 +94,9 @@ class TokenFactory {
                     tokenIdentifier.std,
                     tokenIdentifier.children
                 )
-            if (symbolTable.getFunctionOrNull(tokenIdentifier.left) != null)
-                return TokenCall(
-                    "(CALL)",
+            } else if (symbolTable.getTypeOrNull(tokenIdentifier.left) != null && linkLevel <= 1)
+                return Constructor(
+                    "(CONSTRUCTOR)",
                     tokenIdentifier.value,
                     tokenIdentifier.position,
                     tokenIdentifier.bindingPower,

@@ -5,10 +5,10 @@ import properties.Type
 import table.SymbolTable
 import token.Token
 import token.TokenIdentifier
-import token.statement.TokenAssignment
+import token.statement.Assignment
 import java.util.*
 
-class TokenConstructor(
+class Constructor(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
@@ -24,8 +24,15 @@ class TokenConstructor(
         this.children.addAll(children)
     }
 
+    val name: Token
+        get() = left
+
     override fun evaluate(symbolTable: SymbolTable): Any {
         val type = symbolTable.getType(left)
+        return evaluateType(type)
+    }
+
+    fun evaluateType(type: Type): Any {
         return if (resolving) type else resolveTree(type)
     }
 
@@ -39,14 +46,14 @@ class TokenConstructor(
         return root
     }
 
-    private fun processAssignment(start: TokenAssignment) {
+    private fun processAssignment(start: Assignment) {
 
     }
 
     /**
      * Find unresolved assignments
      */
-    private fun bfs(root: Type): TokenAssignment? {
+    private fun bfs(root: Type): Assignment? {
         val stack = Stack<Type>()
         stack.add(root)
         while (stack.isNotEmpty()) {

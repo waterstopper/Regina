@@ -1,15 +1,14 @@
 package properties
 
 import lexer.PositionalException
-import table.SymbolTable
 import token.Token
 import token.TokenFactory
-import token.statement.TokenAssignment
+import token.statement.Assignment
 
 open class Type(
     val name: String,
     parent: Type?,
-    val assignments: MutableList<TokenAssignment>,
+    val assignments: MutableList<Assignment>,
     val fileName: String,
     private val exported: Any? = null,
     private var supertype: Type? = null
@@ -27,6 +26,8 @@ open class Type(
 
     fun getProperties() = properties.toMutableMap()
     fun getPropertyOrNull(name: String) = properties[name] ?: assignments.find { it.left.value == name }
+    fun getProperty(token: Token) =
+        properties[token.value] ?: throw PositionalException("${token.value} not found in $name", token)
 
     override fun toString(): String {
         return "$name${if (supertype != null) ":${supertype!!.name}" else ""}{parent:${parent ?: "-"}, " +
@@ -48,7 +49,7 @@ open class Type(
             Type(
                 name,
                 parent?.copy(),
-                assignments.map { TokenFactory().copy(it) }.toMutableList() as MutableList<TokenAssignment>,
+                assignments.map { TokenFactory().copy(it) }.toMutableList() as MutableList<Assignment>,
                 fileName,
                 this.exported,
                 this.supertype
@@ -57,7 +58,7 @@ open class Type(
         return copy
     }
 
-//    fun getFirstUnresolved(token: Token): Pair<Type, String>? {
+    //    fun getFirstUnresolved(token: Token): Pair<Type, String>? {
 //        var linkRoot = token
 //        var table = symbolTable
 //        var type = this
@@ -71,23 +72,7 @@ open class Type(
 //        }
 //        return null
 //    }
-
     companion object {
-        /**
-         * similar to ValueEvaluation.evaluateLink()
-         */
-        fun getPropertyNameAndTable(token: Token, symbolTable: SymbolTable): Pair<String, SymbolTable> {
-            var linkRoot = token
-            var table = symbolTable
-            while (linkRoot.value == ".") {
-                val type = table.getVariable(linkRoot.left)
-                if (type !is Type)
-                    throw PositionalException("expected class", linkRoot.left)
-                linkRoot = linkRoot.right
-                table = symbolTable.changeType(type)
-            }
-            return Pair(linkRoot.value, table)
-        }
 
 //        fun initializeSuperTypes() {
 //            for ((pair, token) in superTypes) {

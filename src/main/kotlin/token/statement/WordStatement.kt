@@ -3,7 +3,7 @@ package token.statement
 import table.SymbolTable
 import token.Token
 
-class TokenWordStatement(token: Token) :
+class WordStatement(token: Token) :
     Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {
     override fun evaluate(symbolTable: SymbolTable): Any {
         return when (symbol) {

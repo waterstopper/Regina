@@ -7,11 +7,11 @@ import properties.Type
 import table.SymbolTable
 import token.Token
 import token.TokenIdentifier
-import token.TokenLink
-import token.operator.TokenIndexing
-import token.operator.TokenOperator
+import token.link.Link
+import token.operator.Indexing
+import token.operator.Operator
 
-class TokenAssignment(
+class Assignment(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
@@ -22,7 +22,7 @@ class TokenAssignment(
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?,
     children: MutableList<Token> = mutableListOf()
-) : TokenOperator(symbol, value, position, bindingPower, nud, led, std) {
+) : Operator(symbol, value, position, bindingPower, nud, led, std) {
     init {
         this.children.clear()
         this.children.addAll(children)
@@ -58,14 +58,14 @@ class TokenAssignment(
             return
         }
         // all variables inside PArray property of type won't have such type as parent
-        if (token is TokenIndexing) {
+        if (token is Indexing) {
             val (array, index) = token.getArrayAndIndex(symbolTable)
             array.getPValue()[index] = value.toVariable(right, null)
             return
         }
         var importTable = symbolTable
         var current = token
-        while (current is TokenLink) {
+        while (current is Link) {
             // left is type
             if (importTable.getVariableOrNull(current.left.value) != null) {
                 val type = importTable.getVariableOrNull(current.left.value)

@@ -2,12 +2,14 @@ package token.invocation
 
 import evaluation.FunctionEvaluation.toVariable
 import lexer.Parser
+import lexer.PositionalException
 import properties.EmbeddedFunction
+import properties.Function
 import table.SymbolTable
 import token.Token
 import token.TokenIdentifier
 
-class TokenCall(
+class Call(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
@@ -23,6 +25,8 @@ class TokenCall(
         this.children.addAll(children)
     }
 
+    val name: Token
+        get() = left
     private val arguments: List<Token>
         get() = children.subList(1, children.size)
 
@@ -31,23 +35,30 @@ class TokenCall(
      * passed, named like parameters
      */
     override fun evaluate(symbolTable: SymbolTable): Any {
+        if(arguments.isNotEmpty() && arguments[0].value =="==")
+            println()
         val function = symbolTable.getFunction(left)
-        val newFileTable = symbolTable.getFileOfValue(left) { it.getFunctionOrNull(left.value) }
-
-        val tableWithNewScope = SymbolTable(fileTable = newFileTable)
-        argumentsToParameters(symbolTable, tableWithNewScope)
-
-        if (function is EmbeddedFunction)
-            return function.executeFunction(this, tableWithNewScope)
-        return function.body.evaluate(tableWithNewScope)
+        val newTable =
+            symbolTable.changeFile(symbolTable.getFileOfValue(left) { it.getFunctionOrNull(left.value) }.fileName)
+        argumentsToParameters(function, symbolTable, newTable)
+        return evaluateFunction(newTable, function)
     }
 
     /**
      * Write arguments to parameters
      */
-    private fun argumentsToParameters(argTable: SymbolTable, paramTable: SymbolTable) {
-        val function = paramTable.getFunction(left)
+    fun argumentsToParameters(function: Function, argTable: SymbolTable, paramTable: SymbolTable) {
         for ((index, arg) in arguments.withIndex())
             paramTable.addVariable(function.params[index], arg.evaluate(argTable).toVariable(arg))
+    }
+
+    fun evaluateFunction(symbolTable: SymbolTable, function: Function): Any {
+        if (function.params.size < arguments.size)
+            throw PositionalException("Expected less arguments", this)
+        if (symbolTable.getVariableOrNull("(this)") != null)
+            symbolTable.addVariable("(this)", symbolTable.getVariable("(this)"))
+        if (function is EmbeddedFunction)
+            return function.executeFunction(this, symbolTable)
+        return function.body.evaluate(symbolTable)
     }
 }
