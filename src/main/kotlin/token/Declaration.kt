@@ -4,7 +4,7 @@ import lexer.Parser
 import lexer.PositionalException
 import token.link.Link
 
-class TokenDeclaration(
+class Declaration(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
@@ -14,7 +14,7 @@ class TokenDeclaration(
         token: Token, parser: Parser, token2: Token
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?, children: List<Token>
-) : TokenIdentifier(symbol, value, position, bindingPower, nud, led, std) {
+) : Identifier(symbol, value, position, bindingPower, nud, led, std) {
     constructor(token: Token) : this(
         token.symbol,
         token.value,
@@ -41,7 +41,7 @@ class TokenDeclaration(
             }
             "object" -> left
             "class" -> getSupertype(getExport(left)).first
-            "import" -> if (children.size != 1 || children.first() !is TokenIdentifier) throw PositionalException(
+            "import" -> if (children.size != 1 || children.first() !is Identifier) throw PositionalException(
                 "Expected file name",
                 this
             ) else children.first()

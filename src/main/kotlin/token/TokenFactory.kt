@@ -7,11 +7,11 @@ import token.invocation.Call
 import token.invocation.Constructor
 import token.link.Link
 import token.operator.ArithmeticOperator
-import token.operator.Indexing
+import token.operator.Index
 import token.operator.Operator
 import token.operator.TypeOperator
 import token.statement.Assignment
-import token.variable.TokenArray
+import token.variable.Array
 import token.variable.TokenNumber
 import token.variable.TokenString
 
@@ -31,7 +31,7 @@ class TokenFactory {
     ): Token {
         return when (symbol) {
             in wordOperators -> TypeOperator(symbol, value, position, bindingPower, nud, led, std)
-            else -> TokenIdentifier(symbol, value, position, bindingPower, nud, led, std)
+            else -> Identifier(symbol, value, position, bindingPower, nud, led, std)
         }
     }
 
@@ -73,16 +73,16 @@ class TokenFactory {
             symbolTable: SymbolTable,
             linkLevel: Int,
             upperToken: Token
-        ): TokenIdentifier {
+        ): Identifier {
             // TODO not checking that variable contains function
             // TODO not checking a[i].b where a[i] is object
             if (symbolTable.getFunctionOrNull(tokenIdentifier.left) != null
                 || linkLevel >= 2
                 || (upperToken is Link && (symbolTable.getVariableOrNull(upperToken.left.value) != null
-                        || upperToken.left is TokenArray
+                        || upperToken.left is Array
                         || upperToken.left is TokenString
                         || upperToken.left is TokenNumber
-                        || upperToken.left is Indexing))
+                        || upperToken.left is Index))
             ) {
                 return Call(
                     "(CALL)",
@@ -105,7 +105,7 @@ class TokenFactory {
                     tokenIdentifier.std,
                     tokenIdentifier.children
                 )
-            throw PositionalException("unknown invocated identifier ${tokenIdentifier.value}", tokenIdentifier)
+            throw PositionalException("Unknown invocated identifier `${tokenIdentifier.left.value}`", tokenIdentifier)
         }
     }
 }

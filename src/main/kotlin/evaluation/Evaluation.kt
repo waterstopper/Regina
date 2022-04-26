@@ -1,9 +1,7 @@
 package evaluation
 
-import properties.Type
 import table.SymbolTable
 import token.Token
-import java.util.*
 import kotlin.random.Random
 
 object Evaluation {

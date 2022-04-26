@@ -23,7 +23,7 @@ open class Operator(
             "+" -> left.evaluate(symbolTable).plus(right.evaluate(symbolTable), this)
             "==" -> left.evaluate(symbolTable).eq(right.evaluate(symbolTable)).toInt()
             "!=" -> left.evaluate(symbolTable).neq(right.evaluate(symbolTable)).toInt()
-            else -> throw PositionalException("operator $value not implemented", this)
+            else -> throw PositionalException("Operator `$value` not implemented", this)
         }
     }
 
@@ -45,7 +45,7 @@ open class Operator(
             return this.toString().toDouble() + other.toString().toDouble()
         if (this is Int && other is Int)
             return this + other
-        else throw PositionalException("operator not applicable to operands", token)
+        else throw PositionalException("Operator not applicable to operands", token)
     }
 
     private fun Any.eq(other: Any): Boolean {

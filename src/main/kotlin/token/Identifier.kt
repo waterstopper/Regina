@@ -5,7 +5,7 @@ import lexer.Parser
 import properties.primitive.Primitive
 import table.SymbolTable
 
-open class TokenIdentifier(
+open class Identifier(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,

@@ -4,6 +4,10 @@ fun getFileName() {
 
 fun addition(a, b) {
     test(getFileName() \
-        ==" same ")
+        == "same")
     return a + b + 1
+}
+
+fun get() {
+    log("from Same")
 }

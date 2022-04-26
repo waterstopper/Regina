@@ -11,14 +11,16 @@ open class Type(
     val assignments: MutableList<Assignment>,
     val fileName: String,
     private val exported: Any? = null,
-    private var supertype: Type? = null
+    var supertype: Type? = null
 ) :
     Variable(parent), Invokable {
     private val properties = mutableMapOf<String, Property>()
     val functions = mutableListOf<Function>()
 
     fun getFunction(token: Token) = functions.find { it.name == token.value }
-        ?: throw PositionalException("\"$name\" class does not contain \"${token.value}\" function", token)
+        ?: throw PositionalException("\"$name\" class does not contain `${token.value}` function", token)
+
+    fun getAssignment(token: Token): Assignment? = assignments.find { it.left == token }
 
     fun getResolved(token: Token) =
         properties[token.value] ?: assignments.find { it.left.value == token.value }
@@ -27,11 +29,21 @@ open class Type(
     fun getProperties() = properties.toMutableMap()
     fun getPropertyOrNull(name: String) = properties[name] ?: assignments.find { it.left.value == name }
     fun getProperty(token: Token) =
-        properties[token.value] ?: throw PositionalException("${token.value} not found in $name", token)
+        properties[token.value] ?: throw PositionalException("`${token.value}` not found in `$name`", token)
 
     override fun toString(): String {
-        return "$name${if (supertype != null) ":${supertype!!.name}" else ""}{parent:${parent ?: "-"}, " +
-                "${assignments}${if (exported != null) ",to $exported" else ""}}"
+        val res = StringBuilder(name)
+        if (supertype != null) {
+            res.append(":")
+            if (supertype!!.fileName != fileName)
+                res.append("${supertype!!.fileName}.")
+            res.append(supertype!!.name)
+        }
+        if (exported != null)
+            res.append("->$exported")
+        res.append("{parent:${parent ?: "-"}, $assignments}")
+        return res.toString()
+
     }
 
     fun inherits(other: Type): Boolean {
@@ -47,12 +59,9 @@ open class Type(
     fun copy(): Type {
         val copy =
             Type(
-                name,
-                parent?.copy(),
+                name, parent?.copy(),
                 assignments.map { TokenFactory().copy(it) }.toMutableList() as MutableList<Assignment>,
-                fileName,
-                this.exported,
-                this.supertype
+                fileName, this.exported, this.supertype
             )
         copy.assignments.forEach { it.parent = copy }
         return copy

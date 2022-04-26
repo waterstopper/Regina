@@ -6,9 +6,9 @@ import lexer.PositionalException
 import properties.Type
 import table.SymbolTable
 import token.Token
-import token.TokenIdentifier
+import token.Identifier
 import token.link.Link
-import token.operator.Indexing
+import token.operator.Index
 import token.operator.Operator
 
 class Assignment(
@@ -31,9 +31,6 @@ class Assignment(
     var parent: Type? = null
     val name: String get() = left.value
 
-    fun canEvaluate(): Boolean = right.find("(IDENT)") == null
-            && right.find("parent") == null
-
     override fun evaluate(symbolTable: SymbolTable): Any {
         val value = right.evaluate(symbolTable)
         assignLValue(left, value, symbolTable.getCurrentType(), symbolTable)
@@ -53,12 +50,12 @@ class Assignment(
 
 
     private fun assignLValue(token: Token, value: Any, parent: Type?, symbolTable: SymbolTable) {
-        if (token is TokenIdentifier) {
+        if (token is Identifier) {
             symbolTable.addVariable(token.value, value.toVariable(token, parent))
             return
         }
         // all variables inside PArray property of type won't have such type as parent
-        if (token is Indexing) {
+        if (token is Index) {
             val (array, index) = token.getArrayAndIndex(symbolTable)
             array.getPValue()[index] = value.toVariable(right, null)
             return
@@ -81,7 +78,7 @@ class Assignment(
                 current = current.right
             }
         }
-        if (current is TokenIdentifier)
+        if (current is Identifier)
             importTable.addVariable(current.value, value.toVariable(current, parent))
         else throw PositionalException("expected identifier or link", current)
     }

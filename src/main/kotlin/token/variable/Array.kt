@@ -4,9 +4,10 @@ import evaluation.FunctionEvaluation.toVariable
 import lexer.Parser
 import table.SymbolTable
 import token.Token
-import token.TokenIdentifier
+import token.Identifier
 
-class TokenArray(
+// TODO why derived from Identifier
+class Array(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
@@ -16,7 +17,7 @@ class TokenArray(
         token: Token, parser: Parser, token2: Token
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?, children: List<Token>
-) : TokenIdentifier(symbol, value, position, bindingPower, nud, led, std) {
+) : Identifier(symbol, value, position, bindingPower, nud, led, std) {
     constructor(token: Token) : this(
         token.symbol,
         token.value,

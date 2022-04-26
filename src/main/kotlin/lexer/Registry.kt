@@ -4,7 +4,9 @@
  */
 package lexer
 
-import token.*
+import token.Token
+import token.TokenFactory
+import token.Identifier
 import token.variable.TokenString
 
 class Registry {
@@ -120,7 +122,7 @@ class Registry {
         )
     }
 
-    fun identifier(symbol: String, value: String, position: Pair<Int, Int>) = TokenIdentifier(
+    fun identifier(symbol: String, value: String, position: Pair<Int, Int>) = Identifier(
         symbol,
         value,
         position,

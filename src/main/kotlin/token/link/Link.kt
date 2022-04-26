@@ -6,13 +6,16 @@ import lexer.PositionalException
 import properties.Function
 import properties.Object
 import properties.Type
+import properties.Variable
 import properties.primitive.Primitive
 import table.SymbolTable
+import token.Assignable
+import token.Identifier
 import token.Token
-import token.TokenIdentifier
 import token.invocation.Call
 import token.invocation.Constructor
 
+/** parent, this - special phrases, that should be added to scope table and type assignments specifically **/
 open class Link(
     symbol: String,
     value: String,
@@ -23,7 +26,9 @@ open class Link(
         token: Token, parser: Parser, token2: Token
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?
-) : Token(symbol, value, position, bindingPower, nud, led, std) {
+) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable {
+    /** last variable before its property. For example, in a.b.c `b` is [parent] **/
+    lateinit var parent: Variable
 
     /**
     identifier.link
@@ -38,13 +43,13 @@ open class Link(
      */
     override fun evaluate(symbolTable: SymbolTable): Any {
         when (left) {
-            is TokenIdentifier -> {
+            is Identifier -> {
                 if (symbolTable.getVariableOrNull(left.value) != null) {
                     return when (val variable = symbolTable.getVariable(left)) {
                         is Type -> evaluateType(variable, this, symbolTable)
                         is Primitive -> evaluatePrimitive(variable, this, symbolTable)
                         is Object -> evaluateObjectToken(this, symbolTable)
-                        else -> throw PositionalException("$left does not have function or property", left)
+                        else -> throw PositionalException("`$left` does not have function or property", left)
                     }
                 } else if (symbolTable.getTypeOrNull(left) != null)
                     return evaluateTypeToken(this, symbolTable)
@@ -70,7 +75,10 @@ open class Link(
         val fileTable = symbolTable.getImportOrNull(link.left.value)!!
         when (link.right) {
             is Constructor -> if (fileTable.getTypeOrNull(link.right.value) != null) {
-                return (link.right as Constructor).evaluateType(fileTable.getTypeOrNull(link.right.value)!!)
+                return (link.right as Constructor).evaluateType(
+                    fileTable.getTypeOrNull(link.right.value)!!,
+                    symbolTable
+                )
             }
             is Call -> if (fileTable.getFunctionOrNull((link.right as Call).name.value) != null) {
                 val newTable = symbolTable.changeFile(fileTable.fileName)
@@ -84,13 +92,16 @@ open class Link(
                     fileTable.getFunctionOrNull((link.right as Call).name.value)!!
                 )
             }
-            is TokenIdentifier -> if (fileTable.getObjectOrNull(link.right.value) != null)
+            is Identifier -> if (fileTable.getObjectOrNull(link.right.value) != null)
                 return fileTable.getObjectOrNull(link.right.value)!!
             is Link -> {
                 when (link.right.left) {
                     is Constructor -> if (fileTable.getTypeOrNull(link.right.left.value) != null) {
                         val type =
-                            (link.right.left as Constructor).evaluateType(fileTable.getTypeOrNull(link.right.left.value)!!) as Type
+                            (link.right.left as Constructor).evaluateType(
+                                fileTable.getTypeOrNull(link.right.left.value)!!,
+                                symbolTable
+                            ) as Type
                         return evaluateType(
                             type,
                             link.right as Link,
@@ -138,7 +149,7 @@ open class Link(
                 (link.right as Call).argumentsToParameters(function, symbolTable, functionTable)
                 return (link.right as Call).evaluateFunction(functionTable, function)
             }
-            is TokenIdentifier -> return type.getProperty(link.right)
+            is Identifier -> return type.getProperty(link.right)
             is Link -> {
                 when (link.right.left) {
                     is Call -> {
@@ -150,7 +161,7 @@ open class Link(
                             type.getFunction((link.right.left as Call).name)
                         )
                     }
-                    is TokenIdentifier -> {
+                    is Identifier -> {
                         val property = type.getProperty(link.right.left)
                         if (property is Type)
                             evaluateType(property, link.right as Link, symbolTable)

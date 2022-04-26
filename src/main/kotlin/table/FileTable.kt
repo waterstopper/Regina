@@ -15,19 +15,15 @@ class FileTable(
     private val objects: MutableSet<Object> = mutableSetOf()
     private val functions: MutableSet<Function> = mutableSetOf()
 
-    companion object {
-        var exported: Any? = null
-        private var superType: Type? = null
-        private var superTypes = mutableMapOf<Pair<String, String>, Token>()
-        var name = ""
-    }
-
     fun addType(token: Token) {
-        assignName(assignType(assignExported(token.left), fileName))
-        val (assignments, functions) = createAssignmentsAndFunctions(token)
+        //assignName(assignType(assignExported(token.left), fileName))
+        val name = token.left.value
+        val exported = if (token.children[2].value != "") token.children[2].value else null
+
+        val (assignments, functions) = createAssignmentsAndFunctions(token.children[3])
         val added = Type(name, null, assignments, fileName, exported)
         if (types.find { it.name == name } != null)
-            throw PositionalException("found class with same name in $fileName", token)
+            throw PositionalException("found class with same name in `$fileName`", token)
         types.add(added)
         for (assignment in added.assignments)
             assignment.parent = added
@@ -43,7 +39,7 @@ class FileTable(
 
     fun getTypeOrNull(name: String): Type? = types.find { it.name == name }?.copy()
     fun getType(token: Token): Type = types.find { it.name == token.value }?.copy() ?: throw PositionalException(
-        "Type ${token.value} not found",
+        "Type `${token.value}` not found",
         token
     )
 
@@ -51,39 +47,17 @@ class FileTable(
     fun getObjectOrNull(name: String) = objects.find { it.name == name }
     fun getFunction(call: Call): Function =
         functions.find { it.name == call.name.value } ?: throw PositionalException(
-            "${call.name} not found",
+            "`${call.name}` not found",
             call
         )
 
     fun getFunctionOrNull(name: String) = functions.find { it.name == name }
     fun getFunctionNames() = functions.map { it.name }.toMutableSet()
 
-    fun assignExported(token: Token): Token {
-        if (token.value == "export") {
-            exported = token.right.value
-            return token.left
-        } else
-            exported = null
-        return token
-    }
-
-    fun assignType(token: Token, fileName: String): Token {
-        if (token.value == ":") {
-            superTypes[Pair(token.left.value, fileName)] = token.right
-            return token.left
-        } else
-            superType = null
-        return token
-    }
-
-    fun assignName(token: Token) {
-        name = token.value
-    }
-
     private fun createAssignmentsAndFunctions(token: Token): Pair<MutableList<Assignment>, List<Token>> {
         val res = mutableListOf<Assignment>()
         val functions = mutableListOf<Token>()
-        for (a in token.right.children) {
+        for (a in token.children) {
             if (a is Assignment)
                 res.add(a)
             else if (a.symbol == "fun")
@@ -119,5 +93,5 @@ class FileTable(
         return res.toString()
     }
 
-    fun getTypes(): List<Type> = types.toMutableList()
+    fun getTypes(): List<Type> = types.toList()
 }

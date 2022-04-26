@@ -2,10 +2,15 @@ package evaluation
 
 import evaluation.Evaluation.rnd
 import lexer.PositionalException
-import token.Token
-import properties.*
+import properties.EmbeddedFunction
 import properties.Function
-import properties.primitive.*
+import properties.Type
+import properties.Variable
+import properties.primitive.PDouble
+import properties.primitive.PInt
+import properties.primitive.PString
+import properties.primitive.Primitive
+import token.Token
 
 object FunctionEvaluation {
     fun createFunction(token: Token, parent: Type? = null): Function {

@@ -67,6 +67,15 @@ open class Token(
     override fun toString(): String = if (symbol == value) symbol else "$symbol:$value"
 
     open fun evaluate(symbolTable: SymbolTable): Any {
-        throw PositionalException("not implemented", this)
+        throw PositionalException("Not implemented", this)
+    }
+
+    fun traverseUntil(condition: (token: Token) -> Token?): Token? {
+        for (i in children) {
+            val childRes = traverseUntil(condition)
+            if (childRes != null)
+                return childRes
+        }
+        return condition(this)
     }
 }

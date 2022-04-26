@@ -2,12 +2,15 @@ package token.operator
 
 import lexer.Parser
 import lexer.PositionalException
+import properties.Type
 import properties.primitive.PArray
 import properties.primitive.Primitive
 import table.SymbolTable
+import token.Assignable
 import token.Token
+import token.statement.Assignment
 
-class Indexing(
+class Index(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
@@ -17,7 +20,7 @@ class Indexing(
         token: Token, parser: Parser, token2: Token
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?, children: List<Token> = listOf()
-) : Token(symbol, value, position, bindingPower, nud, led, std) {
+) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable {
     constructor(token: Token) : this(
         token.symbol,
         token.value,
@@ -61,5 +64,23 @@ class Indexing(
         if (array is PArray && number is Int)
             return Pair(array, number)
         throw PositionalException("expected array and number", this)
+    }
+
+    override fun assign(parent: Type) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getAssignment(parent: Type): Assignment {
+        TODO("Not yet implemented")
+    }
+
+    override fun getFirstUnassigned(parent: Type): Assignment? {
+        if (left is Assignable) {
+            val fromAnother = (left as Assignable).getFirstUnassigned(parent)
+            if (fromAnother != null) return fromAnother
+        }
+        if (parent.getAssignment(this) != null)
+            return parent.getAssignment(this)
+        return null
     }
 }

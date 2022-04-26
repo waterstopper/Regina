@@ -10,12 +10,12 @@
 package lexer
 
 import token.Token
-import token.TokenDeclaration
-import token.operator.Indexing
+import token.Declaration
+import token.operator.Index
 import token.operator.TokenTernary
 import token.statement.Block
 import token.statement.WordStatement
-import token.variable.TokenArray
+import token.variable.Array
 import token.variable.TokenNumber
 
 class Lexer() {
@@ -253,6 +253,8 @@ class Lexer() {
         tokReg.consumable("]")
         tokReg.consumable(",")
         tokReg.consumable("else")
+        tokReg.consumable(":")
+        tokReg.consumable("export")
 
         tokReg.consumable("(EOF)")
         tokReg.consumable("{")
@@ -272,9 +274,9 @@ class Lexer() {
         tokReg.infix(">=", 30)
         tokReg.infix("==", 30)
 
-        tokReg.infix("export", 10)
+        //tokReg.infix("export", 10)
         //tokReg.prefix("import")
-        tokReg.infix(":", 20)
+        //tokReg.infix(":", 20)
 
         tokReg.infix("is", 15)
         tokReg.infix("isnot", 15)
@@ -305,7 +307,7 @@ class Lexer() {
         // function use
         tokReg.infixLed("(", 120) { token: Token, parser: Parser, left: Token ->
             if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(" && left.symbol != "->" && left.symbol != "!")
-                throw  PositionalException("bad func call left operand $left", left)
+                throw  PositionalException("bad func call left operand `$left`", left)
             token.children.add(left)
             val t = parser.lexer.peek()
             if (t.symbol != ")") {
@@ -320,7 +322,7 @@ class Lexer() {
         tokReg.infixLed("[", 110) { token: Token, parser: Parser, left: Token ->
 //            if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(")
 //                throw  PositionalException("bad func call left operand $left", left)
-            val res = Indexing(token)
+            val res = Index(token)
             res.children.add(left)
             val t = parser.lexer.peek()
             if (t.symbol != "]") {
@@ -355,7 +357,7 @@ class Lexer() {
         }
 
         tokReg.prefixNud("[") { token: Token, parser: Parser ->
-            val res = TokenArray(token)
+            val res = token.variable.Array(token)
             if (parser.lexer.peek().symbol != "]") {
                 while (true) {
                     if (parser.lexer.peek().symbol == "]")
@@ -434,27 +436,39 @@ class Lexer() {
         }
 
         tokReg.stmt("import") { token: Token, parser: Parser ->
-            val res = TokenDeclaration(token)
+            val res = Declaration(token)
             res.children.add(parser.expression(0))
             res
         }
 
         tokReg.stmt("class") { token: Token, parser: Parser ->
-            val res = TokenDeclaration(token)
+            val res = Declaration(token)
             res.children.add(parser.expression(0))
+            if (parser.lexer.peek().value == ":") {
+                parser.advance(":")
+                res.children.add(parser.expression(0))
+            } else res.children.add(Token("", ""))
+            if (parser.lexer.peek().value == "export") {
+                parser.advance("export")
+                res.children.add(parser.expression(0))
+            } else res.children.add(Token("", ""))
             res.children.add(parser.block())
             res
         }
 
         tokReg.stmt("object") { token: Token, parser: Parser ->
-            val res = TokenDeclaration(token)
+            val res = Declaration(token)
             res.children.add(parser.expression(0))
+            if (parser.lexer.peek().value == "export") {
+                parser.advance("export")
+                res.children.add(parser.expression(0))
+            }
             res.children.add(parser.block())
             res
         }
 
         tokReg.stmt("fun") { token: Token, parser: Parser ->
-            val res = TokenDeclaration(token)
+            val res = Declaration(token)
             res.children.add(parser.expression(0))
             res.children.add(parser.block())
             res

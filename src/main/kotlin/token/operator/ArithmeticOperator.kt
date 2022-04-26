@@ -49,7 +49,7 @@ class ArithmeticOperator(
                 "*" -> a * b
                 "/" -> a / b
                 "%" -> a % b
-                else -> throw PositionalException("operator ${token.symbol} not implemented", token)
+                else -> throw PositionalException("Operator `${token.symbol}` not implemented", token)
             }
         } else {
             val a = first.toInt()
@@ -59,7 +59,7 @@ class ArithmeticOperator(
                 "*" -> a * b
                 "/" -> a / b
                 "%" -> a % b
-                else -> throw PositionalException("operator ${token.symbol} not implemented", token)
+                else -> throw PositionalException("Operator `${token.symbol}` not implemented", token)
             }
         }
     }

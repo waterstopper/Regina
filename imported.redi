@@ -1,7 +1,16 @@
-object A {
-    prop = 2
+import same
+
+class A {}
+
+fun getFileName() {
+    return "imported"
 }
 
-fun i(){
-return 2
+fun addition(a, b) {
+    get()
+    test(same.addition(a,b) \
+        == a + b + 1)
+    log(getFileName() \
+        == "imported")
+    return a + b
 }

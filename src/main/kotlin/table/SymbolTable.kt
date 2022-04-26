@@ -57,9 +57,9 @@ class SymbolTable(
     private fun getFromFiles(token: Token, getValue: (table: FileTable) -> Any?): Any {
         val valuesList = getListFromFiles(getValue)
         if (valuesList.size >= 2)
-            throw PositionalException("Import ambiguity. ${token.value} found in $valuesList", token)
+            throw PositionalException("Import ambiguity. `${token.value}` found in $valuesList", token)
         if (valuesList.isEmpty())
-            throw PositionalException("${token.value} not found", token)
+            throw PositionalException("`${token.value}` not found", token)
         return valuesList.first()
     }
 
@@ -74,9 +74,9 @@ class SymbolTable(
                 suitable.add(table)
         }
         when (suitable.size) {
-            0 -> throw PositionalException("File with ${token.value} not found", token)
+            0 -> throw PositionalException("File with `${token.value}` not found", token)
             1 -> return suitable.first()
-            else -> throw PositionalException("${token.value} is found in files: $suitable. Specify file.", token)
+            else -> throw PositionalException("`${token.value}` is found in files: $suitable. Specify file.", token)
         }
     }
 
@@ -113,14 +113,14 @@ class SymbolTable(
     fun getImportOrNull(fileName: String) = imports[fileTable]!!.find { it.fileName == fileName }
     fun getType(token: Token): Type =
         getFromFiles(token) { it.getTypeOrNull(token.value)!!.copy() } as Type? ?: throw PositionalException(
-            "Type ${token.value} not found",
+            "Type `${token.value}` not found",
             token
         )
 
     fun getFunction(token: Token): Function {
         val res = getFromFilesOrNull { it.getFunctionOrNull(token.value) } as Function?
         if (res == null) {
-            if (typeTable == null) throw PositionalException("Function ${token.value} not found", token)
+            if (typeTable == null) throw PositionalException("Function `${token.value}` not found", token)
             return typeTable!!.getFunction(token)
         }
         return res
@@ -151,17 +151,17 @@ class SymbolTable(
         if (property != null)
             return property
         return getObjectOrNull(token) ?: throw PositionalException(
-            "Identifier ${token.value} not found in $fileTable",
+            "Identifier `${token.value}` not found in `$fileTable`",
             token
         )
     }
 
     fun getCurrentType() = typeTable
 
-    fun getTypes(): List<Type> {
-        val res = mutableListOf<Type>()
+    fun getTypes(): MutableMap<String, List<Type>> {
+        val res = mutableMapOf<String, List<Type>>()
         for (i in imports.keys)
-            res.addAll(i.getTypes())
+            res[i.fileName] = i.getTypes()
         return res
     }
 

@@ -7,7 +7,7 @@ import properties.EmbeddedFunction
 import properties.Function
 import table.SymbolTable
 import token.Token
-import token.TokenIdentifier
+import token.Identifier
 
 class Call(
     symbol: String,
@@ -19,7 +19,7 @@ class Call(
         token: Token, parser: Parser, token2: Token
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?, children: List<Token>
-) : TokenIdentifier(symbol, value, position, bindingPower, nud, led, std) {
+) : Identifier(symbol, value, position, bindingPower, nud, led, std) {
     init {
         this.children.clear()
         this.children.addAll(children)
@@ -35,7 +35,7 @@ class Call(
      * passed, named like parameters
      */
     override fun evaluate(symbolTable: SymbolTable): Any {
-        if(arguments.isNotEmpty() && arguments[0].value =="==")
+        if (arguments.isNotEmpty() && arguments[0].value == "==")
             println()
         val function = symbolTable.getFunction(left)
         val newTable =

@@ -10,6 +10,6 @@ class PositionalException(
 ) : Exception() {
     override val message: String
         get() = if (token.value != "")
-            "\"${token.value}\" $errorMessage at ${token.position.second},${token.position.first}-${token.position.first + token.value.length - 1}"
+            "`${token.value}` $errorMessage at ${token.position.second},${token.position.first}-${token.position.first + token.value.length - 1}"
         else "$errorMessage at ${position.second},${position.first}-${position.first + length - 1}"
 }

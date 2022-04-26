@@ -6,15 +6,14 @@ import evaluation.FunctionEvaluation
 import readFile
 import table.SymbolTable
 import token.Token
-import token.TokenDeclaration
+import token.Declaration
 import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
+import token.Identifier
 import token.link.Link
 
 class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
-    private var declarations = mutableListOf<Pair<TokenDeclaration, String>>()
-
     fun analyze(): List<Token> {
-        println("Analyzing:$fileName")
+        println("Analyzing: `$fileName`")
         createAssociations()
         // TODO do the same for all imports
         changeIdentTokens(fileName)
@@ -28,7 +27,9 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             when (token.symbol) {
                 "fun" -> globalTable.addFunction(FunctionEvaluation.createFunction(token))
                 "class" -> {
-                    declarations.add(Pair(token as TokenDeclaration, fileName))
+                    if (declarations[fileName] == null)
+                        declarations[fileName] = mutableListOf(token)
+                    else declarations[fileName]!!.add(token)
                     globalTable.addType(token)
                 }
                 "object" -> globalTable.addObject(token)
@@ -52,12 +53,11 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
     private fun changeIdentTokens(fileName: String) {
         for (token in tokens) {
             var table = globalTable.copy()
-            if (token.symbol == "fun")
-                table = table.changeScope()
-            else if (token.symbol == "object")
-                table = table.changeType(globalTable.getObjectOrNull((token as TokenDeclaration).name)!!)
-            else if (token.symbol == "class")
-                table = table.changeType(globalTable.getTypeOrNull((token as TokenDeclaration).name)!!)
+            when (token.symbol) {
+                "fun" -> table = table.changeScope()
+                "object" -> table = table.changeType(globalTable.getObjectOrNull((token as Declaration).name)!!)
+                "class" -> table = table.changeType(globalTable.getTypeOrNull((token as Declaration).name)!!)
+            }
             changeTokenType(token, table, 0)
         }
     }
@@ -67,6 +67,12 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             when (child.symbol) {
                 // ignoring assignments like: a.b = ...
                 "(ASSIGNMENT)" -> symbolTable.addVariableOrNot(child.left)
+                "." -> {
+//                    if (symbolTable.getVariableOrNull(child.left.value) != null) {
+//                        val variable = symbolTable.getVariable(child.left)
+//                        if(variable is Type)
+//                    }
+                }
                 "(" -> {
                     if (token.value != "fun") {
                         token.children[index] =
@@ -90,7 +96,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
         for (token in tokens) {
             when (token.symbol) {
                 "class" -> {
-                    classes.add((token as TokenDeclaration).name.value)
+                    classes.add((token as Declaration).name.value)
                 }
                 "fun" -> {
                     val added = functions.add(token.left.left.value)
@@ -106,9 +112,8 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
         }
         val intersections = classes.intersect(functions)
         if (intersections.isNotEmpty())
-            throw PositionalException("$fileName contains functions and classes with same names: $intersections")
+            throw PositionalException("`$fileName` contains functions and classes with same names: $intersections")
     }
-
 
     private fun checkParams(params: List<Token>) {
         for (param in params)
@@ -126,44 +131,39 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             )
     }
 
-//    private fun getTypeNameAndSuperTypeToken(token: Token):Pair<String,Token?>{
-//
-//    }
+    companion object {
+        private var declarations: MutableMap<String, MutableList<Token>> = mutableMapOf()
 
-    fun initializeSuperTypes() {
-        val types = globalTable.getTypes()
-        for ((typeToken, fileName) in declarations) {
-//            val token = typeToken.export
-//            val typeName = token.left
-//            val superTypeName = if (token.right is TokenLink) token.right else token.right
-
+        fun initializeSuperTypes() {
+            val types = globalTable.getTypes()
+            for ((fileName, tokenList) in declarations) {
+                for (token in tokenList) {
+                    if (token.right.symbol == "")
+                        continue
+                    val type = types[fileName]!!.find { it.name == token.left.value }!!
+                    val superType = when (token.right) {
+                        is Link -> {
+                            val file = types[token.right.left.value] ?: throw PositionalException(
+                                "File `${token.right.left.value}` not found",
+                                token.right.left
+                            )
+                            file.find { it.name == token.right.right.value }
+                                ?: throw PositionalException(
+                                    "Superclass `${token.right.right.value}` not found in `${token.right.left.value}`",
+                                    token.right.right
+                                )
+                        }
+                        is Identifier -> {
+                            types[fileName]!!.find { it.name == token.right.value } ?: throw PositionalException(
+                                "Superclass `${token.right.value}` not found in `$fileName`",
+                                token.right
+                            )
+                        }
+                        else -> throw PositionalException("Expected identifier", token.right)
+                    }
+                    type.supertype = superType
+                }
+            }
         }
     }
-
-//    private fun initializeSuperTypes() {
-//        for (type in globalTable.getTypes())
-//        val stack = Stack<Type>()
-//        val classDeclarations = types.values.toMutableList()
-//        while (true) {
-//            if (stack.isEmpty()) {
-//                if (classDeclarations.isEmpty())
-//                    break
-//                stack.push(classDeclarations.first())
-//                classDeclarations.removeAt(0)
-//            }
-//            while (stack.isNotEmpty()) {
-//                val type = stack.pop()
-//                //val supertypeName = TypeManager.resolvedSupertype(type)
-//                if (supertypeName == "")
-//                // addType(type)
-//                else {
-//                    val foundSupertype = classDeclarations.find { TypeManager.getName(it) == supertypeName }
-//                        ?: throw Exception("no class with name $supertypeName")
-//                    stack.push(type)
-//                    stack.push(foundSupertype)
-//                    classDeclarations.remove(foundSupertype)
-//                }
-//            }
-//        }
-//    }
 }

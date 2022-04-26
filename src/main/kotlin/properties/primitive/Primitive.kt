@@ -47,7 +47,7 @@ abstract class Primitive(open var value: Any, parent: Type?) : Property(parent) 
                 is List<*> -> PArray(value as MutableList<Variable>, parent)
                 is Int -> PInt(value, parent)
                 is Double -> PDouble(value, parent)
-                else -> throw PositionalException("cannot create variable of type ${value::class}", token)
+                else -> throw PositionalException("cannot create variable of type `${value::class}`", token)
             }
         }
     }

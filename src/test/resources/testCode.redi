@@ -1,6 +1,6 @@
 import imported
 
-fun main(){
+fun main() {
     test(addition(2, 3) == 5)
     a = [2]
     a.add([1])
@@ -78,7 +78,7 @@ fun checkType() {
 	test("" is String)
 	test([] is Array)
 	test(A() is A)
-	// test(B() is A) // TODO initialize supertypes
+	test(B() is A) // TODO initialize supertypes
 	test(0 isnot Array)
 }
 
@@ -118,11 +118,11 @@ fun whileFun() {
 	log(a)
 }
 
-class A{}
+class A export e{}
 
-class B:A{}
+class B : A{}
 
-class D:imported.A {}
+class D:imported.A export srv{}
 
 class Colors {
 	BLACK = "000000"
