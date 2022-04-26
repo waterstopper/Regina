@@ -13,7 +13,7 @@ open class Type(
     private val exported: Any? = null,
     var supertype: Type? = null
 ) :
-    Variable(parent), Invokable {
+    Property(parent), Invokable {
     private val properties = mutableMapOf<String, Property>()
     val functions = mutableListOf<Function>()
 
@@ -21,15 +21,28 @@ open class Type(
         ?: throw PositionalException("\"$name\" class does not contain `${token.value}` function", token)
 
     fun getAssignment(token: Token): Assignment? = assignments.find { it.left == token }
+    fun removeAssignment(assignment: Assignment) = assignments.remove(assignment)
+    fun removeAssignment(token: Token): Assignment? {
+        for (a in assignments)
+            if (a.left == token) {
+                assignments.remove(a)
+                return a
+            }
+        return null
+    }
 
     fun getResolved(token: Token) =
         properties[token.value] ?: assignments.find { it.left.value == token.value }
         ?: throw PositionalException("unknown property", token)
 
     fun getProperties() = properties.toMutableMap()
-    fun getPropertyOrNull(name: String) = properties[name] ?: assignments.find { it.left.value == name }
+    fun getPropertyOrNull(name: String) = properties[name]
     fun getProperty(token: Token) =
         properties[token.value] ?: throw PositionalException("`${token.value}` not found in `$name`", token)
+
+    fun setProperty(token: Token, value: Property) {
+        properties[token.value] = value
+    }
 
     override fun toString(): String {
         val res = StringBuilder(name)

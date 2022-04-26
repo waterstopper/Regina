@@ -2,8 +2,11 @@ package token
 
 
 import lexer.Parser
+import properties.Type
 import properties.primitive.Primitive
 import table.SymbolTable
+import token.statement.Assignment
+import utils.Utils.toProperty
 
 open class Identifier(
     symbol: String,
@@ -15,12 +18,24 @@ open class Identifier(
         token: Token, parser: Parser, token2: Token
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?
-) : Token(symbol, value, position, bindingPower, nud, led, std) {
+) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable {
     override fun evaluate(symbolTable: SymbolTable): Any {
         val variable = symbolTable.getIdentifier(this)
         if (variable is Primitive)
-            return variable.value
+            return variable.getPValue()
         return variable
     }
+
+    override fun assign(assignment: Assignment, parent: Type, symbolTable: SymbolTable) {
+        parent.removeAssignment(assignment)
+        parent.setProperty(this, assignment.right.evaluate(symbolTable).toProperty(assignment.right, parent))
+    }
+
+    override fun getFirstUnassigned(parent: Type): Assignment? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getPropertyName(): Token = this
+
 }
 

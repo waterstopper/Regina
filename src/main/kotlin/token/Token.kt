@@ -70,7 +70,7 @@ open class Token(
         throw PositionalException("Not implemented", this)
     }
 
-    fun traverseUntil(condition: (token: Token) -> Token?): Token? {
+    fun traverseUntil(condition: (token: Token) -> Token?): Any? {
         for (i in children) {
             val childRes = traverseUntil(condition)
             if (childRes != null)

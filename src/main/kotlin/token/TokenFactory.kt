@@ -11,7 +11,7 @@ import token.operator.Index
 import token.operator.Operator
 import token.operator.TypeOperator
 import token.statement.Assignment
-import token.variable.Array
+import token.variable.TokenArray
 import token.variable.TokenNumber
 import token.variable.TokenString
 
@@ -79,7 +79,7 @@ class TokenFactory {
             if (symbolTable.getFunctionOrNull(tokenIdentifier.left) != null
                 || linkLevel >= 2
                 || (upperToken is Link && (symbolTable.getVariableOrNull(upperToken.left.value) != null
-                        || upperToken.left is Array
+                        || upperToken.left is TokenArray
                         || upperToken.left is TokenString
                         || upperToken.left is TokenNumber
                         || upperToken.left is Index))

@@ -1,6 +1,5 @@
 package token.link
 
-import evaluation.FunctionEvaluation.toVariable
 import lexer.Parser
 import lexer.PositionalException
 import properties.Function
@@ -14,6 +13,8 @@ import token.Identifier
 import token.Token
 import token.invocation.Call
 import token.invocation.Constructor
+import token.statement.Assignment
+import utils.Utils.toVariable
 
 /** parent, this - special phrases, that should be added to scope table and type assignments specifically **/
 open class Link(
@@ -25,10 +26,20 @@ open class Link(
     led: ((
         token: Token, parser: Parser, token2: Token
     ) -> Token)?,
-    std: ((token: Token, parser: Parser) -> Token)?
+    std: ((token: Token, parser: Parser) -> Token)?, children: List<Token> = listOf()
 ) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable {
+    init {
+        if (children.isNotEmpty()) {
+            this.children.clear()
+            this.children.addAll(children)
+        }
+    }
+
     /** last variable before its property. For example, in a.b.c `b` is [parent] **/
     lateinit var parent: Variable
+
+    open fun getAfterDot() = right
+    open fun getLast(): Any = TODO("not implemented")
 
     /**
     identifier.link
@@ -230,8 +241,21 @@ open class Link(
         if (result is Primitive)
             return evaluatePrimitive(result, link, newTable)
         else if (result is Type) {
+            TODO("not yet implemented")
         }
         throw PositionalException("Expected return value from function", link.left)
+    }
+
+    override fun assign(assignment: Assignment, parent: Type, symbolTable: SymbolTable) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getFirstUnassigned(parent: Type): Assignment? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getPropertyName(): Token {
+        TODO("Not yet implemented")
     }
 }
 

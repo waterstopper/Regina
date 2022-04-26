@@ -10,7 +10,7 @@ import token.Token
 /**
  * Stores Array, String, Int, Double values
  */
-abstract class Primitive(open var value: Any, parent: Type?) : Property(parent) {
+abstract class Primitive(protected open var value: Any, parent: Type?) : Property(parent) {
     open fun getPValue() = value
 
     fun getSymbol(): String {
@@ -41,7 +41,7 @@ abstract class Primitive(open var value: Any, parent: Type?) : Property(parent) 
 
     companion object {
         val functions = mutableListOf<Function>()
-        fun createPrimitive(value: Any, parent: Type?, token: Token = Token()): Primitive {
+        fun createPrimitive(value: Any, parent: Type? = null, token: Token = Token()): Primitive {
             return when (value) {
                 is String -> PString(value, parent)
                 is List<*> -> PArray(value as MutableList<Variable>, parent)

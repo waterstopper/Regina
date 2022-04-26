@@ -1,7 +1,7 @@
 package properties
 //
 //import evaluation.Evaluation.globalTable
-//import evaluation.FunctionEvaluation.toVariable
+//import evaluation.toVariable
 //import token.Token
 //import evaluation.ValueEvaluation.evaluateIndex
 //import evaluation.ValueEvaluation.evaluateValue

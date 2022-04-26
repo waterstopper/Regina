@@ -1,10 +1,11 @@
 package token
 
 import properties.Type
+import table.SymbolTable
 import token.statement.Assignment
 
 interface Assignable {
-    fun assign(parent: Type)
-    fun getAssignment(parent:Type): Assignment
-    fun getFirstUnassigned(parent:Type): Assignment?
+    fun assign(assignment: Assignment, parent: Type, symbolTable: SymbolTable)
+    fun getFirstUnassigned(parent: Type): Assignment?
+    fun getPropertyName(): Token
 }

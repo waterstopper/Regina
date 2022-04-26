@@ -15,7 +15,6 @@ import token.operator.Index
 import token.operator.TokenTernary
 import token.statement.Block
 import token.statement.WordStatement
-import token.variable.Array
 import token.variable.TokenNumber
 
 class Lexer() {

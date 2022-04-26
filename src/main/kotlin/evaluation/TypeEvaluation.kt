@@ -4,7 +4,7 @@ package evaluation
 //import evaluation.Evaluation.globalTable
 //import lexer.PositionalException
 //import token.Token
-//import evaluation.FunctionEvaluation.toVariable
+//import evaluation.toVariable
 //import properties.Type
 //import properties.primitive.Primitive
 //import token.statement.TokenAssignment

@@ -1,6 +1,5 @@
 package token.invocation
 
-import evaluation.FunctionEvaluation.toVariable
 import lexer.Parser
 import lexer.PositionalException
 import properties.EmbeddedFunction
@@ -8,6 +7,7 @@ import properties.Function
 import table.SymbolTable
 import token.Token
 import token.Identifier
+import utils.Utils.toVariable
 
 class Call(
     symbol: String,

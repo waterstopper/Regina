@@ -9,6 +9,7 @@ import table.SymbolTable
 import token.Assignable
 import token.Token
 import token.statement.Assignment
+import utils.Utils.toVariable
 
 class Index(
     symbol: String,
@@ -40,7 +41,7 @@ class Index(
     override fun evaluate(symbolTable: SymbolTable): Any {
         val res = evaluateIndex(symbolTable)
         if (res is Primitive)
-            return res.value
+            return res.getPValue()
         return res
     }
 
@@ -66,21 +67,27 @@ class Index(
         throw PositionalException("expected array and number", this)
     }
 
-    override fun assign(parent: Type) {
-        TODO("Not yet implemented")
-    }
-
-    override fun getAssignment(parent: Type): Assignment {
-        TODO("Not yet implemented")
+    override fun assign(assignment: Assignment, parent: Type, symbolTable: SymbolTable) {
+        parent.removeAssignment(assignment)
+        val property = parent.getProperty(getPropertyName())
+        if (property !is PArray)
+            throw PositionalException("Non-array class indexed", this)
+        val index = right.evaluate(symbolTable)
+        if (index !is Int)
+            throw PositionalException("Index is not integer", this)
+        (property.getPValue())[index] = right.evaluate(symbolTable).toVariable(right)
     }
 
     override fun getFirstUnassigned(parent: Type): Assignment? {
-        if (left is Assignable) {
-            val fromAnother = (left as Assignable).getFirstUnassigned(parent)
-            if (fromAnother != null) return fromAnother
-        }
+        val fromAnother = (left as Assignable).getFirstUnassigned(parent)
+        if (fromAnother != null) return fromAnother
+        val indexUnassigned =
+            right.traverseUntil { if (it is Assignable && it.getFirstUnassigned(parent) != null) it else null }
+        if (indexUnassigned != null) return (indexUnassigned as Assignable).getFirstUnassigned(parent)
         if (parent.getAssignment(this) != null)
             return parent.getAssignment(this)
         return null
     }
+
+    override fun getPropertyName(): Token = (left as Assignable).getPropertyName()
 }

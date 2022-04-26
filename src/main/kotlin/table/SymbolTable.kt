@@ -1,11 +1,11 @@
 package table
 
 import evaluation.FunctionEvaluation.initializeEmbedded
-import evaluation.FunctionEvaluation.toVariable
 import lexer.PositionalException
 import properties.*
 import properties.Function
 import token.Token
+import utils.Utils.toVariable
 
 class SymbolTable(
     // during recursive evaluation multiple symbol tables are used, hence need different scopes, files and types
@@ -170,7 +170,7 @@ class SymbolTable(
     }
 
     fun copy() = SymbolTable(scopeTable?.copy() ?: ScopeTable(), typeTable, fileTable)
-    fun addVariableOrNot(token: Token) = scopeTable?.addVariable(token.value, "".toVariable(token, null))
+    fun addVariableOrNot(token: Token) = scopeTable?.addVariable(token.value, "".toVariable(token))
 
     override fun toString(): String {
         val res = StringBuilder()

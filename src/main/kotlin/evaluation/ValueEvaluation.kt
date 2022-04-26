@@ -1,7 +1,7 @@
 package evaluation
 //
 //
-//import evaluation.FunctionEvaluation.toVariable
+//import evaluation.toVariable
 //import lexer.PositionalException
 //import token.Token
 //import properties.primitive.Primitive

@@ -1,6 +1,10 @@
 package utils
 
 import lexer.PositionalException
+import properties.Property
+import properties.Type
+import properties.Variable
+import properties.primitive.Primitive
 import token.Token
 
 object Utils {
@@ -13,6 +17,12 @@ object Utils {
             throw PositionalException("expected numeric value", token)
         }
     }
+
+    fun Any.toVariable(token: Token): Variable =
+        if (this is Type) this else Primitive.createPrimitive(this, null, token)
+
+    fun Any.toProperty(token: Token, parent: Type? = null): Property =
+        if (this is Type) this else Primitive.createPrimitive(this, parent, token)
 
     fun List<Token>.treeView(): String {
         val res = StringBuilder()

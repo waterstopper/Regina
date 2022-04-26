@@ -1,13 +1,13 @@
 package token.variable
 
-import evaluation.FunctionEvaluation.toVariable
 import lexer.Parser
 import table.SymbolTable
 import token.Token
 import token.Identifier
+import utils.Utils.toVariable
 
 // TODO why derived from Identifier
-class Array(
+class TokenArray(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
