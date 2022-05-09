@@ -140,7 +140,7 @@ class SymbolTable(
     fun getVariable(token: Token) = scopeTable!!.getVariable(token)
     fun getVariable(name: String) = scopeTable!!.getVariable(name)
     fun getVariableOrNull(name: String): Variable? = scopeTable!!.getVariableOrNull(name)
-    fun getIdentifier(token: Token): Any {
+    fun getIdentifier(token: Token): Variable {
         val variable = scopeTable?.getVariableOrNull(token.value)
         if (variable != null)
             return variable

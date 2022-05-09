@@ -9,16 +9,13 @@ open class Type(
     val name: String,
     parent: Type?,
     val assignments: MutableList<Assignment>,
-    val fileName: String,
+    private val fileName: String,
     private val exported: Any? = null,
     var supertype: Type? = null
 ) :
     Property(parent), Invokable {
     private val properties = mutableMapOf<String, Property>()
     val functions = mutableListOf<Function>()
-
-    fun getFunction(token: Token) = functions.find { it.name == token.value }
-        ?: throw PositionalException("\"$name\" class does not contain `${token.value}` function", token)
 
     fun getAssignment(token: Token): Assignment? = assignments.find { it.left == token }
     fun removeAssignment(assignment: Assignment) = assignments.remove(assignment)
@@ -35,9 +32,18 @@ open class Type(
         properties[token.value] ?: assignments.find { it.left.value == token.value }
         ?: throw PositionalException("unknown property", token)
 
+    override fun getFunctionOrNull(name: String): Function? = functions.find { it.name == name }
+    override fun getFunction(token: Token) = functions.find { it.name == token.value }
+        ?: throw PositionalException("\"$name\" class does not contain `${token.value}` function", token)
+
+    override fun hasProperty(token: Token): Boolean {
+        return properties[token.value] != null
+    }
+
+
     fun getProperties() = properties.toMutableMap()
-    fun getPropertyOrNull(name: String) = properties[name]
-    fun getProperty(token: Token) =
+    override fun getPropertyOrNull(name: String) = properties[name]
+    override fun getProperty(token: Token) =
         properties[token.value] ?: throw PositionalException("`${token.value}` not found in `$name`", token)
 
     fun setProperty(token: Token, value: Property) {

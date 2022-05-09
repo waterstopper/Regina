@@ -8,6 +8,7 @@ import token.Token
 import token.statement.Assignment
 import java.util.*
 
+// TODO why derived from Identifier
 class Constructor(
     symbol: String,
     value: String,
@@ -19,6 +20,7 @@ class Constructor(
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?, children: List<Token>
 ) : Identifier(symbol, value, position, bindingPower, nud, led, std) {
+
     init {
         this.children.clear()
         this.children.addAll(children)

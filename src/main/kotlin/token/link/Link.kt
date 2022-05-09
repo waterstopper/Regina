@@ -1,5 +1,6 @@
 package token.link
 
+import evaluation.Evaluation.globalTable
 import lexer.Parser
 import lexer.PositionalException
 import properties.Function
@@ -13,6 +14,7 @@ import token.Identifier
 import token.Token
 import token.invocation.Call
 import token.invocation.Constructor
+import token.operator.Index
 import token.statement.Assignment
 import utils.Utils.toVariable
 
@@ -28,6 +30,17 @@ open class Link(
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?, children: List<Token> = listOf()
 ) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable {
+    constructor(token: Token) : this(
+        token.symbol,
+        token.value,
+        token.position,
+        token.bindingPower,
+        token.nud,
+        token.led,
+        token.std,
+        token.children
+    )
+
     init {
         if (children.isNotEmpty()) {
             this.children.clear()
@@ -38,8 +51,13 @@ open class Link(
     /** last variable before its property. For example, in a.b.c `b` is [parent] **/
     lateinit var parent: Variable
 
-    open fun getAfterDot() = right
-    open fun getLast(): Any = TODO("not implemented")
+    /** shallow or deep link **/
+    open fun getAfterDot() = if (right is Link) right.left else right
+    open fun getLast(): Any = if (right is Link) (right as Link).getLast() else right
+    open fun isResolved(symbolTable: SymbolTable): Boolean {
+        return if (right is Link) (right as Link).isResolved(symbolTable)
+        else true
+    }
 
     /**
     identifier.link
@@ -216,7 +234,6 @@ open class Link(
         throw PositionalException("Expected function call", link.right)
     }
 
-
     /**
      * similar to ValueEvaluation.evaluateLink()
      */
@@ -250,8 +267,26 @@ open class Link(
         TODO("Not yet implemented")
     }
 
+    private fun getFirstUnassignedNested(parent: Type): Assignment? {
+
+    }
+
     override fun getFirstUnassigned(parent: Type): Assignment? {
-        TODO("Not yet implemented")
+        if (left is Call)
+            return null
+        if (left is Constructor) {
+            val type = left.evaluate(globalTable)
+        }
+        if (!parent.hasProperty(left))
+            return parent.getAssignment(left)
+        val property = parent.getProperty(left)
+        if (property !is Type)
+            return null
+        if (right is Link) {
+            return (right as Link).getFirstUnassigned(property)
+        } else if (right is Index) {
+            return
+        }
     }
 
     override fun getPropertyName(): Token {

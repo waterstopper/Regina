@@ -5,10 +5,10 @@ import evaluation.Evaluation.globalTable
 import evaluation.FunctionEvaluation
 import readFile
 import table.SymbolTable
-import token.Token
 import token.Declaration
-import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
 import token.Identifier
+import token.Token
+import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
 import token.link.Link
 
 class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
