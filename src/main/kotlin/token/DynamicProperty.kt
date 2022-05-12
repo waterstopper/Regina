@@ -23,7 +23,8 @@ class DynamicProperty(private val wrapped: Token, private val parentType: Type) 
     fun getAssignment(): Assignment {
         val parent = getParent()
         if (wrapped is Identifier)
-            return parent.assignments.find { it. }
+            return parent.assignments[0]//parent.assignments.find { it. }
+        return parent.assignments[0]
     }
 
     fun isResolved(): Any? = resolved
@@ -45,6 +46,7 @@ class DynamicProperty(private val wrapped: Token, private val parentType: Type) 
             is Link -> {
             }
         }
+        throw Exception()
     }
 
 

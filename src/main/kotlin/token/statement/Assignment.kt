@@ -1,16 +1,13 @@
 package token.statement
 
+import Argumentable
 import lexer.Parser
-import lexer.PositionalException
 import properties.Type
+import properties.Variable
 import table.SymbolTable
 import token.Assignable
-import token.Identifier
 import token.Token
-import token.link.Link
-import token.operator.Index
 import token.operator.Operator
-import utils.Utils.toVariable
 
 class Assignment(
     symbol: String,
@@ -23,7 +20,7 @@ class Assignment(
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?,
     children: MutableList<Token> = mutableListOf()
-) : Operator(symbol, value, position, bindingPower, nud, led, std) {
+) : Operator(symbol, value, position, bindingPower, nud, led, std), Argumentable {
     init {
         this.children.clear()
         this.children.addAll(children)
@@ -47,9 +44,21 @@ class Assignment(
         } as Assignment?
 
     fun assign(parent: Type, symbolTable: SymbolTable) {
-        (left as Assignable).assign(this,parent, symbolTable)
+        (left as Assignable).assign(this, parent, symbolTable)
     }
 
+    /**
+     * To automatically replace assignments in type with constructor arguments
+     */
+    override fun equals(other: Any?): Boolean {
+        if (other !is Assignment)
+            return false
+        return left == other.left
+    }
+
+    override fun hashCode(): Int {
+        return left.hashCode()
+    }
 
 //    override fun copy(): TokenAssignment = TokenAssignment(
 //        symbol,
@@ -62,9 +71,7 @@ class Assignment(
 //        children.map { it.copy() }.toMutableList()
 //    )
 
-
-    private fun assignLValue(token: Token, value: Any, parent: Type?, symbolTable: SymbolTable) {
-
+    private fun assignLValue(token: Token, value: Any, parent: Variable?, symbolTable: SymbolTable) {
 //        if (token is Identifier) {
 //            symbolTable.addVariable(token.value, value.toVariable(token))
 //            return

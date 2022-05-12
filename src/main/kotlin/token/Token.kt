@@ -78,4 +78,22 @@ open class Token(
         }
         return condition(this)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is Token)
+            return false
+        if (children.size != other.children.size)
+            return false
+        var areEqual = true
+        for (i in children.indices)
+            areEqual = children[i].equals(other.children[i])
+        return areEqual
+    }
+
+    override fun hashCode(): Int {
+        var hash = value.hashCode()
+        for (c in children)
+            hash += c.hashCode()
+        return hash
+    }
 }

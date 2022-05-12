@@ -8,6 +8,7 @@ fun getFileName() {
 
 fun addition(a, b) {
     get()
+    a = if(1) 1 else 0
     test(same.addition(a,b) \
         == a + b + 1)
     log(getFileName() \

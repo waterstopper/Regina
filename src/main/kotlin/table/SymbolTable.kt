@@ -10,7 +10,7 @@ import utils.Utils.toVariable
 class SymbolTable(
     // during recursive evaluation multiple symbol tables are used, hence need different scopes, files and types
     private var scopeTable: ScopeTable? = ScopeTable(),
-    private var typeTable: Type? = null,
+    private var variableTable: Variable? = null,
     private var fileTable: FileTable = FileTable("")
 ) {
     companion object {
@@ -81,16 +81,16 @@ class SymbolTable(
     }
 
     fun changeScope(): SymbolTable {
-        return SymbolTable(typeTable = typeTable, fileTable = fileTable)
+        return SymbolTable(variableTable = variableTable, fileTable = fileTable)
     }
 
     fun changeFile(fileName: String): SymbolTable {
-        return SymbolTable(scopeTable?.copy(), typeTable, imports.keys.find { it.fileName == fileName }
+        return SymbolTable(scopeTable?.copy(), variableTable, imports.keys.find { it.fileName == fileName }
             ?: throw PositionalException("File not found"))
     }
 
     // TODO dangerous if type is in different file
-    fun changeType(type: Type) = SymbolTable(scopeTable?.copy(), type, fileTable)
+    fun changeVariable(type: Variable) = SymbolTable(scopeTable?.copy(), type, fileTable)
 
     fun addFile(fileName: String): Boolean {
         if (imports[FileTable(fileName)] == null) {
@@ -120,8 +120,8 @@ class SymbolTable(
     fun getFunction(token: Token): Function {
         val res = getFromFilesOrNull { it.getFunctionOrNull(token.value) } as Function?
         if (res == null) {
-            if (typeTable == null) throw PositionalException("Function `${token.value}` not found", token)
-            return typeTable!!.getFunction(token)
+            if (variableTable == null) throw PositionalException("Function `${token.value}` not found", token)
+            return variableTable!!.getFunction(token)
         }
         return res
     }
@@ -147,7 +147,7 @@ class SymbolTable(
         val type = getTypeOrNull(token)
         if (type != null)
             return type
-        val property = typeTable?.getPropertyOrNull(token.value)
+        val property = variableTable?.getPropertyOrNull(token.value)
         if (property != null)
             return property
         return getObjectOrNull(token) ?: throw PositionalException(
@@ -156,7 +156,7 @@ class SymbolTable(
         )
     }
 
-    fun getCurrentType() = typeTable
+    fun getCurrentType() = variableTable
 
     fun getTypes(): MutableMap<String, List<Type>> {
         val res = mutableMapOf<String, List<Type>>()
@@ -166,10 +166,10 @@ class SymbolTable(
     }
 
     fun getProperty(token: Token): Property {
-        return typeTable!!.getProperty(token)
+        return variableTable!!.getProperty(token)
     }
 
-    fun copy() = SymbolTable(scopeTable?.copy() ?: ScopeTable(), typeTable, fileTable)
+    fun copy() = SymbolTable(scopeTable?.copy() ?: ScopeTable(), variableTable, fileTable)
     fun addVariableOrNot(token: Token) = scopeTable?.addVariable(token.value, "".toVariable(token))
 
     override fun toString(): String {

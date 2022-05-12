@@ -4,7 +4,6 @@ import evaluation.Evaluation.globalTable
 import lexer.Parser
 import lexer.PositionalException
 import properties.Function
-import properties.Object
 import properties.Type
 import properties.Variable
 import properties.primitive.Primitive
@@ -14,7 +13,9 @@ import token.Identifier
 import token.Token
 import token.invocation.Call
 import token.invocation.Constructor
+import token.invocation.Invocation
 import token.operator.Index
+import token.operator.TokenTernary
 import token.statement.Assignment
 import utils.Utils.toVariable
 
@@ -41,6 +42,161 @@ open class Link(
         token.children
     )
 
+    var index = -1
+    var currentVariable: Variable? = null
+    val operations: MutableList<(symbolTable: SymbolTable, args: List<Any>) -> Pair<SymbolTable, Any?>> =
+        mutableListOf()
+    val arguments = mutableListOf<List<Any>>()
+
+    override fun evaluate(symbolTable: SymbolTable): Any {
+        var table = symbolTable.copy()
+        var res: Any?
+        if (index == -1) {
+            index++
+            table = getFirstVariable(table)
+            arguments.add(emptyList())
+        }
+        index++
+        while (index < children.size) {
+            //  val func = operations[index]
+            //  val pair = func(table, mutableListOf(arguments[index]))
+            //  table = pair.first
+            //  res = pair.second
+
+            if (index >= operations.size) {
+                addNextLambda(
+                    table,
+                    currentVariable ?: throw PositionalException(
+                        "Cannot be casted to variable",
+                        children[index - 1]
+                    )
+                )
+                arguments.add(emptyList())
+            }
+            index++
+        }
+        return if (currentVariable is Primitive)
+            (currentVariable as Primitive).getPValue() else currentVariable
+            ?: throw PositionalException("Unexpected return", children[--index])
+    }
+
+    /**
+     * Not applicable for 1st element in link
+     */
+    fun addNextLambda(symbolTable: SymbolTable, variable: Variable): Boolean {
+        when (children[index]) {
+            is Invocation -> {
+                val function = variable.getFunction(children[index].left)
+                addFunction(symbolTable, function)
+            }
+            is Identifier -> {
+                return resolveProperty(variable)
+            }
+            is Index -> {}
+        }
+        return true
+    }
+
+    /**
+     * Resolve till operations.last() has properties (primitive, type, object or function call)
+     */
+    fun getFirstVariable(symbolTable: SymbolTable, canBeFile: Boolean = true): SymbolTable {
+        var table = symbolTable.copy()
+        when (children[index]) {
+            is Identifier -> {
+                val variable = table.getVariableOrNull(children[index].value)
+                if (variable == null) {
+                    val obj = symbolTable.getObjectOrNull(children[index])
+                    if (obj == null) {
+                        if (canBeFile) {
+                            table = addFile(table)
+                            index++
+                            table = getFirstVariable(table, false)
+                        } else throw PositionalException("Object not found in $children[index]", children[index])
+                    } else addVariable(obj)
+                } else {
+                    if (!canBeFile)
+                        throw PositionalException("Object not found in $children[index]", children[index])
+                    currentVariable = variable
+                    addVariable(variable)
+                }
+            }
+            is TokenTernary -> {
+                val ternaryResult = children[index].evaluate(table).toVariable(children[index])
+                currentVariable = ternaryResult
+
+                addVariable(ternaryResult)
+            }
+            is Invocation -> {
+                val function = table.getFunctionOrNull((children[index] as Invocation).name)
+                if (function != null) {
+                    children[index] = Call(children[index])
+                    addFunction(table, function)
+                    return table
+                }
+                val type = table.getTypeOrNull((children[index] as Invocation).name)
+                if (type != null) {
+                    children[index] = Constructor(children[index])
+                    addVariable(type)
+                    return table
+                }
+                throw PositionalException("Function and type not found", children[index].children[index])
+            }
+        }
+        return table
+    }
+
+    private fun addFile(symbolTable: SymbolTable): SymbolTable {
+        val fileTable = symbolTable.getImportOrNull(left.value)
+        if (fileTable == null) {
+            throw PositionalException("Expected variable, object or package name", left)
+        } else {
+            return symbolTable.changeFile(fileTable.fileName)
+
+            val lambda: (SymbolTable, List<Any>) -> Pair<SymbolTable, Any?> =
+                { table: SymbolTable, _: List<Any> ->
+                    Pair(table.copy().changeFile(fileTable.fileName), null)
+                }
+            operations.add(lambda)
+        }
+    }
+
+    protected fun addVariable(variable: Variable) {
+
+        val lambda: (SymbolTable, List<Any>) -> Pair<SymbolTable, Any> =
+            { symbolTable: SymbolTable, _: List<Any> ->
+                Pair(symbolTable.copy().changeVariable(variable), variable)
+            }
+        operations.add(lambda)
+    }
+
+    private fun addFunction(symbolTable: SymbolTable, function: Function) {
+        val (a, b) = resolveFunctionCall(symbolTable, function)
+
+        val lambda: (SymbolTable, List<Any>) -> Pair<SymbolTable, Any> =
+            { symbolTable: SymbolTable, _: List<Any> ->
+                resolveFunctionCall(symbolTable, function)
+            }
+        operations.add(lambda)
+    }
+
+    /**
+     * Used inside functions. All properties should be already resolved
+     */
+    open fun resolveProperty(parent: Variable): Boolean {
+        val property = parent.getProperty(children[index])
+        addVariable(property)
+        return true
+    }
+
+    fun resolveFunctionCall(symbolTable: SymbolTable, function: Function): Pair<SymbolTable, Any> {
+        (children[index] as Call).function = function
+        val functionResult = children[index].evaluate(symbolTable)
+
+        currentVariable = functionResult.toVariable(children[index])
+        return Pair(symbolTable.copy().changeVariable(functionResult.toVariable(children[index])), functionResult)
+    }
+
     init {
         if (children.isNotEmpty()) {
             this.children.clear()
@@ -59,216 +215,8 @@ open class Link(
         else true
     }
 
-    /**
-    identifier.link
-    type.functionCall
-    primitive.functionCall
-    property.functionCall
-    identifier.property
-    type.property
-    package.object
-    package.functionCall
-    package.constructor
-     */
-    override fun evaluate(symbolTable: SymbolTable): Any {
-        when (left) {
-            is Identifier -> {
-                if (symbolTable.getVariableOrNull(left.value) != null) {
-                    return when (val variable = symbolTable.getVariable(left)) {
-                        is Type -> evaluateType(variable, this, symbolTable)
-                        is Primitive -> evaluatePrimitive(variable, this, symbolTable)
-                        is Object -> evaluateObjectToken(this, symbolTable)
-                        else -> throw PositionalException("`$left` does not have function or property", left)
-                    }
-                } else if (symbolTable.getTypeOrNull(left) != null)
-                    return evaluateTypeToken(this, symbolTable)
-                else if (symbolTable.getObjectOrNull(left) != null)
-                    return evaluateObjectToken(this, symbolTable)
-                else if (symbolTable.getImportOrNull(left.value) != null)
-                    return evaluatePackage(this, symbolTable)
-            }
-            is Call -> return evaluateFunction(this, symbolTable, symbolTable.getFunction(left))
-            is Constructor -> return evaluateTypeToken(this, symbolTable)
-        }
-        val value = left.evaluate(symbolTable).toVariable(left)
-        if (value is Primitive)
-            return evaluatePrimitive(value, this, symbolTable)
-        throw PositionalException("unexpected token in link", left)
-    }
-
-
-    /**
-     * function, object, constructor
-     */
-    private fun evaluatePackage(link: Token, symbolTable: SymbolTable): Any {
-        val fileTable = symbolTable.getImportOrNull(link.left.value)!!
-        when (link.right) {
-            is Constructor -> if (fileTable.getTypeOrNull(link.right.value) != null) {
-                return (link.right as Constructor).evaluateType(
-                    fileTable.getTypeOrNull(link.right.value)!!,
-                    symbolTable
-                )
-            }
-            is Call -> if (fileTable.getFunctionOrNull((link.right as Call).name.value) != null) {
-                val newTable = symbolTable.changeFile(fileTable.fileName)
-                (link.right as Call).argumentsToParameters(
-                    fileTable.getFunction(link.right as Call),
-                    symbolTable.changeFile(fileTable.fileName),
-                    newTable
-                )
-                return (link.right as Call).evaluateFunction(
-                    newTable,
-                    fileTable.getFunctionOrNull((link.right as Call).name.value)!!
-                )
-            }
-            is Identifier -> if (fileTable.getObjectOrNull(link.right.value) != null)
-                return fileTable.getObjectOrNull(link.right.value)!!
-            is Link -> {
-                when (link.right.left) {
-                    is Constructor -> if (fileTable.getTypeOrNull(link.right.left.value) != null) {
-                        val type =
-                            (link.right.left as Constructor).evaluateType(
-                                fileTable.getTypeOrNull(link.right.left.value)!!,
-                                symbolTable
-                            ) as Type
-                        return evaluateType(
-                            type,
-                            link.right as Link,
-                            symbolTable.changeFile(link.left.value).changeType(type)
-                        )
-                    }
-                    is Call -> {
-                        val function = fileTable.getFunctionOrNull((link.right as Call).name.value)
-                        if (function != null)
-                            return evaluateFunction(
-                                link.right as Link,
-                                symbolTable.changeFile(link.left.value),
-                                function
-                            )
-                    }
-                }
-            }
-        }
-        throw PositionalException("Expected function call, constructor or object", link.right)
-    }
-
-    private fun evaluateObjectToken(link: Link, symbolTable: SymbolTable): Any {
-        val objectInstance = link.left.evaluate(symbolTable)
-        if (objectInstance !is Object)
-            throw PositionalException("Expected object", link.left)
-        return evaluateType(objectInstance, link, symbolTable)
-    }
-
-    /**
-     * function, property
-     */
-    private fun evaluateTypeToken(link: Link, symbolTable: SymbolTable): Any {
-        val type = link.left.evaluate(symbolTable)
-        if (type !is Type)
-            throw PositionalException("Expected type", link.left)
-        return evaluateType(type, link, symbolTable)
-    }
-
-    private fun evaluateType(type: Type, link: Link, symbolTable: SymbolTable): Any {
-        when (link.right) {
-            is Call -> {
-                val functionTable = symbolTable.changeType(type)
-                functionTable.addVariable("(this)", type)
-                val function = type.getFunction((link.right as Call).name)
-                (link.right as Call).argumentsToParameters(function, symbolTable, functionTable)
-                return (link.right as Call).evaluateFunction(functionTable, function)
-            }
-            is Identifier -> return type.getProperty(link.right)
-            is Link -> {
-                when (link.right.left) {
-                    is Call -> {
-                        val functionTable = symbolTable.changeType(type)
-                        functionTable.addVariable("(this)", type)
-                        return evaluateFunction(
-                            link.right as Link,
-                            functionTable,
-                            type.getFunction((link.right.left as Call).name)
-                        )
-                    }
-                    is Identifier -> {
-                        val property = type.getProperty(link.right.left)
-                        if (property is Type)
-                            evaluateType(property, link.right as Link, symbolTable)
-                        else if (property is Primitive)
-                            evaluatePrimitiveToken(link.right as Link, symbolTable)
-                    }
-                }
-            }
-        }
-        throw PositionalException("Expected function call or property", link.right)
-    }
-
-    private fun evaluatePrimitiveToken(link: Link, symbolTable: SymbolTable): Any {
-        val primitive = link.left.evaluate(symbolTable)
-        return evaluatePrimitive(primitive, link, symbolTable)
-    }
-
-    private fun evaluatePrimitive(primitive: Any, link: Link, symbolTable: SymbolTable): Any {
-        if (primitive !is Primitive)
-            throw PositionalException("Expected primitive", link.left)
-        when (link.right) {
-            is Call -> {
-                val functionTable = symbolTable.copy()
-                functionTable.addVariable("(this)", primitive)
-                val function = primitive.getFunctionOrNull((link.right as Call).name.value)
-                    ?: throw PositionalException("Function not found", link.right)
-                (link.right as Call).argumentsToParameters(function, symbolTable, functionTable)
-                return (link.right as Call).evaluateFunction(functionTable, function)
-            }
-            is Link -> if (link.right.left is Call) {
-                val function =
-                    primitive.getFunctionOrNull((link.right.left as Call).name.value) ?: throw PositionalException(
-                        "Function not found",
-                        link.right.left
-                    )
-                val functionTable = symbolTable.copy()
-                functionTable.addVariable("(this)", primitive)
-                return evaluateFunction(link.right as Link, functionTable, function)
-            }
-        }
-        throw PositionalException("Expected function call", link.right)
-    }
-
-    /**
-     * similar to ValueEvaluation.evaluateLink()
-     */
-    fun getPropertyNameAndTable(token: Token, symbolTable: SymbolTable): Pair<String, SymbolTable> {
-        var linkRoot = token
-        var table = symbolTable
-        while (linkRoot.value == ".") {
-            val type = table.getProperty(linkRoot.left)
-            if (type !is Type)
-                throw PositionalException("expected class", linkRoot.left)
-            linkRoot = linkRoot.right
-            table = symbolTable.changeType(type)
-        }
-        return Pair(linkRoot.value, table)
-    }
-
-    private fun evaluateFunction(link: Link, symbolTable: SymbolTable, function: Function): Any {
-        val newTable = symbolTable.copy()
-
-        (link.left as Call).argumentsToParameters(function, symbolTable, newTable)
-        val result = (link.left as Call).evaluateFunction(newTable, function)
-        if (result is Primitive)
-            return evaluatePrimitive(result, link, newTable)
-        else if (result is Type) {
-            TODO("not yet implemented")
-        }
-        throw PositionalException("Expected return value from function", link.left)
-    }
-
     override fun assign(assignment: Assignment, parent: Type, symbolTable: SymbolTable) {
         TODO("Not yet implemented")
-    }
-
-    private fun getFirstUnassignedNested(parent: Type): Assignment? {
-
     }
 
     override fun getFirstUnassigned(parent: Type): Assignment? {
@@ -285,13 +233,12 @@ open class Link(
         if (right is Link) {
             return (right as Link).getFirstUnassigned(property)
         } else if (right is Index) {
-            return
+            return null
         }
+        return null
     }
 
     override fun getPropertyName(): Token {
         TODO("Not yet implemented")
     }
 }
-
-

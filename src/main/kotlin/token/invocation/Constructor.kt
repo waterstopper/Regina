@@ -1,33 +1,24 @@
 package token.invocation
 
-import lexer.Parser
 import properties.Type
 import table.SymbolTable
-import token.Identifier
 import token.Token
 import token.statement.Assignment
 import java.util.*
 
 // TODO why derived from Identifier
 class Constructor(
-    symbol: String,
-    value: String,
-    position: Pair<Int, Int>,
-    bindingPower: Int,
-    nud: ((token: Token, parser: Parser) -> Token)?,
-    led: ((
-        token: Token, parser: Parser, token2: Token
-    ) -> Token)?,
-    std: ((token: Token, parser: Parser) -> Token)?, children: List<Token>
-) : Identifier(symbol, value, position, bindingPower, nud, led, std) {
-
+    token: Token
+) : Invocation(
+    token.symbol, token.value,
+    token.position, token.bindingPower,
+    token.nud, token.led, token.std,
+    token.children
+) {
     init {
         this.children.clear()
-        this.children.addAll(children)
+        this.children.addAll(token.children)
     }
-
-    val name: Token
-        get() = left
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         val type = symbolTable.getType(left)

@@ -5,6 +5,7 @@ import lexer.PositionalException
 import table.SymbolTable
 import token.invocation.Call
 import token.invocation.Constructor
+import token.invocation.Invocation
 import token.link.Link
 import token.operator.ArithmeticOperator
 import token.operator.Index
@@ -58,6 +59,7 @@ class TokenFactory {
         std: ((token: Token, parser: Parser) -> Token)?
     ): Token {
         return when (symbol) {
+            "(" -> Invocation(symbol, value, position, bindingPower, nud, led, std)
             "." -> Link(("(LINK)"), value, position, bindingPower, nud, led, std)
             "=" -> Assignment("(ASSIGNMENT)", value, position, bindingPower, nud, led, std)
             // "[" -> TokenIndexing(symbol, value, position, bindingPower, nud, led, std)
@@ -73,7 +75,7 @@ class TokenFactory {
             symbolTable: SymbolTable,
             linkLevel: Int,
             upperToken: Token
-        ): Identifier {
+        ): Invocation {
             // TODO not checking that variable contains function
             // TODO not checking a[i].b where a[i] is object
             if (symbolTable.getFunctionOrNull(tokenIdentifier.left) != null
@@ -84,27 +86,9 @@ class TokenFactory {
                         || upperToken.left is TokenNumber
                         || upperToken.left is Index))
             ) {
-                return Call(
-                    "(CALL)",
-                    tokenIdentifier.value,
-                    tokenIdentifier.position,
-                    tokenIdentifier.bindingPower,
-                    tokenIdentifier.nud,
-                    tokenIdentifier.led,
-                    tokenIdentifier.std,
-                    tokenIdentifier.children
-                )
+                return Call(tokenIdentifier)
             } else if (symbolTable.getTypeOrNull(tokenIdentifier.left) != null && linkLevel <= 1)
-                return Constructor(
-                    "(CONSTRUCTOR)",
-                    tokenIdentifier.value,
-                    tokenIdentifier.position,
-                    tokenIdentifier.bindingPower,
-                    tokenIdentifier.nud,
-                    tokenIdentifier.led,
-                    tokenIdentifier.std,
-                    tokenIdentifier.children
-                )
+                return Constructor(tokenIdentifier)
             throw PositionalException("Unknown invocated identifier `${tokenIdentifier.left.value}`", tokenIdentifier)
         }
     }

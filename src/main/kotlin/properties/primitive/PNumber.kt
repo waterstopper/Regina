@@ -7,7 +7,7 @@ import properties.Type
 import utils.Utils.unaryMinus
 
 abstract class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
-    override fun setFunction(embeddedFunction: EmbeddedFunction) {
+    fun setFunction(embeddedFunction: EmbeddedFunction) {
         Primitive.functions[1].add(embeddedFunction)
         Primitive.functions[2].add(embeddedFunction)
     }

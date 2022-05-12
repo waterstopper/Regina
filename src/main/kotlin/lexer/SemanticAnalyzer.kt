@@ -55,8 +55,8 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             var table = globalTable.copy()
             when (token.symbol) {
                 "fun" -> table = table.changeScope()
-                "object" -> table = table.changeType(globalTable.getObjectOrNull((token as Declaration).name)!!)
-                "class" -> table = table.changeType(globalTable.getTypeOrNull((token as Declaration).name)!!)
+                "object" -> table = table.changeVariable(globalTable.getObjectOrNull((token as Declaration).name)!!)
+                "class" -> table = table.changeVariable(globalTable.getTypeOrNull((token as Declaration).name)!!)
             }
             changeTokenType(token, table, 0)
         }
@@ -67,14 +67,14 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             when (child.symbol) {
                 // ignoring assignments like: a.b = ...
                 "(ASSIGNMENT)" -> symbolTable.addVariableOrNot(child.left)
-                "." -> {
+                "(LINK)" -> {
 //                    if (symbolTable.getVariableOrNull(child.left.value) != null) {
 //                        val variable = symbolTable.getVariable(child.left)
 //                        if(variable is Type)
 //                    }
                 }
                 "(" -> {
-                    if (token.value != "fun") {
+                    if (token.value != "fun" && token.symbol!="(LINK)") {
                         token.children[index] =
                             createSpecificIdentifierFromInvocation(child, symbolTable, linkLevel, token)
                     }

@@ -39,6 +39,9 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
     override fun getPropertyOrNull(name: String) = properties[getIndex()][name]
     override fun getProperty(token: Token) =
         properties[getIndex()][token.value] ?: throw PositionalException("`${token.value}` not found", token)
+    override fun hasProperty(token: Token): Boolean {
+        TODO("Not yet implemented")
+    }
 
 
     override fun getFunction(token: Token): Function =

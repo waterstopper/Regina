@@ -1,15 +1,19 @@
 import imported
 
 fun main() {
+    a = imported.getFileName()
+    a = (if(1) 1 else 0).b
+    a = b.c.d.e.f.g.h.parent.(if(a == true) u else b).t
     test(addition(2, 3) == 5)
     a = [2]
+    a = a.b.c
     a.add([1])
     a.add(a)
     log(a)
     checkType()
     checkArray()
     checkWhile()
-    test(checkNestedReturn()==1)
+    test(checkNestedReturn() == 1)
   //  b = i()
 //	log([0] + 1)
 //	log(("t" + "t")[0])

@@ -9,12 +9,13 @@
  */
 package lexer
 
-import token.Token
 import token.Declaration
+import token.Token
 import token.operator.Index
 import token.operator.TokenTernary
 import token.statement.Block
 import token.statement.WordStatement
+import token.variable.TokenArray
 import token.variable.TokenNumber
 
 class Lexer() {
@@ -288,7 +289,7 @@ class Lexer() {
         tokReg.infixRight("|", 25)
         tokReg.infixRight("=", 10)
 
-        tokReg.infixRight(".", 105)
+       // tokReg.infixRight(".", 105)
 //        tokReg.infixRight("+=", 10)
 //        tokReg.infixRight("-=", 10)
 
@@ -303,9 +304,21 @@ class Lexer() {
 
         //tokReg.prefixNud("if")
 
+        tokReg.infixLed(".", 105) { token: Token, parser: Parser, left: Token ->
+            token.children.add(left)
+            token.children.add(parser.expression(105))
+            var t = parser.lexer.peek()
+            while (t.symbol == "(LINK)") {
+                parser.advance("(LINK)")
+                token.children.add(parser.expression(105))
+                t = parser.lexer.peek()
+            }
+            token
+        }
+
         // function use
         tokReg.infixLed("(", 120) { token: Token, parser: Parser, left: Token ->
-            if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(" && left.symbol != "->" && left.symbol != "!")
+            if (left.symbol != "(LINK)" && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(" && left.symbol != "->" && left.symbol != "!")
                 throw  PositionalException("bad func call left operand `$left`", left)
             token.children.add(left)
             val t = parser.lexer.peek()
@@ -356,7 +369,7 @@ class Lexer() {
         }
 
         tokReg.prefixNud("[") { token: Token, parser: Parser ->
-            val res = token.variable.Array(token)
+            val res = TokenArray(token)
             if (parser.lexer.peek().symbol != "]") {
                 while (true) {
                     if (parser.lexer.peek().symbol == "]")
