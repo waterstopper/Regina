@@ -16,12 +16,15 @@ import token.statement.Assignment
 import utils.Utils.toVariable
 
 class PropertyLink(token: Token) : Link(token) {
-    lateinit var table: SymbolTable
 
     override fun resolveProperty(parent: Variable): Boolean {
         val result = parent.getPropertyOrNull(children[index].value) ?: return false
-        addVariable(result)
+        currentVariable = result
         return true
+    }
+
+    override fun getNextVariable(variable: Variable): Boolean {
+        TODO("not")
     }
 }
 

@@ -80,7 +80,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 if (list is PArray) {
                     if (index is PInt)
                         try {
-                            (list.value as MutableList<*>).removeAt(index.getPValue() as Int)!!
+                            (list.value as MutableList<*>).removeAt(index.getPValue())!!
                         } catch (e: IndexOutOfBoundsException) {
                             throw PositionalException("index ${index.getPValue()} out of bounds for length ${(list.value as MutableList<*>).size}")
                         }

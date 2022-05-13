@@ -8,6 +8,7 @@ import properties.primitive.Primitive
 import table.SymbolTable
 import token.statement.Assignment
 import utils.Utils.toProperty
+import utils.Utils.toVariable
 
 open class Identifier(
     symbol: String, value: String, position: Pair<Int, Int>, bindingPower: Int,
@@ -25,9 +26,11 @@ open class Identifier(
         return variable as Variable
     }
 
-    override fun assign(assignment: Assignment, parent: Type, symbolTable: SymbolTable) {
-        parent.removeAssignment(assignment)
-        parent.setProperty(this, assignment.right.evaluate(symbolTable).toProperty(assignment.right, parent))
+    override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value:Any?) {
+        if (parent != null) {
+            parent.removeAssignment(assignment)
+            parent.setProperty(this, assignment.right.evaluate(symbolTable).toProperty(assignment.right, parent))
+        } else symbolTable.addVariable(this.value, value!!.toVariable(this))
     }
 
     override fun getFirstUnassigned(parent: Type): Assignment? {

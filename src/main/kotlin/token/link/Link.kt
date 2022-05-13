@@ -43,36 +43,32 @@ open class Link(
     )
 
     var index = -1
+    lateinit var table: SymbolTable
     var currentVariable: Variable? = null
-    val operations: MutableList<(symbolTable: SymbolTable, args: List<Any>) -> Pair<SymbolTable, Any?>> =
-        mutableListOf()
+    lateinit var initialTable: SymbolTable
+
+    // for constructors and calls
     val arguments = mutableListOf<List<Any>>()
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        var table = symbolTable.copy()
-        var res: Any?
+        initialTable = symbolTable
+        table = symbolTable.copy()
         if (index == -1) {
             index++
-            table = getFirstVariable(table)
+            getFirstVariable()
             arguments.add(emptyList())
         }
+        table = table.changeVariable(currentVariable!!)
         index++
         while (index < children.size) {
-            //  val func = operations[index]
-            //  val pair = func(table, mutableListOf(arguments[index]))
-            //  table = pair.first
-            //  res = pair.second
-
-            if (index >= operations.size) {
-                addNextLambda(
-                    table,
-                    currentVariable ?: throw PositionalException(
-                        "Cannot be casted to variable",
-                        children[index - 1]
-                    )
+            getNextVariable(
+                currentVariable ?: throw PositionalException(
+                    "Cannot be casted to variable",
+                    children[index - 1]
                 )
-                arguments.add(emptyList())
-            }
+            )
+            table = table.changeVariable(currentVariable!!)
+            arguments.add(emptyList())
             index++
         }
         return if (currentVariable is Primitive)
@@ -83,16 +79,22 @@ open class Link(
     /**
      * Not applicable for 1st element in link
      */
-    fun addNextLambda(symbolTable: SymbolTable, variable: Variable): Boolean {
+    protected open fun getNextVariable(variable: Variable): Boolean {
         when (children[index]) {
             is Invocation -> {
-                val function = variable.getFunction(children[index].left)
-                addFunction(symbolTable, function)
+                val function = variable.getFunction((children[index] as Invocation).name)
+                children[index] = Call(children[index])
+                resolveFunctionCall(function)
+                return true
+                //  val function = variable.getFunction(children[index].left)
+                //    addFunction(function)
             }
             is Identifier -> {
                 return resolveProperty(variable)
             }
-            is Index -> {}
+            is Index -> {
+                throw PositionalException("not implemented")
+            }
         }
         return true
     }
@@ -100,101 +102,72 @@ open class Link(
     /**
      * Resolve till operations.last() has properties (primitive, type, object or function call)
      */
-    fun getFirstVariable(symbolTable: SymbolTable, canBeFile: Boolean = true): SymbolTable {
-        var table = symbolTable.copy()
+    fun getFirstVariable(canBeFile: Boolean = true) {
         when (children[index]) {
             is Identifier -> {
                 val variable = table.getVariableOrNull(children[index].value)
                 if (variable == null) {
-                    val obj = symbolTable.getObjectOrNull(children[index])
+                    val obj = table.getObjectOrNull(children[index])
                     if (obj == null) {
                         if (canBeFile) {
-                            table = addFile(table)
+                            addFile()
                             index++
-                            table = getFirstVariable(table, false)
+                            getFirstVariable(false)
                         } else throw PositionalException("Object not found in $children[index]", children[index])
-                    } else addVariable(obj)
+                    } else currentVariable = obj
                 } else {
                     if (!canBeFile)
                         throw PositionalException("Object not found in $children[index]", children[index])
                     currentVariable = variable
-                    addVariable(variable)
                 }
             }
             is TokenTernary -> {
                 val ternaryResult = children[index].evaluate(table).toVariable(children[index])
                 currentVariable = ternaryResult
-
-                addVariable(ternaryResult)
             }
-            is Invocation -> {
-                val function = table.getFunctionOrNull((children[index] as Invocation).name)
-                if (function != null) {
-                    children[index] = Call(children[index])
-                    addFunction(table, function)
-                    return table
-                }
-                val type = table.getTypeOrNull((children[index] as Invocation).name)
-                if (type != null) {
-                    children[index] = Constructor(children[index])
-                    addVariable(type)
-                    return table
-                }
-                throw PositionalException("Function and type not found", children[index].children[index])
-            }
-        }
-        return table
-    }
-
-    private fun addFile(symbolTable: SymbolTable): SymbolTable {
-        val fileTable = symbolTable.getImportOrNull(left.value)
-        if (fileTable == null) {
-            throw PositionalException("Expected variable, object or package name", left)
-        } else {
-            return symbolTable.changeFile(fileTable.fileName)
-
-            val lambda: (SymbolTable, List<Any>) -> Pair<SymbolTable, Any?> =
-                { table: SymbolTable, _: List<Any> ->
-                    Pair(table.copy().changeFile(fileTable.fileName), null)
-                }
-            operations.add(lambda)
+            is Invocation -> resolveInvocation()
         }
     }
 
-    protected fun addVariable(variable: Variable) {
+    private fun resolveInvocation() {
+        val function = table.getFunctionOrNull((children[index] as Invocation).name)
+        if (function != null) {
+            children[index] = Call(children[index])
+            resolveFunctionCall(function)
+            return
+        }
+        val type = table.getTypeOrNull((children[index] as Invocation).name)
+        if (type != null) {
+            children[index] = Constructor(children[index])
+            currentVariable = type
+            return
+        }
+        throw PositionalException("Function and type not found", children[index].children[index])
 
-        val lambda: (SymbolTable, List<Any>) -> Pair<SymbolTable, Any> =
-            { symbolTable: SymbolTable, _: List<Any> ->
-                Pair(symbolTable.copy().changeVariable(variable), variable)
-            }
-        operations.add(lambda)
     }
 
-    private fun addFunction(symbolTable: SymbolTable, function: Function) {
-        val (a, b) = resolveFunctionCall(symbolTable, function)
-
-        val lambda: (SymbolTable, List<Any>) -> Pair<SymbolTable, Any> =
-            { symbolTable: SymbolTable, _: List<Any> ->
-                resolveFunctionCall(symbolTable, function)
-            }
-        operations.add(lambda)
+    private fun addFile() {
+        val fileTable = table.getImportOrNull(left.value)
+            ?: throw PositionalException("Expected variable, object or package name", left)
+        table = table.changeFile(fileTable.fileName)
     }
+
 
     /**
      * Used inside functions. All properties should be already resolved
      */
     open fun resolveProperty(parent: Variable): Boolean {
-        val property = parent.getProperty(children[index])
-        addVariable(property)
+        currentVariable = parent.getProperty(children[index])
         return true
     }
 
-    fun resolveFunctionCall(symbolTable: SymbolTable, function: Function): Pair<SymbolTable, Any> {
+    // here symboltable is ignored. Only value with same fileName
+    fun resolveFunctionCall(function: Function) {
         (children[index] as Call).function = function
-        val functionResult = children[index].evaluate(symbolTable)
-
+        val tableForEvaluation = table.changeScope(initialTable.getScope())
+        (children[index] as Call).argumentsToParameters(function, table, tableForEvaluation)
+        val functionResult = (children[index] as Call).evaluateFunction(tableForEvaluation, function)
         currentVariable = functionResult.toVariable(children[index])
-        return Pair(symbolTable.copy().changeVariable(functionResult.toVariable(children[index])), functionResult)
     }
 
     init {
@@ -215,7 +188,7 @@ open class Link(
         else true
     }
 
-    override fun assign(assignment: Assignment, parent: Type, symbolTable: SymbolTable) {
+    override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any?) {
         TODO("Not yet implemented")
     }
 

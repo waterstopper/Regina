@@ -84,6 +84,12 @@ class SymbolTable(
         return SymbolTable(variableTable = variableTable, fileTable = fileTable)
     }
 
+    fun changeScope(scopeTable: ScopeTable?): SymbolTable {
+        return SymbolTable(scopeTable = scopeTable?.copy(), variableTable = variableTable, fileTable = fileTable)
+    }
+
+    fun getScope() = scopeTable
+
     fun changeFile(fileName: String): SymbolTable {
         return SymbolTable(scopeTable?.copy(), variableTable, imports.keys.find { it.fileName == fileName }
             ?: throw PositionalException("File not found"))

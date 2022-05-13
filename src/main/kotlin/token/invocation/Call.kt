@@ -3,7 +3,6 @@ package token.invocation
 import lexer.PositionalException
 import properties.EmbeddedFunction
 import properties.Function
-import properties.Variable
 import table.SymbolTable
 import token.Token
 import utils.Utils.toVariable
@@ -47,16 +46,19 @@ class Call(
             paramTable.addVariable(function.params[index], arg.evaluate(argTable).toVariable(arg))
     }
 
-    fun evaluateFunction(symbolTable: SymbolTable, function: Function, variable: Variable? = null): Any {
+    fun evaluateFunction(symbolTable: SymbolTable, function: Function, argTable: SymbolTable? = null): Any {
+        var argTable = argTable ?: symbolTable
         if (function.params.size < arguments.size)
             throw PositionalException("Expected less arguments", this)
         // wtf
         if (symbolTable.getVariableOrNull("(this)") != null)
             symbolTable.addVariable("(this)", symbolTable.getVariable("(this)"))
-        if (variable != null)
-            symbolTable.addVariable("(this)", variable)
-        if (function is EmbeddedFunction)
-            return function.executeFunction(this, symbolTable)
-        return function.body.evaluate(symbolTable)
+        if (symbolTable.getCurrentType() != null)
+            symbolTable.addVariable("(this)", symbolTable.getCurrentType()!!)
+
+        val res = if (function is EmbeddedFunction)
+            function.executeFunction(this, symbolTable)
+        else function.body.evaluate(symbolTable)
+        return if (res is Unit) 0 else res
     }
 }

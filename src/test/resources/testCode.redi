@@ -1,12 +1,13 @@
 import imported
 
 fun main() {
+checkArray()
+    a = (if(1) 1 else 0).abs()
+    log(a)
     a = imported.getFileName()
-    a = (if(1) 1 else 0).b
-    a = b.c.d.e.f.g.h.parent.(if(a == true) u else b).t
+    log(a)
     test(addition(2, 3) == 5)
     a = [2]
-    a = a.b.c
     a.add([1])
     a.add(a)
     log(a)

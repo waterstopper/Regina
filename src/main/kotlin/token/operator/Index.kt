@@ -67,7 +67,11 @@ class Index(
         throw PositionalException("expected array and number", this)
     }
 
-    override fun assign(assignment: Assignment, parent: Type, symbolTable: SymbolTable) {
+    override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any?) {
+        if (parent == null) {
+            TODO("not implemented")
+            return
+        }
         parent.removeAssignment(assignment)
         val property = parent.getProperty(getPropertyName())
         if (property !is PArray)

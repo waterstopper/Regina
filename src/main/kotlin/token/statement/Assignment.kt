@@ -2,6 +2,7 @@ package token.statement
 
 import Argumentable
 import lexer.Parser
+import lexer.PositionalException
 import properties.Type
 import properties.Variable
 import table.SymbolTable
@@ -31,6 +32,13 @@ class Assignment(
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         val value = right.evaluate(symbolTable)
+        if (left !is Assignable)
+            throw PositionalException("Left operand is not assignable", left)
+        (left as Assignable).assign(
+            this,
+            if (symbolTable.getCurrentType() is Type) (symbolTable.getCurrentType() as Type) else null,
+            symbolTable, value
+        )
         assignLValue(left, value, symbolTable.getCurrentType(), symbolTable)
         return value
     }

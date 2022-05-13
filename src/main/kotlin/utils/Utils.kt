@@ -19,10 +19,10 @@ object Utils {
     }
 
     fun Any.toVariable(token: Token): Variable =
-        if (this is Type) this else Primitive.createPrimitive(this, null, token)
+        if (this is Variable) this else Primitive.createPrimitive(this, null, token)
 
     fun Any.toProperty(token: Token, parent: Type? = null): Property =
-        if (this is Type) this else Primitive.createPrimitive(this, parent, token)
+        if (this is Property) this else Primitive.createPrimitive(this, parent, token)
 
     fun List<Token>.treeView(): String {
         val res = StringBuilder()

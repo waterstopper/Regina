@@ -14,7 +14,7 @@ class Declaration(
         token: Token, parser: Parser, token2: Token
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?, children: List<Token>
-) : Identifier(symbol, value, position, bindingPower, nud, led, std) {
+) : Token(symbol, value, position, bindingPower, nud, led, std) {
     constructor(token: Token) : this(
         token.symbol,
         token.value,
