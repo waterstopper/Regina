@@ -17,6 +17,7 @@ import token.invocation.Invocation
 import token.operator.Index
 import token.operator.TokenTernary
 import token.statement.Assignment
+import token.variable.TokenArray
 import utils.Utils.toVariable
 
 /** parent, this - special phrases, that should be added to scope table and type assignments specifically **/
@@ -42,7 +43,7 @@ open class Link(
         token.children
     )
 
-    var index = -1
+    var index = 0
     lateinit var table: SymbolTable
     var currentVariable: Variable? = null
     lateinit var initialTable: SymbolTable
@@ -51,13 +52,14 @@ open class Link(
     val arguments = mutableListOf<List<Any>>()
 
     override fun evaluate(symbolTable: SymbolTable): Any {
+        // On second evaluation it should be reset (if function with this token is called twice)
+        index = 0
+        arguments.clear()
         initialTable = symbolTable
         table = symbolTable.copy()
-        if (index == -1) {
-            index++
-            getFirstVariable()
-            arguments.add(emptyList())
-        }
+        getFirstVariable()
+        arguments.add(emptyList())
+
         table = table.changeVariable(currentVariable!!)
         index++
         while (index < children.size) {
@@ -104,6 +106,7 @@ open class Link(
      */
     fun getFirstVariable(canBeFile: Boolean = true) {
         when (children[index]) {
+            is TokenArray -> currentVariable = children[index].evaluate(table).toVariable(children[index])
             is Identifier -> {
                 val variable = table.getVariableOrNull(children[index].value)
                 if (variable == null) {

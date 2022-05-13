@@ -16,17 +16,15 @@ open class Identifier(
     led: ((token: Token, parser: Parser, token2: Token) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?
 ) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable {
-    var variable: Variable? = null
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        if (variable == null)
-            variable = symbolTable.getIdentifier(this)
+        val variable = symbolTable.getIdentifier(this)
         if (variable is Primitive)
-            return (variable as Primitive).getPValue()
-        return variable as Variable
+            return (variable).getPValue()
+        return variable
     }
 
-    override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value:Any?) {
+    override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any?) {
         if (parent != null) {
             parent.removeAssignment(assignment)
             parent.setProperty(this, assignment.right.evaluate(symbolTable).toProperty(assignment.right, parent))

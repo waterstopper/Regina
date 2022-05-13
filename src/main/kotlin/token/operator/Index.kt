@@ -69,7 +69,9 @@ class Index(
 
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any?) {
         if (parent == null) {
-            TODO("not implemented")
+            val rValue = assignment.right.evaluate(symbolTable)
+            val (arr,ind) = getArrayAndIndex(symbolTable)
+            arr.getPValue()[ind] = rValue.toVariable(assignment.right)
             return
         }
         parent.removeAssignment(assignment)

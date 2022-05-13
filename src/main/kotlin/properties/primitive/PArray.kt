@@ -15,6 +15,8 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
         val res = StringBuilder("[")
         for (e in getPValue())
             res.append("${if (e == this) "this" else e.toString()}, ")
+        if(res.toString()=="[")
+            return "[]"
         return res.removeRange(res.lastIndex - 1..res.lastIndex).toString() + ']'
     }
 

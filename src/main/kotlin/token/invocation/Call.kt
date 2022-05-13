@@ -15,12 +15,10 @@ class Call(
     token.nud, token.led, token.std,
     token.children
 ) {
-
     init {
         this.children.clear()
         this.children.addAll(token.children)
     }
-
 
     private val arguments: List<Token>
         get() = children.subList(1, children.size)
