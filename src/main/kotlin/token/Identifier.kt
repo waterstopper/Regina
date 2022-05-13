@@ -3,7 +3,6 @@ package token
 
 import lexer.Parser
 import properties.Type
-import properties.Variable
 import properties.primitive.Primitive
 import table.SymbolTable
 import token.statement.Assignment
@@ -32,7 +31,9 @@ open class Identifier(
     }
 
     override fun getFirstUnassigned(parent: Type): Assignment? {
-        TODO("Not yet implemented")
+//        println(this)
+//        println(parent.getAssignment(this)?.toTreeString())
+        return parent.getAssignment(this)
     }
 
     override fun getPropertyName(): Token = this

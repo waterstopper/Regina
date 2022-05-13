@@ -45,9 +45,13 @@ class Assignment(
 
     fun getAssignable(): Assignable = left as Assignable
     fun getFirstUnassigned(parent: Type): Assignment? =
-        traverseUntil {
-            if (it is Assignable)
+        // traverse only rValue
+        // TODO
+        // although if lValue is Link, it should be traversed too
+        right.traverseUntil {
+            if (it is Assignable) {
                 it.getFirstUnassigned(parent)
+            }
             else null
         } as Assignment?
 

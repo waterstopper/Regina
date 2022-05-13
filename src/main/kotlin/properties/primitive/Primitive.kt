@@ -9,7 +9,7 @@ import token.Token
  * Stores Array, String, Int, Double values
  */
 abstract class Primitive(protected open var value: Any, parent: Type?) : Property(parent) {
-    open fun getIndex() = -1
+    open fun getIndex() = 0
     open fun getPValue() = value
     override fun toString() = "$value"
 
@@ -26,7 +26,6 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         if (this === other) return true
         if (other !is Primitive) return false
         if (value != other.value) return false
-
         return true
     }
 
@@ -36,19 +35,40 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         return result
     }
 
-    override fun getPropertyOrNull(name: String) = properties[getIndex()][name]
-    override fun getProperty(token: Token) =
-        properties[getIndex()][token.value] ?: throw PositionalException("`${token.value}` not found", token)
+    override fun getPropertyOrNull(name: String) = when (name) {
+        "parent" -> getParentOrNull()
+        else -> properties[getIndex()][name]?.let { it(this) }
+            ?: (if (getIndex() in 2..3)
+                properties[1][name]?.let { it(this) } ?: properties[0][name]?.let { it(this) }
+            else properties[0][name]?.let { it(this) })
+    }
+
+    override fun getProperty(token: Token): Property = when (token.value) {
+        "parent" -> getParentOrNull()
+        else -> properties[getIndex()][token.value]?.let { it(this) }
+            ?: (if (getIndex() in 2..3)
+                properties[1][token.value]?.let { it(this) } ?: properties[0][token.value]?.let { it(this) }
+            else properties[0][token.value]?.let { it(this) })
+            ?: throw PositionalException("`${token.value}` not found", token)
+    }
+
+
     override fun hasProperty(token: Token): Boolean {
         TODO("Not yet implemented")
     }
 
-
-    override fun getFunction(token: Token): Function =
+    override fun getFunction(token: Token)
+            : Function =
         functions[getIndex()].find { it.name == token.value }
+            ?: (if (getIndex() in 2..3)
+                functions[1].find { it.name == token.value } ?: functions[0].find { it.name == token.value }
+            else functions[0].find { it.name == token.value })
             ?: throw PositionalException("Primitive does not contain `${token.value}` function", token)
 
     override fun getFunctionOrNull(name: String) = functions[getIndex()].find { it.name == name }
+        ?: (if (getIndex() in 2..3)
+            functions[1].find { it.name == name } ?: functions[0].find { it.name == name }
+        else functions[0].find { it.name == name })
 //    private fun getPrimitiveIndex(): Int {
 //        return when (this) {
 //            is PArray -> 0
@@ -60,7 +80,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
 //    }
 
     companion object {
-        fun setProperty(primitive: Primitive, name: String, property: Property) {
+        fun setProperty(primitive: Primitive, name: String, property: (s: Primitive) -> Property) {
             properties[primitive.getIndex()][name] = property
         }
 
@@ -68,15 +88,18 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
             functions[primitive.getIndex()].add(embeddedFunction)
         }
 
-        val properties = List(4) { mutableMapOf<String, Property>() }
-        val functions = List(4) { mutableListOf<Function>() }
+        val properties = List(6) { mutableMapOf<String, (s: Primitive) -> Property>() }
+        val functions = List(6) { mutableListOf<Function>() }
         fun createPrimitive(value: Any, parent: Type? = null, token: Token = Token()): Primitive {
             return when (value) {
                 is String -> PString(value, parent)
                 is List<*> -> PArray(value as MutableList<Variable>, parent)
                 is Int -> PInt(value, parent)
                 is Double -> PDouble(value, parent)
-                else -> throw PositionalException("cannot create variable of type `${value::class}`", token)
+                else -> throw PositionalException(
+                    "cannot create variable of type `${value::class}`",
+                    token
+                )
             }
         }
     }

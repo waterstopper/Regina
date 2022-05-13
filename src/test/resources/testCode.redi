@@ -1,20 +1,45 @@
 import imported
 
+class TestClass {
+    c = b
+    b = a
+    a = 1
+}
+
+class Nothing {}
+
+class S {
+    iter = if(parent == 0) 0 else (1 + parent.iter)
+    root = if(iter < 10) S() else Nothing()
+}
+
+class DoubleSegment {
+    root = Segment()
+}
+
 fun main() {
-checkArray()
-checkArray()
-    a = (if(1) 1 else 0).abs()
+    a = S()
     log(a)
-    a = imported.getFileName()
+    a = DoubleSegment()
     log(a)
+    a = TestClass()
+    log(a)
+    a = Segment()
+    log(a)
+    checkArray()
+    checkArray()
+
+
     test(addition(2, 3) == 5)
     a = [2]
     a.add([1])
     a.add(a)
     log(a)
+    checkLink()
     checkType()
-    //checkArray()
+    checkArray()
     checkWhile()
+    test(checkMultipleCalls(3) == 3)
     test(checkNestedReturn() == 1)
   //  b = i()
 //	log([0] + 1)
@@ -46,10 +71,42 @@ checkArray()
 //	log(c)
 //	log(d)
 
-	log(if(-1) 1 else 0)
 	a = [5,2]
 	a[0] = "fads"
 	log(a)
+}
+
+fun checkLink() {
+    // no variable links
+    test(-0.2.abs() == -0.2)
+    test((-0.2).abs() == 0.2)
+    test(1.max(2) == 2)
+    test(0.1.max(0.01) == 0.1)
+    test(1.MAX_VALUE == 2147483647)
+
+    test("abc".reversed() == "cba")
+
+    test((if(1) -2 else 0).abs() == 2)
+    // file links
+
+    test(imported.getFileName() == "imported")
+
+    a = 1
+    b = 2
+}
+
+fun checkMultipleCalls(a) {
+    b = a + 0
+    if(a > 1) {
+        res = 1 + checkMultipleCalls(a - 1)
+    } else {
+        res = 1
+    }
+    test(a == b)
+    checkArray()
+    checkArray()
+    log("res: " +res + ", a: "+ a)
+    return res
 }
 
 fun checkWhile() {
@@ -103,7 +160,7 @@ fun checkArray() {
     test([1,2,3].has(1))
 }
 
-class Segment{
+class Segment {
 	c = a + b + a
 	iter = 1
 	a = 5
@@ -123,7 +180,9 @@ fun whileFun() {
 	log(a)
 }
 
-class A export e{}
+class A export e{
+    a = 1
+}
 
 class B : A{}
 

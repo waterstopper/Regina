@@ -5,6 +5,7 @@ import lexer.PositionalException
 import table.SymbolTable
 import token.Token
 import utils.Utils.toInt
+import utils.Utils.unifyNumbers
 
 class ArithmeticOperator(
     symbol: String,
@@ -26,7 +27,7 @@ class ArithmeticOperator(
                 else -> throw PositionalException("no such prefix arithmetic operator", this)
             }
         }
-        val (a, b) = unifyNumbers(left.evaluate(symbolTable), right.evaluate(symbolTable))
+        val (a, b) = unifyNumbers(left.evaluate(symbolTable), right.evaluate(symbolTable), this)
         return when (value) {
             ">" -> (a.toDouble() > b.toDouble()).toInt()
             "<" -> (a.toDouble() < b.toDouble()).toInt()
@@ -62,16 +63,6 @@ class ArithmeticOperator(
                 else -> throw PositionalException("Operator `${token.symbol}` not implemented", token)
             }
         }
-    }
-
-    private fun unifyNumbers(first: Any, second: Any): List<Number> {
-        if (first !is Number)
-            throw PositionalException("left operand is not numeric for this infix operator", this)
-        if (second !is Number)
-            throw PositionalException("right operand is not numeric for this infix operator", this)
-        if (first is Int && second is Int)
-            return listOf(first, second)
-        return listOf(first.toDouble(), second.toDouble())
     }
 
     private fun evaluateUnaryMinus(number: Number): Number = if (number is Double) -number else -(number as Int)

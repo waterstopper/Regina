@@ -3,7 +3,12 @@ import evaluation.Evaluation.evaluate
 import lexer.Parser
 import lexer.PositionalException
 import lexer.SemanticAnalyzer
+import properties.primitive.PArray.Companion.initializeArrayProperties
 import properties.primitive.PArray.Companion.initializeEmbeddedArrayFunctions
+import properties.primitive.PDouble.Companion.initializeDoubleProperties
+import properties.primitive.PInt.Companion.initializeIntProperties
+import properties.primitive.PString.Companion.initializeEmbeddedStringFunctions
+import properties.primitive.PString.Companion.initializeStringProperties
 import token.Token
 import utils.Utils.treeView
 import java.io.File
@@ -14,13 +19,17 @@ fun main() {
 //    println(statements.treeView())
 //    evaluate(statements, "constants")
     initializeEmbeddedArrayFunctions()
+    initializeEmbeddedStringFunctions()
+
+    initializeIntProperties()
+    initializeDoubleProperties()
+    initializeArrayProperties()
+    initializeStringProperties()
     val s = readFile("src/test/resources/testCode.redi")
     SemanticAnalyzer.initializeSuperTypes()
     println(Evaluation.globalTable)
     evaluate(s, "testCode.redi")
 }
-
-
 
 fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {
     val file = File(if (path == "") tokenPath.value else if (path.contains(".")) path else "$path.redi")

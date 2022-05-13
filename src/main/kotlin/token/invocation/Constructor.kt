@@ -26,7 +26,7 @@ class Constructor(
     }
 
     fun evaluateType(type: Type, symbolTable: SymbolTable): Any {
-        return if (resolving) type else resolveTree(type, symbolTable)
+        return if (resolving) type else resolveTree(type, symbolTable.changeVariable(type).changeScope())
     }
 
     private fun resolveTree(root: Type, symbolTable: SymbolTable): Type {
@@ -43,10 +43,11 @@ class Constructor(
 
     private fun processAssignment(parent: Type, symbolTable: SymbolTable, stack: Stack<Assignment>) {
         while (stack.isNotEmpty()) {
-            val top = stack.pop().getFirstUnassigned(parent)
+            val unresolved = stack.pop()
+            val top = unresolved.getFirstUnassigned(parent)
             if (top != null)
-                top.assign(parent, symbolTable)
-            else stack.add(top)
+                stack.add(top)
+            else unresolved.assign(parent, symbolTable.changeVariable(parent))
         }
     }
 

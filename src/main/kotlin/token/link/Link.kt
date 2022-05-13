@@ -18,6 +18,8 @@ import token.operator.Index
 import token.operator.TokenTernary
 import token.statement.Assignment
 import token.variable.TokenArray
+import token.variable.TokenNumber
+import token.variable.TokenString
 import utils.Utils.toVariable
 
 /** parent, this - special phrases, that should be added to scope table and type assignments specifically **/
@@ -46,10 +48,10 @@ open class Link(
     var index = 0
     lateinit var table: SymbolTable
     var currentVariable: Variable? = null
-    lateinit var initialTable: SymbolTable
+    private lateinit var initialTable: SymbolTable
 
     // for constructors and calls
-    val arguments = mutableListOf<List<Any>>()
+    private val arguments = mutableListOf<List<Any>>()
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         // On second evaluation it should be reset (if function with this token is called twice)
@@ -104,9 +106,13 @@ open class Link(
     /**
      * Resolve till operations.last() has properties (primitive, type, object or function call)
      */
-    fun getFirstVariable(canBeFile: Boolean = true) {
+    private fun getFirstVariable(canBeFile: Boolean = true) {
         when (children[index]) {
-            is TokenArray -> currentVariable = children[index].evaluate(table).toVariable(children[index])
+            is TokenArray, is TokenNumber, is TokenString -> {
+                if (!canBeFile)
+                    throw PositionalException("Unexpected token", children[index])
+                currentVariable = children[index].evaluate(table).toVariable(children[index])
+            }
             is Identifier -> {
                 val variable = table.getVariableOrNull(children[index].value)
                 if (variable == null) {
@@ -129,6 +135,12 @@ open class Link(
                 currentVariable = ternaryResult
             }
             is Invocation -> resolveInvocation()
+            // unary minus, (1+2).max(...)
+            else -> {
+                if (!canBeFile)
+                    throw PositionalException("Unexpected token", children[index])
+                currentVariable = children[index].evaluate(table).toVariable(children[index])
+            }
         }
     }
 
@@ -164,8 +176,8 @@ open class Link(
         return true
     }
 
-    // here symboltable is ignored. Only value with same fileName
-    fun resolveFunctionCall(function: Function) {
+    // here symbol table is ignored. Only value with same fileName
+    private fun resolveFunctionCall(function: Function) {
         (children[index] as Call).function = function
         val tableForEvaluation = table.changeScope(initialTable.getScope())
         (children[index] as Call).argumentsToParameters(function, table, tableForEvaluation)

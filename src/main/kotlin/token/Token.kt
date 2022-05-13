@@ -72,7 +72,7 @@ open class Token(
 
     fun traverseUntil(condition: (token: Token) -> Token?): Any? {
         for (i in children) {
-            val childRes = traverseUntil(condition)
+            val childRes = i.traverseUntil(condition)
             if (childRes != null)
                 return childRes
         }
@@ -84,6 +84,8 @@ open class Token(
             return false
         if (children.size != other.children.size)
             return false
+        if (this.value != other.value)
+            return false
         var areEqual = true
         for (i in children.indices)
             areEqual = children[i].equals(other.children[i])
@@ -92,8 +94,8 @@ open class Token(
 
     override fun hashCode(): Int {
         var hash = value.hashCode()
-        for (c in children)
-            hash += c.hashCode()
+        for ((i, c) in children.withIndex())
+            hash += c.hashCode() * (i + 1)
         return hash
     }
 }

@@ -6,16 +6,17 @@ import properties.Type
 import properties.Variable
 import token.Token
 import utils.Utils.toInt
+import utils.Utils.toProperty
 
 class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, parent) {
-    override fun getIndex() = 0
+    override fun getIndex() = 5
     override fun getPValue() = value as MutableList<Variable>
 
     override fun toString(): String {
         val res = StringBuilder("[")
         for (e in getPValue())
             res.append("${if (e == this) "this" else e.toString()}, ")
-        if(res.toString()=="[")
+        if (res.toString() == "[")
             return "[]"
         return res.removeRange(res.lastIndex - 1..res.lastIndex).toString() + ']'
     }
@@ -43,6 +44,12 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
     override fun hashCode(): Int = getPValue().hashCode()
 
     companion object {
+
+        fun initializeArrayProperties(){
+            val p = PArray(mutableListOf(), null)
+            setProperty(p, "size") { pr: Primitive -> (pr as PArray).getPValue().size.toProperty() }
+        }
+
         fun initializeEmbeddedArrayFunctions() {
             val p = PArray(mutableListOf(), null)
             setFunction(p, EmbeddedFunction("add", listOf("i", "x"), { token, args ->

@@ -42,9 +42,15 @@ open class Type(
 
 
     fun getProperties() = properties.toMutableMap()
-    override fun getPropertyOrNull(name: String) = properties[name]
-    override fun getProperty(token: Token) =
-        properties[token.value] ?: throw PositionalException("`${token.value}` not found in `$name`", token)
+    override fun getPropertyOrNull(name: String) = when (name) {
+        "parent" -> getParentOrNull()
+        else -> properties[name]
+    }
+
+    override fun getProperty(token: Token) = when (token.value) {
+        "parent" -> getParentOrNull()
+        else -> properties[token.value] ?: throw PositionalException("`${token.value}` not found in `$name`", token)
+    }
 
     fun setProperty(token: Token, value: Property) {
         properties[token.value] = value
@@ -60,7 +66,7 @@ open class Type(
         }
         if (exported != null)
             res.append("->$exported")
-        res.append("{parent:${parent ?: "-"}, $assignments}")
+        res.append("{parent:${parent ?: "-"}, ${properties}, $assignments}")
         return res.toString()
 
     }

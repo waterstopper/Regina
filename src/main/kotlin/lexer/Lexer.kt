@@ -82,7 +82,7 @@ class Lexer() {
             res.append(source[index])
             move()
         }
-        if (index < source.length && source[index] == '.') {
+        if (index + 1 < source.length && source[index] == '.' && source[index+1].isDigit()) {
             res.append(source[index])
             move()
             while (index < source.length && source[index].isDigit()) {
