@@ -6,7 +6,10 @@ package token
 
 import lexer.Parser
 import lexer.PositionalException
+import properties.Type
 import table.SymbolTable
+import token.operator.TokenTernary
+import token.statement.Assignment
 
 open class Token(
     var symbol: String = "",
@@ -70,14 +73,40 @@ open class Token(
         throw PositionalException("Not implemented", this)
     }
 
-    fun traverseUntil(condition: (token: Token) -> Token?): Any? {
-        for (i in children) {
-            val childRes = i.traverseUntil(condition)
-            if (childRes != null)
-                return childRes
-        }
+    /**
+     * BFS all tokens. If  returned Token(LEAVE) - do not visit children
+     */
+    fun traverseUntil(condition: (token: Token) -> Token?): Token? {
+        val forThis = condition(this)
+        if (forThis != null && forThis.symbol != "(LEAVE)")
+            return forThis
+        if (forThis == null)
+            for (i in children) {
+                val childRes = i.traverseUntil(condition)
+                if (childRes != null && childRes.symbol != "(LEAVE)")
+                    return childRes
+            }
         return condition(this)
     }
+
+    fun traverseUnresolved(symbolTable: SymbolTable, parent: Type): Assignment? {
+        val res = traverseUntil {
+            when (it) {
+                is TokenTernary -> {
+                    it.left.traverseUnresolved(symbolTable, parent)
+                        ?: if (it.evaluateCondition(symbolTable) != 0)
+                            it.right.traverseUnresolved(symbolTable, parent) ?: Token("(LEAVE)")
+                        else it.children[2].traverseUnresolved(symbolTable, parent) ?: Token("(LEAVE)")
+                }
+                is Assignable -> it.getFirstUnassigned(parent) ?: Token("(LEAVE)")
+                else -> null
+            }
+        }
+        if (res is Token && res.symbol == "(LEAVE)")
+            return null
+        return res as Assignment?
+    }
+
 
     override fun equals(other: Any?): Boolean {
         if (other !is Token)

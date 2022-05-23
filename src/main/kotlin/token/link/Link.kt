@@ -1,6 +1,5 @@
 package token.link
 
-import evaluation.Evaluation.globalTable
 import lexer.Parser
 import lexer.PositionalException
 import properties.Function
@@ -94,13 +93,79 @@ open class Link(
                 //    addFunction(function)
             }
             is Identifier -> {
-                return resolveProperty(variable)
+                currentVariable = variable.getProperty(children[index])
+                return true
             }
             is Index -> {
                 throw PositionalException("not implemented")
             }
         }
         return true
+    }
+
+    protected open fun checkFirstVariable(canBeFile: Boolean = true): Assignment? {
+        when (children[index]) {
+            is TokenArray, is TokenNumber, is TokenString -> {
+                if (!canBeFile)
+                    throw PositionalException("Unexpected token", children[index])
+                currentVariable = children[index].evaluate(table).toVariable(children[index])
+            }
+            is Identifier -> {
+                val variable = table.getVariableOrNull(children[index].value)
+                if (variable == null) {
+                    val property = table.getPropertyOrNull(children[index].value)
+                    currentVariable = if (property == null) {
+                        if ((table.getCurrentType() is Type)
+                            && (table.getCurrentType() as Type).getAssignment(children[index]) != null
+                        )
+                            return (table.getCurrentType() as Type).getAssignment(children[index])!!
+                        table.getObjectOrNull(children[index])
+                            ?: if (canBeFile) {
+                                addFile()
+                                index++
+                                return checkFirstVariable(false)
+                            } else throw PositionalException("Object not found in $children[index]", children[index])
+                    } else property
+                } else {
+                    if (!canBeFile)
+                        throw PositionalException("Object not found in $children[index]", children[index])
+                    currentVariable = variable
+                }
+            }
+            is TokenTernary -> {
+                val ternaryResult = children[index].evaluate(table).toVariable(children[index])
+                currentVariable = ternaryResult
+            }
+            is Invocation -> resolveInvocation()
+            // unary minus, (1+2).max(...)
+            else -> {
+                if (!canBeFile)
+                    throw PositionalException("Unexpected token", children[index])
+                currentVariable = children[index].evaluate(table).toVariable(children[index])
+            }
+        }
+        return null
+    }
+
+    protected open fun checkNextVariable(variable: Variable): Assignment? {
+        when (children[index]) {
+            is Invocation -> {
+                val function = variable.getFunction((children[index] as Invocation).name)
+                children[index] = Call(children[index])
+                resolveFunctionCall(function)
+            }
+            is Identifier -> {
+                val property = variable.getPropertyOrNull(children[index].value)
+                    ?: return (variable as Type).getAssignment(children[index])
+                        ?: throw PositionalException("Property not found", children[index])
+                currentVariable = property
+            }
+            is Index -> {
+                throw PositionalException("not implemented")
+            }
+            else -> throw PositionalException("Unexpected token", children[index])
+        }
+        return null
     }
 
     /**
@@ -116,14 +181,18 @@ open class Link(
             is Identifier -> {
                 val variable = table.getVariableOrNull(children[index].value)
                 if (variable == null) {
-                    val obj = table.getObjectOrNull(children[index])
-                    if (obj == null) {
-                        if (canBeFile) {
-                            addFile()
-                            index++
-                            getFirstVariable(false)
-                        } else throw PositionalException("Object not found in $children[index]", children[index])
-                    } else currentVariable = obj
+                    val property = table.getPropertyOrNull(children[index].value)
+                    if (property == null) {
+                        val obj = table.getObjectOrNull(children[index])
+                        if (obj == null) {
+                            if (canBeFile) {
+                                addFile()
+                                index++
+                                getFirstVariable(false)
+                            } else throw PositionalException("Object not found in $children[index]", children[index])
+                        } else currentVariable = obj
+                    }else currentVariable = property
+
                 } else {
                     if (!canBeFile)
                         throw PositionalException("Object not found in $children[index]", children[index])
@@ -154,6 +223,7 @@ open class Link(
         val type = table.getTypeOrNull((children[index] as Invocation).name)
         if (type != null) {
             children[index] = Constructor(children[index])
+            // TODO children[index].evaluate()
             currentVariable = type
             return
         }
@@ -165,15 +235,6 @@ open class Link(
         val fileTable = table.getImportOrNull(left.value)
             ?: throw PositionalException("Expected variable, object or package name", left)
         table = table.changeFile(fileTable.fileName)
-    }
-
-
-    /**
-     * Used inside functions. All properties should be already resolved
-     */
-    open fun resolveProperty(parent: Variable): Boolean {
-        currentVariable = parent.getProperty(children[index])
-        return true
     }
 
     // here symbol table is ignored. Only value with same fileName
@@ -192,36 +253,31 @@ open class Link(
         }
     }
 
-    /** last variable before its property. For example, in a.b.c `b` is [parent] **/
-    lateinit var parent: Variable
-
-    /** shallow or deep link **/
-    open fun getAfterDot() = if (right is Link) right.left else right
-    open fun getLast(): Any = if (right is Link) (right as Link).getLast() else right
-    open fun isResolved(symbolTable: SymbolTable): Boolean {
-        return if (right is Link) (right as Link).isResolved(symbolTable)
-        else true
-    }
-
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any?) {
         TODO("Not yet implemented")
     }
 
-    override fun getFirstUnassigned(parent: Type): Assignment? {
-        if (left is Call)
-            return null
-        if (left is Constructor) {
-            val type = left.evaluate(globalTable)
-        }
-        if (!parent.hasProperty(left))
-            return parent.getAssignment(left)
-        val property = parent.getProperty(left)
-        if (property !is Type)
-            return null
-        if (right is Link) {
-            return (right as Link).getFirstUnassigned(property)
-        } else if (right is Index) {
-            return null
+    override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Assignment? {
+        index = 0
+        arguments.clear()
+        initialTable = symbolTable.changeVariable(parent)
+        table = initialTable.copy()
+        val firstResolved = checkFirstVariable()
+        if (firstResolved is Assignment)
+            return firstResolved
+        index++
+        while (index < children.size) {
+            val res = checkNextVariable(
+                currentVariable ?: throw PositionalException(
+                    "Cannot be casted to variable",
+                    children[index - 1]
+                )
+            )
+            if (res != null)
+                return res
+            table = table.changeVariable(currentVariable!!)
+            arguments.add(emptyList())
+            index++
         }
         return null
     }

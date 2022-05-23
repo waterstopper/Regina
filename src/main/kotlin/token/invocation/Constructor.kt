@@ -1,6 +1,7 @@
 package token.invocation
 
 import properties.Type
+import properties.primitive.PInt
 import table.SymbolTable
 import token.Token
 import token.statement.Assignment
@@ -30,12 +31,13 @@ class Constructor(
     }
 
     private fun resolveTree(root: Type, symbolTable: SymbolTable): Type {
+        root.setProperty("parent", PInt(0, root))
         resolving = true
         do {
             val (current, parent) = bfs(root) ?: break
             val stack = Stack<Assignment>()
             stack.add(current)
-            processAssignment(parent, symbolTable, stack)
+            processAssignment(parent, symbolTable.changeVariable(parent), stack)
         } while (true)
         resolving = false
         return root
@@ -44,8 +46,8 @@ class Constructor(
     private fun processAssignment(parent: Type, symbolTable: SymbolTable, stack: Stack<Assignment>) {
         while (stack.isNotEmpty()) {
             val unresolved = stack.pop()
-            val top = unresolved.getFirstUnassigned(parent)
-            if (top != null)
+            val top = unresolved.getFirstUnassigned(symbolTable, parent)
+            if (top != null && top is Assignment)
                 stack.add(top)
             else unresolved.assign(parent, symbolTable.changeVariable(parent))
         }
@@ -56,13 +58,15 @@ class Constructor(
      */
     private fun bfs(root: Type): Pair<Assignment, Type>? {
         val stack = Stack<Type>()
+        val visited = Stack<Type>()
         stack.add(root)
         while (stack.isNotEmpty()) {
             val current = stack.pop()
+            visited.add(current)
             if (current.assignments.isNotEmpty())
                 return Pair(current.assignments.first(), current)
             val containers = current.getProperties().values.filterIsInstance<Type>()
-            stack.addAll(containers)
+            stack.addAll(containers.filter{!visited.contains(it)})
         }
         return null
     }

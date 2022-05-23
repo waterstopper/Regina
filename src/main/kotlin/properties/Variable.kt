@@ -2,7 +2,7 @@ package properties
 
 import token.Token
 
-abstract class Variable(val parent: Type?) {
+abstract class Variable(var parent: Type?) {
     abstract fun getPropertyOrNull(name: String): Property?
     abstract fun getProperty(token: Token): Property
     abstract fun getFunctionOrNull(name: String): Function?

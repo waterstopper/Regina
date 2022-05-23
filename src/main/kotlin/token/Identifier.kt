@@ -26,11 +26,15 @@ open class Identifier(
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any?) {
         if (parent != null) {
             parent.removeAssignment(assignment)
-            parent.setProperty(this, assignment.right.evaluate(symbolTable).toProperty(assignment.right, parent))
+            parent.setProperty(this.value, assignment.right.evaluate(symbolTable).toProperty(assignment.right, parent))
+            if (parent.getProperty(this) is Type) {
+                (parent.getProperty(this) as Type).parent = parent
+                (parent.getProperty(this) as Type).setProperty("parent", parent)
+            }
         } else symbolTable.addVariable(this.value, value!!.toVariable(this))
     }
 
-    override fun getFirstUnassigned(parent: Type): Assignment? {
+    override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Assignment? {
 //        println(this)
 //        println(parent.getAssignment(this)?.toTreeString())
         return parent.getAssignment(this)

@@ -11,6 +11,7 @@ open class Type(
     val assignments: MutableList<Assignment>,
     private val fileName: String,
     private val exported: Any? = null,
+    private val exportArgs: Any? = null,
     var supertype: Type? = null
 ) :
     Property(parent), Invokable {
@@ -37,7 +38,10 @@ open class Type(
         ?: throw PositionalException("\"$name\" class does not contain `${token.value}` function", token)
 
     override fun hasProperty(token: Token): Boolean {
-        return properties[token.value] != null
+        return when (token.value) {
+            "parent" -> getParentOrNull() is Type
+            else -> properties[token.value] != null
+        }
     }
 
 
@@ -52,8 +56,8 @@ open class Type(
         else -> properties[token.value] ?: throw PositionalException("`${token.value}` not found in `$name`", token)
     }
 
-    fun setProperty(token: Token, value: Property) {
-        properties[token.value] = value
+    fun setProperty(name: String, value: Property) {
+        properties[name] = value
     }
 
     override fun toString(): String {
@@ -66,7 +70,7 @@ open class Type(
         }
         if (exported != null)
             res.append("->$exported")
-        res.append("{parent:${parent ?: "-"}, ${properties}, $assignments}")
+        res.append("{parent:${parent?.name ?: "-"}, ${properties.filter { it.key != "parent" }}, $assignments}")
         return res.toString()
 
     }

@@ -84,7 +84,7 @@ class Index(
         (property.getPValue())[index] = right.evaluate(symbolTable).toVariable(right)
     }
 
-    override fun getFirstUnassigned(parent: Type): Assignment? {
+    override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Assignment? {
         val fromAnother = (left as Assignable).getFirstUnassigned(parent)
         if (fromAnother != null) return fromAnother
         val indexUnassigned =

@@ -11,18 +11,8 @@ import token.Identifier
 import token.Token
 import token.invocation.Call
 import token.invocation.Constructor
-import token.invocation.Invocation
-import token.statement.Assignment
-import utils.Utils.toVariable
 
 class PropertyLink(token: Token) : Link(token) {
-
-    override fun resolveProperty(parent: Variable): Boolean {
-        val result = parent.getPropertyOrNull(children[index].value) ?: return false
-        currentVariable = result
-        return true
-    }
-
     override fun getNextVariable(variable: Variable): Boolean {
         TODO("not")
     }
@@ -277,10 +267,10 @@ private fun evaluateFunction(link: Link, symbolTable: SymbolTable, function: Fun
  */
 class ConditionalLink(token: Token) : Link(token) {
 
-    override fun evaluate(symbolTable: SymbolTable): Any {
-        val eval = left.evaluate(symbolTable).toVariable(left)
-        return VariableLink(this, eval)
-    }
+//    override fun evaluate(symbolTable: SymbolTable): Any {
+//        val eval = left.evaluate(symbolTable).toVariable(left)
+//        return VariableLink(this, eval)
+//    }
 }
 
 class ConstructorLink(token: Token, val type: Type) : Link(token) {
@@ -294,41 +284,41 @@ class ConstructorLink(token: Token, val type: Type) : Link(token) {
 
 class PackageLink(token: Link) : Link(token) {
 
-    override fun evaluate(symbolTable: SymbolTable): Any {
-        val fileTable = symbolTable.getImportOrNull(left.value)!!
-        when (getAfterDot()) {
-            is Call -> {
-                val function = fileTable.getFunction(getAfterDot() as Call)
-//                return if (right is Link) CallLink(
-//                    right as Link,
-//                    function
-//                ).evaluate(symbolTable) else (right as Call).evaluate(symbolTable)
-            }
-        }
-        if (getAfterDot() !is Constructor && getAfterDot() !is Call && getAfterDot() !is Identifier)
-            throw PositionalException("Expected function, constructor or object", getAfterDot())
-        return right.evaluate(symbolTable.changeVariable(fileTable.getTypeOrNull(getAfterDot().value)!!))
+//    override fun evaluate(symbolTable: SymbolTable): Any {
+//        val fileTable = symbolTable.getImportOrNull(left.value)!!
 //        when (getAfterDot()) {
-//            is Constructor -> if (fileTable.getTypeOrNull(getAfterDot().value) != null) {
-//                return right.evaluate(symbolTable.changeType(fileTable.getTypeOrNull(getAfterDot().value)!!))
+//            is Call -> {
+//                val function = fileTable.getFunction(getAfterDot() as Call)
+////                return if (right is Link) CallLink(
+////                    right as Link,
+////                    function
+////                ).evaluate(symbolTable) else (right as Call).evaluate(symbolTable)
 //            }
-//            is Call -> if (fileTable.getFunctionOrNull((getAfterDot() as Call).name.value) != null) {
-//                val newTable = symbolTable.changeFile(fileTable.fileName)
-//                (getAfterDot() as Call).argumentsToParameters(
-//                    fileTable.getFunction(getAfterDot() as Call),
-//                    symbolTable.changeFile(fileTable.fileName),
-//                    newTable
-//                )
-//                return (getAfterDot() as Call).evaluateFunction(
-//                    newTable,
-//                    fileTable.getFunctionOrNull((getAfterDot() as Call).name.value)!!
-//                )
-//            }
-//            is Identifier -> if (fileTable.getObjectOrNull(getAfterDot().value) != null)
-//                return fileTable.getObjectOrNull(getAfterDot().value)!!
 //        }
-//        throw PositionalException("", this)
-    }
+//        if (getAfterDot() !is Constructor && getAfterDot() !is Call && getAfterDot() !is Identifier)
+//            throw PositionalException("Expected function, constructor or object", getAfterDot())
+//        return right.evaluate(symbolTable.changeVariable(fileTable.getTypeOrNull(getAfterDot().value)!!))
+////        when (getAfterDot()) {
+////            is Constructor -> if (fileTable.getTypeOrNull(getAfterDot().value) != null) {
+////                return right.evaluate(symbolTable.changeType(fileTable.getTypeOrNull(getAfterDot().value)!!))
+////            }
+////            is Call -> if (fileTable.getFunctionOrNull((getAfterDot() as Call).name.value) != null) {
+////                val newTable = symbolTable.changeFile(fileTable.fileName)
+////                (getAfterDot() as Call).argumentsToParameters(
+////                    fileTable.getFunction(getAfterDot() as Call),
+////                    symbolTable.changeFile(fileTable.fileName),
+////                    newTable
+////                )
+////                return (getAfterDot() as Call).evaluateFunction(
+////                    newTable,
+////                    fileTable.getFunctionOrNull((getAfterDot() as Call).name.value)!!
+////                )
+////            }
+////            is Identifier -> if (fileTable.getObjectOrNull(getAfterDot().value) != null)
+////                return fileTable.getObjectOrNull(getAfterDot().value)!!
+////        }
+////        throw PositionalException("", this)
+//    }
 
 //    private fun evaluatePackage(link: Token, symbolTable: SymbolTable): Any {
 //        val fileTable = symbolTable.getImportOrNull(link.left.value)!!
@@ -372,43 +362,43 @@ class PackageLink(token: Link) : Link(token) {
 /**
  * Variable or property
  */
-class VariableLink(token: Link, var variable: Variable?) :
-    Link(token) {
-    override fun evaluate(symbolTable: SymbolTable): Any {
-        val varTable = if (variable is Type) symbolTable.changeVariable(variable!! as Type) else symbolTable
-        when (getAfterDot()) {
-            is Call -> {
-                varTable.addVariable("(this)", variable!!)
-                val function = variable!!.getFunction((getAfterDot() as Call).name)
-                (getAfterDot() as Call).argumentsToParameters(function, symbolTable, varTable)
-                return (getAfterDot() as Call).evaluateFunction(varTable, function)
-            }
-            is Identifier -> return if (right is Link) VariableLink(
-                right as Link,
-                variable!!.getProperty(getAfterDot()) as Type
-            ).evaluate(varTable) else variable!!.getProperty(getAfterDot())
-        }
-        throw PositionalException("Expected function or property", getAfterDot())
-    }
-
-    override fun isResolved(symbolTable: SymbolTable): Boolean {
-        return when (right) {
-            is Link -> (right as Link).isResolved(symbolTable)
-            is Invocation -> true
-            is Identifier -> {
-                if (variable!!.hasProperty(right))
-                    variable!!.getPropertyOrNull(right.value) != null
-                else false
-            }
-            else -> throw PositionalException("Unexpected", right)
-        }
-    }
-
-    override fun getFirstUnassigned(parent: Type): Assignment? {
-        if (right is Link)
-            return if (variable is Type)
-                getFirstUnassigned(variable as Type)
-            else getFirstUnassigned(parent)
-        throw PositionalException("")
-    }
-}
+//class VariableLink(token: Link, var variable: Variable?) :
+//    Link(token) {
+//    override fun evaluate(symbolTable: SymbolTable): Any {
+//        val varTable = if (variable is Type) symbolTable.changeVariable(variable!! as Type) else symbolTable
+//        when (getAfterDot()) {
+//            is Call -> {
+//                varTable.addVariable("(this)", variable!!)
+//                val function = variable!!.getFunction((getAfterDot() as Call).name)
+//                (getAfterDot() as Call).argumentsToParameters(function, symbolTable, varTable)
+//                return (getAfterDot() as Call).evaluateFunction(varTable, function)
+//            }
+//            is Identifier -> return if (right is Link) VariableLink(
+//                right as Link,
+//                variable!!.getProperty(getAfterDot()) as Type
+//            ).evaluate(varTable) else variable!!.getProperty(getAfterDot())
+//        }
+//        throw PositionalException("Expected function or property", getAfterDot())
+//    }
+//
+//    fun isResolved(symbolTable: SymbolTable): Boolean {
+//        return when (right) {
+//            is Link -> (right as Link).isResolved(symbolTable)
+//            is Invocation -> true
+//            is Identifier -> {
+//                if (variable!!.hasProperty(right))
+//                    variable!!.getPropertyOrNull(right.value) != null
+//                else false
+//            }
+//            else -> throw PositionalException("Unexpected", right)
+//        }
+//    }
+//
+//    override fun getFirstUnassigned(parent: Type): Assignment? {
+//        if (right is Link)
+//            return if (variable is Type)
+//                getFirstUnassigned(parent)
+//            else getFirstUnassigned(parent)
+//        throw PositionalException("")
+//    }
+//}

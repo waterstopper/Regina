@@ -1,4 +1,5 @@
 import imported
+import svg
 
 class TestClass {
     c = b
@@ -10,7 +11,7 @@ class Nothing {}
 
 class S {
     iter = if(parent == 0) 0 else (1 + parent.iter)
-    root = if(iter < 10) S() else Nothing()
+    root = if(iter < 2) S() else Nothing()
 }
 
 class DoubleSegment {
@@ -18,7 +19,11 @@ class DoubleSegment {
 }
 
 fun main() {
+    //a = []
+    //a.add(0,a)
+    //a = Segment()
     a = S()
+    svg.create(a)
     log(a)
     a = DoubleSegment()
     log(a)

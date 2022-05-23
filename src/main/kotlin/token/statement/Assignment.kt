@@ -8,6 +8,7 @@ import properties.Variable
 import table.SymbolTable
 import token.Assignable
 import token.Token
+import token.link.Link
 import token.operator.Operator
 
 class Assignment(
@@ -44,16 +45,21 @@ class Assignment(
     }
 
     fun getAssignable(): Assignable = left as Assignable
-    fun getFirstUnassigned(parent: Type): Assignment? =
+    fun getFirstUnassigned(symbolTable: SymbolTable, parent: Type): Assignment? {
         // traverse only rValue
         // TODO
         // although if lValue is Link, it should be traversed too
-        right.traverseUntil {
-            if (it is Assignable) {
-                it.getFirstUnassigned(parent)
-            }
-            else null
-        } as Assignment?
+
+        // PROBLEM: go to iter in parent.iter and cycle
+        // we should get out as soon as Assignable found. Otherwise, we will traverse inside link
+        // TODO ternary should be resolved from condition to correct path. In incorrect path can be unresolved
+        if (left is Link) {
+            val leftUnassigned = (left as Link).getFirstUnassigned(parent)
+            if (leftUnassigned != null)
+                return leftUnassigned
+        }
+        return right.traverseUnresolved(symbolTable, parent)
+    }
 
     fun assign(parent: Type, symbolTable: SymbolTable) {
         (left as Assignable).assign(this, parent, symbolTable)

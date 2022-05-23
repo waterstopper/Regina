@@ -150,12 +150,12 @@ class SymbolTable(
         val variable = scopeTable?.getVariableOrNull(token.value)
         if (variable != null)
             return variable
-        val type = getTypeOrNull(token)
-        if (type != null)
-            return type
         val property = variableTable?.getPropertyOrNull(token.value)
         if (property != null)
             return property
+        val type = getTypeOrNull(token)
+        if (type != null)
+            return type
         return getObjectOrNull(token) ?: throw PositionalException(
             "Identifier `${token.value}` not found in `$fileTable`",
             token
@@ -174,6 +174,10 @@ class SymbolTable(
     fun getProperty(token: Token): Property {
         return variableTable!!.getProperty(token)
     }
+    fun getPropertyOrNull(name: String): Property? {
+        return variableTable?.getPropertyOrNull(name)
+    }
+
 
     fun copy() = SymbolTable(scopeTable?.copy() ?: ScopeTable(), variableTable, fileTable)
     fun addVariableOrNot(token: Token) = scopeTable?.addVariable(token.value, "".toVariable(token))
