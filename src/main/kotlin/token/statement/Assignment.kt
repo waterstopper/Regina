@@ -8,7 +8,7 @@ import properties.Variable
 import table.SymbolTable
 import token.Assignable
 import token.Token
-import token.link.Link
+import token.Link
 import token.operator.Operator
 
 class Assignment(

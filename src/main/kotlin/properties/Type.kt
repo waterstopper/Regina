@@ -46,7 +46,7 @@ open class Type(
     }
 
 
-    override fun getProperties() = PDictionary(properties,this)
+    override fun getProperties() = PDictionary(properties, this)
     override fun getPropertyOrNull(name: String) = when (name) {
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
@@ -91,9 +91,13 @@ open class Type(
     fun copy(): Type {
         val copy =
             Type(
-                name, parent?.copy(),
-                assignments.map { TokenFactory().copy(it) }.toMutableList() as MutableList<Assignment>,
-                fileName, this.exported, this.supertype
+                name = name,
+                parent = parent?.copy(),
+                assignments = assignments.map { TokenFactory().copy(it) }.toMutableList() as MutableList<Assignment>,
+                fileName = fileName,
+                exported = exported,
+                exportArgs = exportArgs,
+                supertype = supertype
             )
         copy.assignments.forEach { it.parent = copy }
         copy.functions.addAll(this.functions)

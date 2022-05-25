@@ -31,6 +31,7 @@ class DoubleSegment {
 }
 
 fun main() {
+    B() is A
     m = {"a":1,2:"c"}
     log(m)
     //a = []
@@ -159,6 +160,7 @@ fun checkType() {
 	test("" is String)
 	test([] is Array)
 	test(A() is A)
+	log(B() is A)
 	test(B() is A) // TODO initialize supertypes
 	test(0 isnot Array)
 }
@@ -203,7 +205,7 @@ class A export e{
     a = 1
 }
 
-class B : A{}
+class B : A {}
 
 class D:imported.A export srv{}
 

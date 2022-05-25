@@ -2,7 +2,6 @@ package token
 
 import properties.Type
 import table.SymbolTable
-import token.link.Link
 import token.operator.Index
 import token.statement.Assignment
 

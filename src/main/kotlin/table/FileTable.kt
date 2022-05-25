@@ -39,10 +39,10 @@ class FileTable(
     fun addFunction(function: Function) = functions.add(function)
 
     fun getTypeOrNull(name: String): Type? = types.find { it.name == name }?.copy()
-    fun getType(token: Token): Type = types.find { it.name == token.value }?.copy() ?: throw PositionalException(
-        "Type `${token.value}` not found",
-        token
-    )
+    fun getType(token: Token): Type = types.find { it.name == token.value }?.copy()
+        ?: throw PositionalException("Type `${token.value}` not found", token)
+    fun getUncopiedType(token: Token): Type = types.find { it.name == token.value }
+        ?: throw PositionalException("Type `${token.value}` not found", token)
 
 
     fun getObjectOrNull(name: String) = objects.find { it.name == name }
@@ -100,5 +100,5 @@ class FileTable(
         return res.toString()
     }
 
-    fun getTypes(): List<Type> = types.toList()
+    fun getTypes(): MutableMap<String,Type> = types.associateBy { it.name }.toMutableMap()
 }

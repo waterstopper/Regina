@@ -2,7 +2,6 @@ package token
 
 import lexer.Parser
 import lexer.PositionalException
-import token.link.Link
 
 class Declaration(
     symbol: String,
@@ -28,8 +27,8 @@ class Declaration(
 
     val name: Token
         get() = getDeclarationName()
-    val export: Token?
-        get() = getSupertype(getExport(this)).second
+    val supertype: Token
+        get() = children[1]
 
     private fun getDeclarationName(): Token {
         return when (symbol) {

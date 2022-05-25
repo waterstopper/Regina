@@ -32,7 +32,7 @@ class SymbolTable(
 
     private fun checkImports(check: (table: FileTable) -> Any?): List<Any> {
         val suitable = mutableListOf<Any>()
-        if(imports[fileTable]==null)
+        if (imports[fileTable] == null)
             println(fileTable)
         for (table in imports[fileTable]!!) {
             val fromFile = check(table)
@@ -121,11 +121,16 @@ class SymbolTable(
 
 
     fun getImportOrNull(fileName: String) = imports[fileTable]!!.find { it.fileName == fileName }
+    fun getImport(token: Token) =
+        imports[fileTable]!!.find { it.fileName == token.value }
+            ?: throw PositionalException("File not found", token)
+
     fun getType(token: Token): Type =
-        getFromFiles(token) { it.getTypeOrNull(token.value)?.copy() ?: throw PositionalException("EF",token) } as Type? ?: throw PositionalException(
-            "Type `${token.value}` not found",
-            token
-        )
+        getFromFiles(token) { it.getTypeOrNull(token.value) ?: throw PositionalException("EF", token) } as Type?
+            ?: throw PositionalException(
+                "Type `${token.value}` not found",
+                token
+            )
 
     fun getFunction(token: Token): Function {
         val res = getFromFilesOrNull { it.getFunctionOrNull(token.value) } as Function?
@@ -168,8 +173,8 @@ class SymbolTable(
 
     fun getCurrentType() = variableTable
 
-    fun getTypes(): MutableMap<String, List<Type>> {
-        val res = mutableMapOf<String, List<Type>>()
+    fun getTypes(): MutableMap<String, MutableMap<String, Type>> {
+        val res = mutableMapOf<String, MutableMap<String, Type>>()
         for (i in imports.keys)
             res[i.fileName] = i.getTypes()
         return res

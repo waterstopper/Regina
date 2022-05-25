@@ -1,4 +1,4 @@
-package token.link
+package token
 
 import lexer.Parser
 import lexer.PositionalException
@@ -7,9 +7,6 @@ import properties.Type
 import properties.Variable
 import properties.primitive.Primitive
 import table.SymbolTable
-import token.Assignable
-import token.Identifier
-import token.Token
 import token.invocation.Call
 import token.invocation.Constructor
 import token.invocation.Invocation

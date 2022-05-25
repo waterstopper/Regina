@@ -6,7 +6,6 @@ import table.SymbolTable
 import token.invocation.Call
 import token.invocation.Constructor
 import token.invocation.Invocation
-import token.link.Link
 import token.operator.ArithmeticOperator
 import token.operator.Index
 import token.operator.Operator

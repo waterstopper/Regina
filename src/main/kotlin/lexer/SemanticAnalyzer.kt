@@ -6,12 +6,12 @@ import evaluation.FunctionEvaluation
 import readFile
 import table.SymbolTable
 import token.Declaration
-import token.Identifier
+import token.Link
 import token.Token
 import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
-import token.link.Link
 
 class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
+
     fun analyze(): List<Token> {
         println("Analyzing: `$fileName`")
         createAssociations()
@@ -28,8 +28,8 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 "fun" -> globalTable.addFunction(FunctionEvaluation.createFunction(token))
                 "class" -> {
                     if (declarations[fileName] == null)
-                        declarations[fileName] = mutableListOf(token)
-                    else declarations[fileName]!!.add(token)
+                        declarations[fileName] = mutableListOf(token as Declaration)
+                    else declarations[fileName]!!.add(token as Declaration)
                     globalTable.addType(token)
                 }
                 "object" -> globalTable.addObject(token)
@@ -45,9 +45,6 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 }
                 else -> throw PositionalException("class or function can be top level declaration", token)
             }
-
-        // TODO implement
-        // initializeSuperTypes()
     }
 
     private fun changeIdentTokens(fileName: String) {
@@ -74,7 +71,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
 //                    }
                 }
                 "(" -> {
-                    if (token.value != "fun" && token.symbol!="(LINK)") {
+                    if (token.value != "fun" && token.symbol != "(LINK)") {
                         token.children[index] =
                             createSpecificIdentifierFromInvocation(child, symbolTable, linkLevel, token)
                     }
@@ -132,38 +129,30 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
     }
 
     companion object {
-        private var declarations: MutableMap<String, MutableList<Token>> = mutableMapOf()
+        private var declarations: MutableMap<String, MutableList<Declaration>> = mutableMapOf()
 
         fun initializeSuperTypes() {
-            val types = globalTable.getTypes()
+            val initialFileTable = globalTable.getFileTable()
             for ((fileName, tokenList) in declarations) {
+                val currentTable = globalTable.changeFile(fileName).getFileTable()
                 for (token in tokenList) {
-                    if (token.right.symbol == "")
+                    if (token.supertype.symbol == "")
                         continue
-                    val type = types[fileName]!!.find { it.name == token.left.value }!!
-                    val superType = when (token.right) {
-                        is Link -> {
-                            val file = types[token.right.left.value] ?: throw PositionalException(
-                                "File `${token.right.left.value}` not found",
-                                token.right.left
-                            )
-                            file.find { it.name == token.right.right.value }
-                                ?: throw PositionalException(
-                                    "Superclass `${token.right.right.value}` not found in `${token.right.left.value}`",
-                                    token.right.right
-                                )
-                        }
-                        is Identifier -> {
-                            types[fileName]!!.find { it.name == token.right.value } ?: throw PositionalException(
-                                "Superclass `${token.right.value}` not found in `$fileName`",
-                                token.right
-                            )
-                        }
-                        else -> throw PositionalException("Expected identifier", token.right)
+                    val supertypeTable = if (token.supertype is Link)
+                        globalTable.getImport(token.supertype.left)
+                    else currentTable
+                    val supertype =
+                        if (token.supertype is Link) supertypeTable.getType(token.supertype.right)
+                        else supertypeTable.getType(token.supertype)
+                    if(token.name.value=="B"){
+                        println()
                     }
-                    type.supertype = superType
+                    currentTable.getUncopiedType(token.name).supertype = supertype
+                    println()
                 }
             }
+            globalTable.changeFile(initialFileTable.fileName)
+            println(globalTable.getFileTable().getTypeOrNull("B")!!.supertype)
         }
     }
 }
