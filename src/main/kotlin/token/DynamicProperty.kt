@@ -40,7 +40,7 @@ class DynamicProperty(private val wrapped: Token, private val parentType: Type) 
 
     fun getParent(): Type {
         when (wrapped) {
-            is token.Identifier -> parentType
+            is Identifier -> parentType
             is Index -> {
             }
             is Link -> {
