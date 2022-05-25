@@ -7,10 +7,22 @@ import properties.Variable
 import token.Token
 import utils.Utils.toInt
 import utils.Utils.toProperty
+import utils.Utils.toVariable
 
-class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, parent) {
+class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, parent), Indexable {
     override fun getIndex() = 5
     override fun getPValue() = value as MutableList<Variable>
+    override fun get(index: Any, token: Token): Any {
+        if (index !is Int)
+            throw PositionalException("Expected integer", token)
+        if (index < 0 || index >= getPValue().size)
+            throw PositionalException("Index out of bounds", token)
+        return getPValue()[index]
+    }
+
+    override fun set(index: Any, value: Any, tokenIndex: Token, tokenValue: Token) {
+        getPValue()[index as Int] = value.toVariable(tokenIndex)
+    }
 
     override fun toString(): String {
         val res = StringBuilder("[")
@@ -19,11 +31,6 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
         if (res.toString() == "[")
             return "[]"
         return res.removeRange(res.lastIndex - 1..res.lastIndex).toString() + ']'
-    }
-
-    fun getByIndex(token: Token, index: Int): Variable {
-        checkBounds(token, index)
-        return (value as MutableList<*>)[index]!! as Variable
     }
 
     private fun checkBounds(token: Token, index: Int) {
@@ -44,8 +51,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
     override fun hashCode(): Int = getPValue().hashCode()
 
     companion object {
-
-        fun initializeArrayProperties(){
+        fun initializeArrayProperties() {
             val p = PArray(mutableListOf(), null)
             setProperty(p, "size") { pr: Primitive -> (pr as PArray).getPValue().size.toProperty() }
         }

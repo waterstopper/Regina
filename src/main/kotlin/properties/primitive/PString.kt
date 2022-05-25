@@ -2,14 +2,24 @@ package properties.primitive
 
 import lexer.PositionalException
 import properties.EmbeddedFunction
-import properties.Property
 import properties.Type
 import token.Token
 import utils.Utils.toProperty
 
-class PString(value: String, parent: Type?) : Primitive(value, parent) {
+class PString(value: String, parent: Type?) : Primitive(value, parent), Indexable {
     override fun getIndex() = 4
     override fun getPValue() = value as String
+    override fun get(index: Any, token: Token): Any {
+        if (index !is Int)
+            throw PositionalException("Expected integer", token)
+        if (index < 0 || index >= getPValue().length)
+            throw PositionalException("Index out of bounds", token)
+        return getPValue()[index]
+    }
+
+    override fun set(index: Any, value: Any, tokenIndex: Token, tokenValue: Token) {
+        throw PositionalException("Set is not implemented for String", tokenValue)
+    }
 
     companion object {
 

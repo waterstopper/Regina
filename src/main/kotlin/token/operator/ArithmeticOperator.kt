@@ -27,14 +27,37 @@ class ArithmeticOperator(
                 else -> throw PositionalException("no such prefix arithmetic operator", this)
             }
         }
+        when (value) {
+            "&" -> {
+                val a = left.evaluate(symbolTable)
+                if (a !is Number)
+                    throw PositionalException("Expected number", left)
+                return if (a != 0) {
+                    val b = right.evaluate(symbolTable)
+                    if (b !is Number)
+                        throw PositionalException("Expected number", right)
+                    (a != 0 && b != 0).toInt()
+                } else 0
+            }
+            "|"-> {
+                val a = left.evaluate(symbolTable)
+                if (a !is Number)
+                    throw PositionalException("Expected number", left)
+                return if (a == 0) {
+                    val b = right.evaluate(symbolTable)
+                    if (b !is Number)
+                        throw PositionalException("Expected number", right)
+                    (a != 0 || b != 0).toInt()
+                } else 1
+            }
+        }
         val (a, b) = unifyNumbers(left.evaluate(symbolTable), right.evaluate(symbolTable), this)
         return when (value) {
             ">" -> (a.toDouble() > b.toDouble()).toInt()
             "<" -> (a.toDouble() < b.toDouble()).toInt()
             ">=" -> (a.toDouble() >= b.toDouble()).toInt()
             "<=" -> (a.toDouble() <= b.toDouble()).toInt()
-            "&" -> (a != 0 && b != 0).toInt()
-            "|" -> (a != 0 || b != 0).toInt()
+
             // never happens, because // is for comments
             "//" -> a.toInt() / b.toInt()
             else -> evaluateDuplicatedOperators(a, b, this)

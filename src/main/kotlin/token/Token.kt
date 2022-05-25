@@ -98,7 +98,7 @@ open class Token(
                             it.right.traverseUnresolved(symbolTable, parent) ?: Token("(LEAVE)")
                         else it.children[2].traverseUnresolved(symbolTable, parent) ?: Token("(LEAVE)")
                 }
-                is Assignable -> it.getFirstUnassigned(parent) ?: Token("(LEAVE)")
+                is Assignable -> it.getFirstUnassigned(parent,symbolTable) ?: Token("(LEAVE)")
                 else -> null
             }
         }

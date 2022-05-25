@@ -32,6 +32,8 @@ class SymbolTable(
 
     private fun checkImports(check: (table: FileTable) -> Any?): List<Any> {
         val suitable = mutableListOf<Any>()
+        if(imports[fileTable]==null)
+            println(fileTable)
         for (table in imports[fileTable]!!) {
             val fromFile = check(table)
             if (fromFile != null)
@@ -80,6 +82,8 @@ class SymbolTable(
         }
     }
 
+    fun getFileTable() = fileTable
+
     fun changeScope(): SymbolTable {
         return SymbolTable(variableTable = variableTable, fileTable = fileTable)
     }
@@ -118,7 +122,7 @@ class SymbolTable(
 
     fun getImportOrNull(fileName: String) = imports[fileTable]!!.find { it.fileName == fileName }
     fun getType(token: Token): Type =
-        getFromFiles(token) { it.getTypeOrNull(token.value)!!.copy() } as Type? ?: throw PositionalException(
+        getFromFiles(token) { it.getTypeOrNull(token.value)?.copy() ?: throw PositionalException("EF",token) } as Type? ?: throw PositionalException(
             "Type `${token.value}` not found",
             token
         )
@@ -174,6 +178,7 @@ class SymbolTable(
     fun getProperty(token: Token): Property {
         return variableTable!!.getProperty(token)
     }
+
     fun getPropertyOrNull(name: String): Property? {
         return variableTable?.getPropertyOrNull(name)
     }

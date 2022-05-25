@@ -22,6 +22,7 @@ class FileTable(
 
         val (assignments, functions) = createAssignmentsAndFunctions(token.children[3])
         val added = Type(name, null, assignments, fileName, exported)
+        added.functions.addAll(functions)
         if (types.find { it.name == name } != null)
             throw PositionalException("found class with same name in `$fileName`", token)
         types.add(added)
@@ -54,14 +55,20 @@ class FileTable(
     fun getFunctionOrNull(name: String) = functions.find { it.name == name }
     fun getFunctionNames() = functions.map { it.name }.toMutableSet()
 
-    private fun createAssignmentsAndFunctions(token: Token): Pair<MutableList<Assignment>, List<Token>> {
+    private fun createAssignmentsAndFunctions(token: Token): Pair<MutableList<Assignment>, List<Function>> {
         val res = mutableListOf<Assignment>()
-        val functions = mutableListOf<Token>()
+        val functions = mutableListOf<Function>()
         for (a in token.children) {
             if (a is Assignment)
                 res.add(a)
             else if (a.symbol == "fun")
-                functions.add(a)
+                functions.add(
+                    Function(
+                        a.left.left.value,
+                        a.left.children.subList(1, a.children.size).map { it.value },
+                        a.children.last()
+                    )
+                )
             else throw PositionalException("expected assignment or function", a)
         }
 

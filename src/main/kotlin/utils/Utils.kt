@@ -4,11 +4,21 @@ import lexer.PositionalException
 import properties.Property
 import properties.Type
 import properties.Variable
-import properties.primitive.PNumber
-import properties.primitive.Primitive
+import properties.primitive.*
+import properties.primitive.PDictionary.Companion.initializeDictionaryProperties
 import token.Token
 
 object Utils {
+    init {
+        PArray.initializeEmbeddedArrayFunctions()
+        PString.initializeEmbeddedStringFunctions()
+
+        PInt.initializeIntProperties()
+        PDouble.initializeDoubleProperties()
+        PArray.initializeArrayProperties()
+        PString.initializeStringProperties()
+        initializeDictionaryProperties()
+    }
     fun Boolean.toInt(): Int = if (this) 1 else 0
 
     fun Any.toBoolean(token: Token): Boolean {

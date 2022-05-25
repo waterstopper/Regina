@@ -1,47 +1,68 @@
-containers = ["group, svg"]
-
-fun add(node: Type, sb: StringBuilder) {
-    added = node.properties["exported"]
-    if(added) {
-        sb.add("<" + added )
+fun add(node, sb) {
+    containers = ["group, svg"]
+    added = node.exportArgs["exported"]
+    propertiesArray = array(node.properties)
+    attributes = array(node.exportArgs["attributes"])
+    log(propertiesArray)
+    if(added != 0) {
+        log(added)
+        sb.add("<" + added)
         i = 0
-        while(i < node.properties.size) {
-            if(node.properties[i].exportArgs["type"] == "attribute")
-                addAttribute(node, sb)
+        while(i < attributes.size) {
+            sb.add(attributes[i]["key"] + "=\"" + attributes[i]["value"] + "\"")
             i = i + 1
         }
         sb.add(if(containers.has(added)) ">" else "/>")
     }
     if(containers.has(added)) {
         i = 0
-        while(i < node.properties.size) {
-            if(node.properties[i].exportArgs["type"] == "node" \
-                && node.properties[i].exportArgs["inParent"])
-                add(node.properties[i])
+        while(i < propertiesArray.size) {
+            if(propertiesArray[i]["value"].exportArgs["type"] == "node" \
+                & propertiesArray[i]["value"].exportArgs["inParent"]) {
+                log("KEK")
+                add(propertiesArray[i]["value"])
+                propertiesArray.removeAt(i)
+                i = i - 1
+            }
             i = i + 1
         }
         sb.add("<" + added + "/>\n")
     }
-    while(i < node.properties.size) {
-        if(node.properties[i].exportArgs["type"] == "node" \
-            && (!node.properties[i].exportArgs["inParent"] && !containers.has(added)))
-            add(node.properties[i])
+    i = 0
+    while(i < propertiesArray.size) {
+        if((propertiesArray[i]["value"].properties["exportArgs"] != 0) & propertiesArray[i]["value"].exportArgs["type"] == "node" \
+            & (!propertiesArray[i]["value"].exportArgs["inParent"] & !containers.has(added))) {
+            if(propertiesArray[i]["key"]!="parent") {
+                log("LOL")
+                log(propertiesArray[i]["value"])
+                add(propertiesArray[i]["value"])
+               }
+            propertiesArray.removeAt(i)
+            i = i - 1
+        }
         i = i + 1
     }
 }
 
-fun addAttribute(node: Type, sb: StringBuilder) {
+fun addAttribute(node, sb) {
     sb.add(" ")
     sb.add(node.name)
     sb.add("=\"" + node.properties["value"] + "\"")
 }
 
-fun create(root: Type, width = 100, height = 100) {
+fun create(root, width, height) {
     sb = StringBuilder()
     sb.add("<svg \"" + width + "\" height \"" + height + "\">\n")
-    add(sb, root)
+    add(root, sb)
     sb.add("</svg>")
+    log(sb.string)
 }
 
-class A : B -> ["exported":"svg", "inParent": true] {
+class StringBuilder {
+    string = []
+    fun add(s) {
+        string.add(s)
+    }
 }
+
+// class A : B -> ["exported":"svg", "inParent": true] {}

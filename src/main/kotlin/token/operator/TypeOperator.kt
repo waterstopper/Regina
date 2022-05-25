@@ -43,7 +43,7 @@ class TypeOperator(
                 val type = right.evaluate(symbolTable)
                 if (checked is Type && type is Type
                     && checked.assignments.isEmpty()
-                    && type.getProperties().isEmpty()
+                    && type.getProperties().getPValue().isEmpty()
                 )
                     return checked.inherits(type)
                 throw PositionalException(

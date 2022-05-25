@@ -18,13 +18,13 @@ fun main() {
 //    val statements = readFile("constants")
 //    println(statements.treeView())
 //    evaluate(statements, "constants")
-    initializeEmbeddedArrayFunctions()
-    initializeEmbeddedStringFunctions()
-
-    initializeIntProperties()
-    initializeDoubleProperties()
-    initializeArrayProperties()
-    initializeStringProperties()
+//    initializeEmbeddedArrayFunctions()
+//    initializeEmbeddedStringFunctions()
+//
+//    initializeIntProperties()
+//    initializeDoubleProperties()
+//    initializeArrayProperties()
+//    initializeStringProperties()
     val s = readFile("src/test/resources/testCode.redi")
     SemanticAnalyzer.initializeSuperTypes()
     println(Evaluation.globalTable)
@@ -40,7 +40,7 @@ fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {
         throw PositionalException("no import `${file.name}` found", tokenPath)
     }
     val statements = Parser(text).statements()
-    println(statements.treeView())
+    // println(statements.treeView())
     return SemanticAnalyzer(parseFilePath(path), statements).analyze()
 }
 

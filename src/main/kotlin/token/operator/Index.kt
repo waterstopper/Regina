@@ -3,6 +3,7 @@ package token.operator
 import lexer.Parser
 import lexer.PositionalException
 import properties.Type
+import properties.primitive.Indexable
 import properties.primitive.PArray
 import properties.primitive.Primitive
 import table.SymbolTable
@@ -45,33 +46,28 @@ class Index(
         return res
     }
 
-    private fun evaluateIndex(symbolTable: SymbolTable): Any {
-        val array = left.evaluate(symbolTable)
+    fun evaluateIndex(symbolTable: SymbolTable): Any {
+        val indexed = left.evaluate(symbolTable).toVariable(left)
         val index = right.evaluate(symbolTable)
-        if (index is Int) {
-            return when (array) {
-                is MutableList<*> -> if (index < array.size) array[index]!!
-                else throw PositionalException("index $index out of bounds for array of size ${array.size}", this)
-                is String -> if (index < array.length) array[index].toString()
-                else throw PositionalException("index $index out of bounds for string of length ${array.length}", this)
-                else -> throw PositionalException("array or string expected", this)
-            }
-        } else throw PositionalException("expected Int as index", this)
+        return when (indexed) {
+            is Indexable -> indexed[index, right]
+            else -> throw PositionalException("array, dictionary or string expected", this)
+        }
     }
 
-    fun getArrayAndIndex(symbolTable: SymbolTable): Pair<PArray, Int> {
-        val array = symbolTable.getVariable(left)
+    private fun getIndexableAndIndex(symbolTable: SymbolTable): Pair<Indexable, Int> {
+        val indexable = symbolTable.getVariable(left)
         val number = right.evaluate(symbolTable)
-        if (array is PArray && number is Int)
-            return Pair(array, number)
+        if (indexable is Indexable && number is Int)
+            return Pair(indexable, number)
         throw PositionalException("expected array and number", this)
     }
 
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any?) {
         if (parent == null) {
             val rValue = assignment.right.evaluate(symbolTable)
-            val (arr,ind) = getArrayAndIndex(symbolTable)
-            arr.getPValue()[ind] = rValue.toVariable(assignment.right)
+            val (arr, ind) = getIndexableAndIndex(symbolTable)
+            arr.set(ind, rValue.toVariable(assignment.right), left, right)
             return
         }
         parent.removeAssignment(assignment)

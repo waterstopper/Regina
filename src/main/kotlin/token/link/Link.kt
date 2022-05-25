@@ -94,10 +94,9 @@ open class Link(
             }
             is Identifier -> {
                 currentVariable = variable.getProperty(children[index])
-                return true
             }
             is Index -> {
-                throw PositionalException("not implemented")
+                currentVariable = (children[index] as Index).evaluateIndex(table).toVariable(right.right)
             }
         }
         return true
@@ -191,7 +190,7 @@ open class Link(
                                 getFirstVariable(false)
                             } else throw PositionalException("Object not found in $children[index]", children[index])
                         } else currentVariable = obj
-                    }else currentVariable = property
+                    } else currentVariable = property
 
                 } else {
                     if (!canBeFile)
@@ -227,8 +226,7 @@ open class Link(
             currentVariable = type
             return
         }
-        throw PositionalException("Function and type not found", children[index].children[index])
-
+        throw PositionalException("Function and type not found", children[index])
     }
 
     private fun addFile() {
@@ -240,8 +238,8 @@ open class Link(
     // here symbol table is ignored. Only value with same fileName
     private fun resolveFunctionCall(function: Function) {
         (children[index] as Call).function = function
-        val tableForEvaluation = table.changeScope(initialTable.getScope())
-        (children[index] as Call).argumentsToParameters(function, table, tableForEvaluation)
+        val tableForEvaluation = SymbolTable(fileTable = table.getFileTable(), variableTable = table.getCurrentType()) // table.changeScope(initialTable.getScope())
+        (children[index] as Call).argumentsToParameters(function, initialTable, tableForEvaluation)
         val functionResult = (children[index] as Call).evaluateFunction(tableForEvaluation, function)
         currentVariable = functionResult.toVariable(children[index])
     }

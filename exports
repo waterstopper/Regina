@@ -35,16 +35,16 @@ class Transform : Nothing deprecated.export attribute(transform) {
 class Group : Nothing deprecated.export group {} // corresponds to svg <group>
 
 class Canvas : Nothing deprecated.export svg {
-    vBox deprecated.export attribute(viewBox)
+    vBox export attribute(viewBox) // this is good, but
     width = 4
 } // corresponds to svg <svg>
 
 // drawable
 class Point : Vector2 {}
 
-class Line : Nothing deprecated.export line {
-    position.x deprecated.export attribute(x1)
-    position.y deprecated.export attribute(y1)
+class Line : Nothing export line {
+    position.x export attribute(x1)
+    position.y export attribute(y1)
     color.value deprecated.export stroke
 
     position = Position

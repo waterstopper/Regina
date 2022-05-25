@@ -1,6 +1,7 @@
 package properties
 
 import lexer.PositionalException
+import properties.primitive.PDictionary
 import token.Token
 import token.TokenFactory
 import token.statement.Assignment
@@ -45,14 +46,16 @@ open class Type(
     }
 
 
-    fun getProperties() = properties.toMutableMap()
+    override fun getProperties() = PDictionary(properties,this)
     override fun getPropertyOrNull(name: String) = when (name) {
         "parent" -> getParentOrNull()
+        "properties" -> getProperties()
         else -> properties[name]
     }
 
     override fun getProperty(token: Token) = when (token.value) {
         "parent" -> getParentOrNull()
+        "properties" -> getProperties()
         else -> properties[token.value] ?: throw PositionalException("`${token.value}` not found in `$name`", token)
     }
 
@@ -62,15 +65,15 @@ open class Type(
 
     override fun toString(): String {
         val res = StringBuilder(name)
-        if (supertype != null) {
-            res.append(":")
-            if (supertype!!.fileName != fileName)
-                res.append("${supertype!!.fileName}.")
-            res.append(supertype!!.name)
-        }
-        if (exported != null)
-            res.append("->$exported")
-        res.append("{parent:${parent?.name ?: "-"}, ${properties.filter { it.key != "parent" }}, $assignments}")
+//        if (supertype != null) {
+//            res.append(":")
+//            if (supertype!!.fileName != fileName)
+//                res.append("${supertype!!.fileName}.")
+//            res.append(supertype!!.name)
+//        }
+//        if (exported != null)
+//            res.append("->$exported")
+//        res.append("{parent:${parent?.name ?: "-"}, ${properties.filter { it.key != "parent" }}, $assignments}")
         return res.toString()
 
     }
@@ -93,6 +96,7 @@ open class Type(
                 fileName, this.exported, this.supertype
             )
         copy.assignments.forEach { it.parent = copy }
+        copy.functions.addAll(this.functions)
         return copy
     }
 

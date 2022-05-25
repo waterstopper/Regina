@@ -1,5 +1,6 @@
 package properties
 
+import properties.primitive.PDictionary
 import token.Token
 
 abstract class Variable(var parent: Type?) {
@@ -8,4 +9,5 @@ abstract class Variable(var parent: Type?) {
     abstract fun getFunctionOrNull(name: String): Function?
     abstract fun getFunction(token: Token): Function
     abstract fun hasProperty(token: Token): Boolean
+    abstract fun getProperties(): PDictionary
 }

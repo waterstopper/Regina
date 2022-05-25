@@ -4,8 +4,7 @@ import table.SymbolTable
 import token.Token
 import utils.Utils.toVariable
 
-// TODO why derived from Identifier
-class TokenArray(token: Token) : Token(
+class TokenDictionary(token: Token) : Token(
     token.symbol,
     token.value,
     token.position,
@@ -21,6 +20,11 @@ class TokenArray(token: Token) : Token(
     }
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        return children.map { it.evaluate(symbolTable).toVariable(it) }.toMutableList()
+        return children.associate {
+            Pair(
+                it.left.evaluate(symbolTable),
+                it.right.evaluate(symbolTable).toVariable(it.right)
+            )
+        }.toMutableMap()
     }
 }

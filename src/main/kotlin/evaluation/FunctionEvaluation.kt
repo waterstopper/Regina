@@ -4,10 +4,12 @@ import evaluation.Evaluation.rnd
 import lexer.PositionalException
 import properties.EmbeddedFunction
 import properties.Function
+import properties.primitive.PDictionary
 import properties.primitive.PDouble
 import properties.primitive.PInt
 import properties.primitive.PString
 import token.Token
+import utils.Utils.toVariable
 
 object FunctionEvaluation {
     fun createFunction(token: Token): Function {
@@ -36,18 +38,33 @@ object FunctionEvaluation {
         })
         res["int"] = EmbeddedFunction("int", listOf("x"), { token, args ->
             when (val argument = args.getVariable("x")) {
-                is PDouble -> (argument.getPValue()).toInt()
+                is PDouble -> argument.getPValue().toInt()
                 is PInt -> argument.getPValue()
-                is PString -> (argument.getPValue()).toInt()
+                is PString -> argument.getPValue().toInt()
                 else -> throw PositionalException("cannot cast type to integer", token)
             }
         })
         res["double"] = EmbeddedFunction("double", listOf("x"), { token, args ->
             when (val argument = args.getVariable("x")) {
-                is PDouble -> (argument.getPValue())
-                is PInt -> (argument.getPValue()).toDouble()
-                is PString -> (argument.getPValue()).toDouble()
-                else -> throw PositionalException("cannot cast type to integer", token)
+                is PDouble -> argument.getPValue()
+                is PInt -> argument.getPValue().toDouble()
+                is PString -> argument.getPValue().toDouble()
+                else -> throw PositionalException("cannot cast type to double", token)
+            }
+        })
+        res["array"] = EmbeddedFunction("array", listOf("x"), { token, args ->
+            when (val argument = args.getVariable("x")) {
+                is PDictionary -> argument.getPValue()
+                    .map {
+                        PDictionary(
+                            mutableMapOf(
+                                "key" to it.key.toVariable(token),
+                                "value" to it.value.toVariable(token)
+                            ), null
+                        )
+                    }
+                is PString -> argument.getPValue().map { it.toString() }
+                else -> throw PositionalException("cannot cast type to array", token)
             }
         })
         return res

@@ -16,17 +16,14 @@ import token.operator.TokenTernary
 import token.statement.Block
 import token.statement.WordStatement
 import token.variable.TokenArray
+import token.variable.TokenDictionary
 import token.variable.TokenNumber
 
 class Lexer() {
 
     private var source: String = ""
-
-    constructor(source: String = "") : this() {
-        this.source = source
-        getRegistry()
-    }
-
+    private val operators = "!@#$%^*-+=?.,:;\"&|/(){}[]><\n"
+    private val escapes = mutableMapOf('"' to '\"', '\\' to '\\', 'b' to '\b', 'n' to '\n', 'r' to '\r', 't' to '\t')
     private var tokReg: Registry = Registry()
     private var index: Int = 0
     var position: Pair<Int, Int> = Pair(0, 0)
@@ -34,13 +31,25 @@ class Lexer() {
     private var cached: Boolean = false
     val last: Token = Token()
 
+    constructor(source: String = "") : this() {
+        this.source = source
+        getRegistry()
+    }
+
     private fun nextString(): Token {
         val res = StringBuilder(source[index].toString())
         move()
         while (source[index] != '"') {
+            // escaped symbols in string
+            if (source[index] == '\\' && source.length > index + 1) {
+                move()
+                res.append(escapes[source[index]])
+                move()
+                continue
+            }
             // TODO probably out of bounds if multiline string
-//            if (source[index] == '\n')
-//                throw Exception("Unterminated string at ${position.second}:${position.first}")
+            if (source[index] == '\n')
+                throw Exception("Unterminated string at ${position.second}:${position.first}")
             res.append(source[index])
             move()
         }
@@ -82,7 +91,7 @@ class Lexer() {
             res.append(source[index])
             move()
         }
-        if (index + 1 < source.length && source[index] == '.' && source[index+1].isDigit()) {
+        if (index + 1 < source.length && source[index] == '.' && source[index + 1].isDigit()) {
             res.append(source[index])
             move()
             while (index < source.length && source[index].isDigit()) {
@@ -230,7 +239,6 @@ class Lexer() {
     private fun isIdentChar(c: Char): Boolean = c.isLetterOrDigit() || c == '_'
 
     private fun isOperatorChar(c: Char): Boolean {
-        val operators = "!@#$%^*-+=?.,:;\"&|/(){}[]><\n"
         return operators.toCharArray().any { it == c }
     }
 
@@ -253,7 +261,7 @@ class Lexer() {
         tokReg.consumable("]")
         tokReg.consumable(",")
         tokReg.consumable("else")
-        tokReg.consumable(":")
+        //tokReg.consumable(":")
         tokReg.consumable("export")
 
         tokReg.consumable("(EOF)")
@@ -264,6 +272,7 @@ class Lexer() {
         tokReg.infix("-", 50)
         tokReg.infix("*", 60)
         tokReg.infix("/", 60)
+        tokReg.infix(":", 10)
         // useless, because // is comment
         // tokReg.infix("//", 60)
         tokReg.infix("%", 65)
@@ -273,6 +282,7 @@ class Lexer() {
         tokReg.infix("<=", 30)
         tokReg.infix(">=", 30)
         tokReg.infix("==", 30)
+        tokReg.infix("!=", 30)
 
         //tokReg.infix("export", 10)
         //tokReg.prefix("import")
@@ -289,7 +299,7 @@ class Lexer() {
         tokReg.infixRight("|", 25)
         tokReg.infixRight("=", 10)
 
-       // tokReg.infixRight(".", 105)
+        // tokReg.infixRight(".", 105)
 //        tokReg.infixRight("+=", 10)
 //        tokReg.infixRight("-=", 10)
 
@@ -318,7 +328,9 @@ class Lexer() {
 
         // function use
         tokReg.infixLed("(", 120) { token: Token, parser: Parser, left: Token ->
-            if (left.symbol != "(LINK)" && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(" && left.symbol != "->" && left.symbol != "!")
+            if (left.symbol != "(LINK)" && left.symbol != "(IDENT)" && left.symbol != "["
+                && left.symbol != "(" && left.symbol != "->" && left.symbol != "!"
+            )
                 throw  PositionalException("bad func call left operand `$left`", left)
             token.children.add(left)
             val t = parser.lexer.peek()
@@ -383,6 +395,26 @@ class Lexer() {
             parser.advance("]")
             res.symbol = "[]"
             res.value = "ARRAY"
+            res
+        }
+
+        tokReg.prefixNud("{") { token: Token, parser: Parser ->
+            val res = TokenDictionary(token)
+            if (parser.lexer.peek().symbol != "}") {
+                while (true) {
+                    if (parser.lexer.peek().symbol == "}")
+                        break
+                    res.children.add(parser.expression(0))
+                    if (res.children.last().symbol != ":")
+                        throw PositionalException("Expected key and value", res.children.last())
+                    if (parser.lexer.peek().symbol != ",")
+                        break
+                    parser.advance(",")
+                }
+            }
+            parser.advance("}")
+            res.symbol = "{}"
+            res.value = "DICTIONARY"
             res
         }
 
@@ -455,11 +487,10 @@ class Lexer() {
 
         tokReg.stmt("class") { token: Token, parser: Parser ->
             val res = Declaration(token)
-            res.children.add(parser.expression(0))
-            if (parser.lexer.peek().value == ":") {
-                parser.advance(":")
-                res.children.add(parser.expression(0))
-            } else res.children.add(Token("", ""))
+            val expr = parser.expression(0)
+            if (expr.symbol == ":") {
+                res.children.addAll(expr.children)
+            } else res.children.addAll(listOf(expr, Token("", "")))
             if (parser.lexer.peek().value == "export") {
                 parser.advance("export")
                 res.children.add(parser.expression(0))

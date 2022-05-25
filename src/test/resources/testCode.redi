@@ -1,17 +1,29 @@
 import imported
 import svg
+import math
 
 class TestClass {
+    // sb.add(attributes[i]["key"] + "=\"" + attributes[i]["value"] + "\"")
     c = b
     b = a
     a = 1
 }
 
-class Nothing {}
+class Position {
+    x = 0
+    y = 0
+}
+
+class Nothing {
+    exportArgs = {"type":"node","attributes":{}}
+}
 
 class S {
     iter = if(parent == 0) 0 else (1 + parent.iter)
     root = if(iter < 2) S() else Nothing()
+    start = Position(x = if(parent == 0) 0 else parent.end.x, y = if(parent == 0) 0 else parent.end.y)
+    end = math.rotate(Position(x = start.x, y = start.y + 10), 30, start)
+    exportArgs = {"exported":"line","type":"node","attributes":{"x1": start.x, "y1": start.y}}
 }
 
 class DoubleSegment {
@@ -19,11 +31,13 @@ class DoubleSegment {
 }
 
 fun main() {
+    m = {"a":1,2:"c"}
+    log(m)
     //a = []
     //a.add(0,a)
     //a = Segment()
     a = S()
-    svg.create(a)
+    svg.create(a,100,100)
     log(a)
     a = DoubleSegment()
     log(a)
