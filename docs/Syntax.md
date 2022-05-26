@@ -55,7 +55,6 @@ References are expressions of form `a.b.c`. They serve 3 purposes:
 
 ### 1. Accessing properties
 
-
 # Code conventions
 
 Camel case is used.

@@ -19,6 +19,7 @@ object Utils {
         PString.initializeStringProperties()
         initializeDictionaryProperties()
     }
+
     fun Boolean.toInt(): Int = if (this) 1 else 0
 
     fun Any.toBoolean(token: Token): Boolean {

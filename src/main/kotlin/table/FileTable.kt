@@ -1,5 +1,6 @@
 package table
 
+import evaluation.FunctionFactory
 import lexer.PositionalException
 import properties.Function
 import properties.Object
@@ -34,6 +35,7 @@ class FileTable(
         val name = token.left.value
         val (assignments, functions) = createAssignmentsAndFunctions(token)
         objects.add(Object(name, assignments, fileName))
+        // TODO add functions
     }
 
     fun addFunction(function: Function) = functions.add(function)
@@ -41,6 +43,7 @@ class FileTable(
     fun getTypeOrNull(name: String): Type? = types.find { it.name == name }?.copy()
     fun getType(token: Token): Type = types.find { it.name == token.value }?.copy()
         ?: throw PositionalException("Type `${token.value}` not found", token)
+
     fun getUncopiedType(token: Token): Type = types.find { it.name == token.value }
         ?: throw PositionalException("Type `${token.value}` not found", token)
 
@@ -63,11 +66,7 @@ class FileTable(
                 res.add(a)
             else if (a.symbol == "fun")
                 functions.add(
-                    Function(
-                        a.left.left.value,
-                        a.left.children.subList(1, a.children.size).map { it.value },
-                        a.children.last()
-                    )
+                    FunctionFactory.createFunction(a)
                 )
             else throw PositionalException("expected assignment or function", a)
         }
@@ -100,5 +99,5 @@ class FileTable(
         return res.toString()
     }
 
-    fun getTypes(): MutableMap<String,Type> = types.associateBy { it.name }.toMutableMap()
+    fun getTypes(): MutableMap<String, Type> = types.associateBy { it.name }.toMutableMap()
 }

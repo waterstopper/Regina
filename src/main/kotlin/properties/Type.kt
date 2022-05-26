@@ -30,10 +30,6 @@ open class Type(
         return null
     }
 
-    fun getResolved(token: Token) =
-        properties[token.value] ?: assignments.find { it.left.value == token.value }
-        ?: throw PositionalException("unknown property", token)
-
     override fun getFunctionOrNull(name: String): Function? = functions.find { it.name == name }
     override fun getFunction(token: Token) = functions.find { it.name == token.value }
         ?: throw PositionalException("\"$name\" class does not contain `${token.value}` function", token)
@@ -45,8 +41,8 @@ open class Type(
         }
     }
 
-
     override fun getProperties() = PDictionary(properties, this)
+
     override fun getPropertyOrNull(name: String) = when (name) {
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
@@ -93,7 +89,7 @@ open class Type(
             Type(
                 name = name,
                 parent = parent?.copy(),
-                assignments = assignments.map { TokenFactory().copy(it) }.toMutableList() as MutableList<Assignment>,
+                assignments = assignments.map { TokenFactory().copy(it) as Assignment }.toMutableList(),
                 fileName = fileName,
                 exported = exported,
                 exportArgs = exportArgs,
@@ -102,45 +98,5 @@ open class Type(
         copy.assignments.forEach { it.parent = copy }
         copy.functions.addAll(this.functions)
         return copy
-    }
-
-    //    fun getFirstUnresolved(token: Token): Pair<Type, String>? {
-//        var linkRoot = token
-//        var table = symbolTable
-//        var type = this
-//        while (linkRoot.value == ".") {
-//            val nextType = table.getVariableOrNull(linkRoot.left) ?: return Pair(type, linkRoot.left.value)
-//            if (nextType !is Type)
-//                throw PositionalException("expected class instance, but primitive was found", linkRoot.left)
-//            type = nextType
-//            table = type.symbolTable
-//            linkRoot = linkRoot.right
-//        }
-//        return null
-//    }
-    companion object {
-
-//        fun initializeSuperTypes() {
-//            for ((pair, token) in superTypes) {
-//                val (type, fileName) = pair
-//                if (token.value == ".")
-//                    SymbolTable.types[type]!![fileName]!!.supertype =
-//                        SymbolTable.types[token.right.value]!![token.left.value]
-//                else {
-//                    val parents = SymbolTable.types[token.value]!!.filter {
-//                        SymbolTable.importMap[fileName]?.contains(it.key) ?: false
-//                                || it.key == fileName
-//                    }
-//                    if (parents.isEmpty())
-//                        throw PositionalException("no superclass ${token.value} found", token)
-//                    if (parents.size > 1)
-//                        throw PositionalException(
-//                            "superclass ambiguity. There are ${parents.size} applicable supertypes in files ${parents.keys}",
-//                            token
-//                        )
-//                    SymbolTable.types[type]!![fileName]!!.supertype = parents[parents.keys.first()]
-//                }
-//            }
-//        }
     }
 }

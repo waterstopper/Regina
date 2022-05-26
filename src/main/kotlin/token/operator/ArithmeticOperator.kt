@@ -39,7 +39,7 @@ class ArithmeticOperator(
                     (a != 0 && b != 0).toInt()
                 } else 0
             }
-            "|"-> {
+            "|" -> {
                 val a = left.evaluate(symbolTable)
                 if (a !is Number)
                     throw PositionalException("Expected number", left)

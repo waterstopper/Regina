@@ -42,6 +42,7 @@ fun scope() {
     return a // here a is visible and equals 1
 }
 ```
+
 *This behaviour differs from most of the languages, consequently it might change in future.*
 
 ## Blocks

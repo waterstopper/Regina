@@ -7,20 +7,18 @@ import properties.Type
 import properties.Variable
 import table.SymbolTable
 import token.Assignable
-import token.Token
 import token.Link
+import token.Token
 import token.operator.Operator
 
 class Assignment(
-    symbol: String,
+    symbol: String = "",
     value: String,
-    position: Pair<Int, Int>,
-    bindingPower: Int,
-    nud: ((token: Token, parser: Parser) -> Token)?,
-    led: ((
-        token: Token, parser: Parser, token2: Token
-    ) -> Token)?,
-    std: ((token: Token, parser: Parser) -> Token)?,
+    position: Pair<Int, Int> = Pair(0, 0),
+    bindingPower: Int = 0,
+    nud: ((token: Token, parser: Parser) -> Token)? = null,
+    led: ((token: Token, parser: Parser, token2: Token) -> Token)? = null,
+    std: ((token: Token, parser: Parser) -> Token)? = null,
     children: MutableList<Token> = mutableListOf()
 ) : Operator(symbol, value, position, bindingPower, nud, led, std), Argumentable {
     init {

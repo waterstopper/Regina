@@ -64,7 +64,7 @@ class Lexer() {
 
     private fun nextIdent(): Token {
         val res = StringBuilder()
-        while (isIdentChar(source[index])) {
+        while (index < source.length && isIdentChar(source[index])) {
             res.append(source[index])
             move()
         }

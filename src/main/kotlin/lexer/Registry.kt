@@ -4,9 +4,9 @@
  */
 package lexer
 
+import token.Identifier
 import token.Token
 import token.TokenFactory
-import token.Identifier
 import token.variable.TokenString
 
 class Registry {

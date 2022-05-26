@@ -50,6 +50,8 @@ open class Link(
     private val arguments = mutableListOf<List<Any>>()
 
     override fun evaluate(symbolTable: SymbolTable): Any {
+        if(left.value=="this")
+            println()
         // On second evaluation it should be reset (if function with this token is called twice)
         index = 0
         arguments.clear()
@@ -89,12 +91,8 @@ open class Link(
                 //  val function = variable.getFunction(children[index].left)
                 //    addFunction(function)
             }
-            is Identifier -> {
-                currentVariable = variable.getProperty(children[index])
-            }
-            is Index -> {
-                currentVariable = (children[index] as Index).evaluateIndex(table).toVariable(right.right)
-            }
+            is Identifier -> currentVariable = variable.getProperty(children[index])
+            is Index -> currentVariable = (children[index] as Index).evaluateIndex(table).toVariable(right.right)
         }
         return true
     }
@@ -220,6 +218,7 @@ open class Link(
         if (type != null) {
             children[index] = Constructor(children[index])
             // TODO children[index].evaluate()
+            // TODO add constructor args similar to call args here
             currentVariable = type
             return
         }
@@ -234,8 +233,11 @@ open class Link(
 
     // here symbol table is ignored. Only value with same fileName
     private fun resolveFunctionCall(function: Function) {
-        (children[index] as Call).function = function
-        val tableForEvaluation = SymbolTable(fileTable = table.getFileTable(), variableTable = table.getCurrentType()) // table.changeScope(initialTable.getScope())
+        // (children[index] as Call).function = function
+        val tableForEvaluation = SymbolTable(
+            fileTable = table.getFileTable(),
+            variableTable = table.getCurrentType()
+        ) // table.changeScope(initialTable.getScope())
         (children[index] as Call).argumentsToParameters(function, initialTable, tableForEvaluation)
         val functionResult = (children[index] as Call).evaluateFunction(tableForEvaluation, function)
         currentVariable = functionResult.toVariable(children[index])

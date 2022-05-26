@@ -28,32 +28,32 @@ abstract class PNumber(value: Number, parent: Type?) : Primitive(value, parent) 
 
         private fun initializeEmbeddedNumberFunctions(): MutableList<Function> {
             val res = mutableListOf<Function>()
-            res.add(EmbeddedFunction("abs", listOf(), { token, args ->
-                val number = args.getVariable("(this)")
+            res.add(EmbeddedFunction("abs", listOf()) { token, args ->
+                val number = args.getVariable("this")
                 if (number is PNumber)
                     if (number.getPValue().toDouble() >= 0) number.getPValue() else -number.getPValue()
                 else throw PositionalException("Expected number", token)
-            }, 0..0))
-            res.add(EmbeddedFunction("min", listOf("other"), { token, args ->
+            })
+            res.add(EmbeddedFunction("min", listOf(Token(value = "other"))) { token, args ->
                 val (number, other) = unifyNumbers(
-                    args.getVariable("(this)"),
+                    args.getVariable("this"),
                     args.getVariable("other"),
                     token
                 )
                 if (number is Int)
                     number.coerceAtMost(other as Int)
                 else (number as Double).coerceAtMost(other as Double)
-            }, 1..1))
-            res.add(EmbeddedFunction("max", listOf("other"), { token, args ->
+            })
+            res.add(EmbeddedFunction("max", listOf(Token(value = "other"))) { token, args ->
                 val (number, other) = unifyPNumbers(
-                    args.getVariable("(this)"),
+                    args.getVariable("this"),
                     args.getVariable("other"),
                     token
                 )
                 if (number is Int)
                     number.coerceAtLeast(other as Int)
                 else (number as Double).coerceAtLeast(other as Double)
-            }, 1..1))
+            })
             return res
         }
     }

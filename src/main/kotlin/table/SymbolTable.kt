@@ -1,6 +1,6 @@
 package table
 
-import evaluation.FunctionEvaluation.initializeEmbedded
+import evaluation.FunctionFactory.initializeEmbedded
 import lexer.PositionalException
 import properties.*
 import properties.Function

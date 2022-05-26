@@ -1,20 +1,12 @@
 package properties
 
-import lexer.PositionalException
 import table.SymbolTable
 import token.Token
+import token.statement.Assignment
 
 class EmbeddedFunction(
-    name: String, args: List<String>,
+    name: String, args: List<Token>, namedArgs: List<Assignment> = listOf(),
     private val execute: (token: Token, arguments: SymbolTable) -> Any,
-    private val argsRange: IntRange = 1..1,
-) : Function(name, args, Token()) {
-
-    private fun checkInRange(invocation: Token): Boolean = argsRange.contains(invocation.children.size - 1)
-
-    fun executeFunction(token: Token, symbolTable: SymbolTable): Any {
-        if (!checkInRange(token))
-            throw PositionalException("expected $argsRange arguments, got ${token.children.size - 1}", token)
-        return execute(token, symbolTable)
-    }
+) : Function(name, args, namedArgs, Token()) {
+    fun executeFunction(token: Token, symbolTable: SymbolTable): Any = execute(token, symbolTable)
 }

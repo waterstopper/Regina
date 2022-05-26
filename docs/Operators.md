@@ -1,4 +1,5 @@
 # Operators
+
 <table>
     <thead>
         <tr>
@@ -66,4 +67,5 @@
 
 ## Arithmetic operators
 
-As there are integer and double values, there are type casts. Any arithmetic operation with integer and double wil return double as a result.
+As there are integer and double values, there are type casts. Any arithmetic operation with integer and double wil
+return double as a result.

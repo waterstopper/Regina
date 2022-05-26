@@ -2,13 +2,15 @@ package lexer
 
 import Logger
 import evaluation.Evaluation.globalTable
-import evaluation.FunctionEvaluation
+import evaluation.FunctionFactory
 import readFile
 import table.SymbolTable
 import token.Declaration
+import token.Identifier
 import token.Link
 import token.Token
 import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
+import token.statement.Assignment
 
 class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
 
@@ -25,7 +27,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
         globalTable = globalTable.changeFile(fileName)
         for (token in tokens)
             when (token.symbol) {
-                "fun" -> globalTable.addFunction(FunctionEvaluation.createFunction(token))
+                "fun" -> globalTable.addFunction(FunctionFactory.createFunction(token))
                 "class" -> {
                     if (declarations[fileName] == null)
                         declarations[fileName] = mutableListOf(token as Declaration)
@@ -74,6 +76,11 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                     if (token.value != "fun" && token.symbol != "(LINK)") {
                         token.children[index] =
                             createSpecificIdentifierFromInvocation(child, symbolTable, linkLevel, token)
+                        checkParamsOrArgs(
+                            token.children[index].children.subList(
+                                1, token.children[index].children.size
+                            ), areArgs = true
+                        )
                     }
                 }
                 // "[]" -> token.children[index] = TokenArray(child)
@@ -103,7 +110,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                                     .contains(functions.last())
                             ) "reserved function name" else "same function name within one file", token.left.left
                         )
-                    checkParams(token.left.children.subList(1, token.left.children.size))
+                    checkParamsOrArgs(token.left.children.subList(1, token.left.children.size))
                 }
             }
         }
@@ -112,13 +119,20 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             throw PositionalException("`$fileName` contains functions and classes with same names: $intersections")
     }
 
-    private fun checkParams(params: List<Token>) {
+    private fun checkParamsOrArgs(params: List<Token>, areArgs: Boolean = false) {
+        var wasAssignment = false
         for (param in params)
-            if (param.symbol != "(IDENT)") throw PositionalException("expected identifier as function parameter", param)
+            when (param) {
+                is Assignment -> wasAssignment = true
+                is Identifier -> if (wasAssignment)
+                    throw PositionalException("Default values should be after other", param)
+                else -> if (!areArgs) throw PositionalException("expected identifier as function parameter", param)
+                else if (wasAssignment) throw  PositionalException("Named args should be after other", param)
+            }
     }
 
     /**
-     * constructor params are assignments, because of the dynamic structure of type
+     * Constructor params are assignments, because of the dynamic structure of type
      */
     private fun checkConstructorParams(params: List<Token>) {
         for (param in params)
@@ -144,15 +158,10 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                     val supertype =
                         if (token.supertype is Link) supertypeTable.getType(token.supertype.right)
                         else supertypeTable.getType(token.supertype)
-                    if(token.name.value=="B"){
-                        println()
-                    }
                     currentTable.getUncopiedType(token.name).supertype = supertype
-                    println()
                 }
             }
             globalTable.changeFile(initialFileTable.fileName)
-            println(globalTable.getFileTable().getTypeOrNull("B")!!.supertype)
         }
     }
 }

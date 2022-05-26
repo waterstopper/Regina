@@ -3,14 +3,7 @@ import evaluation.Evaluation.evaluate
 import lexer.Parser
 import lexer.PositionalException
 import lexer.SemanticAnalyzer
-import properties.primitive.PArray.Companion.initializeArrayProperties
-import properties.primitive.PArray.Companion.initializeEmbeddedArrayFunctions
-import properties.primitive.PDouble.Companion.initializeDoubleProperties
-import properties.primitive.PInt.Companion.initializeIntProperties
-import properties.primitive.PString.Companion.initializeEmbeddedStringFunctions
-import properties.primitive.PString.Companion.initializeStringProperties
 import token.Token
-import utils.Utils.treeView
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -25,6 +18,8 @@ fun main() {
 //    initializeDoubleProperties()
 //    initializeArrayProperties()
 //    initializeStringProperties()
+    val t = Parser("a = b.size")
+    val a = t.statements()[0]
     val s = readFile("src/test/resources/testCode.redi")
     SemanticAnalyzer.initializeSuperTypes()
     println(Evaluation.globalTable)

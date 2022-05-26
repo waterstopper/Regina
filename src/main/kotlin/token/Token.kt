@@ -22,7 +22,10 @@ open class Token(
     val children: MutableList<Token> = mutableListOf()
 ) {
     val left: Token
-        get() = children[0]
+        get() = if(children.isEmpty()) {
+            println()
+            Token("")
+        } else children[0]
     val right: Token
         get() = children[1]
 
@@ -98,7 +101,7 @@ open class Token(
                             it.right.traverseUnresolved(symbolTable, parent) ?: Token("(LEAVE)")
                         else it.children[2].traverseUnresolved(symbolTable, parent) ?: Token("(LEAVE)")
                 }
-                is Assignable -> it.getFirstUnassigned(parent,symbolTable) ?: Token("(LEAVE)")
+                is Assignable -> it.getFirstUnassigned(parent, symbolTable) ?: Token("(LEAVE)")
                 else -> null
             }
         }

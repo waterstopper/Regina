@@ -6,7 +6,8 @@ class PositionalException(
     private val errorMessage: String,
     private val token: Token = Token(),
     private val position: Pair<Int, Int> = Pair(0, 0),
-    private val length: Int = 1
+    private val length: Int = 1,
+    private val file: String = ""
 ) : Exception() {
     override val message: String
         get() = if (token.value != "")
