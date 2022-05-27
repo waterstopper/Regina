@@ -8,9 +8,12 @@ import properties.primitive.PDictionary
 import properties.primitive.PDouble
 import properties.primitive.PInt
 import properties.primitive.PString
+import table.SymbolTable
 import token.Token
 import token.statement.Assignment
 import utils.Utils.toVariable
+import kotlin.math.cos
+import kotlin.math.sin
 
 object FunctionFactory {
     fun createFunction(token: Token): Function {
@@ -31,19 +34,26 @@ object FunctionFactory {
         )
     }
 
+    fun createIdent(token: Token, name: String) = Token(value = name, symbol = name, position = token.position)
+
+    fun getIdent(token: Token, name: String, args: SymbolTable) = args.getIdentifier(createIdent(token, name))
+
+
     fun initializeEmbedded(): MutableMap<String, Function> {
         val res = mutableMapOf<String, Function>()
         res["log"] = EmbeddedFunction("log", listOf(Token(value = "x")))
-        { _, args -> println(args.getVariable("x")) }
+        { token, args -> println(getIdent(token, "x", args)) }
+        res["input"] = EmbeddedFunction("input", listOf()) { _, _ -> readLine() ?: "" }
         res["test"] = EmbeddedFunction("test", listOf(Token(value = "x"))) { token, args ->
-            if (args.getVariable("x") !is PInt || (args.getVariable("x") as PInt).getPValue() == 0)
+            val ident = getIdent(token, "x", args)
+            if (ident !is PInt || ident.getPValue() == 0)
                 throw PositionalException("test failed", token)
         }
         res["rnd"] = EmbeddedFunction("rnd", listOf()) { _, _ -> rnd.nextDouble() }
         res["str"] = EmbeddedFunction("str", listOf(Token(value = "x")))
-        { _, args -> args.getVariable("x").toString() }
+        { token, args -> getIdent(token, "x", args).toString() }
         res["int"] = EmbeddedFunction("int", listOf(Token(value = "x"))) { token, args ->
-            when (val argument = args.getVariable("x")) {
+            when (val argument = getIdent(token, "x", args)) {
                 is PDouble -> argument.getPValue().toInt()
                 is PInt -> argument.getPValue()
                 is PString -> argument.getPValue().toInt()
@@ -51,7 +61,7 @@ object FunctionFactory {
             }
         }
         res["double"] = EmbeddedFunction("double", listOf(Token(value = "x"))) { token, args ->
-            when (val argument = args.getVariable("x")) {
+            when (val argument = getIdent(token, "x", args)) {
                 is PDouble -> argument.getPValue()
                 is PInt -> argument.getPValue().toDouble()
                 is PString -> argument.getPValue().toDouble()
@@ -59,7 +69,7 @@ object FunctionFactory {
             }
         }
         res["array"] = EmbeddedFunction("array", listOf(Token(value = "x"))) { token, args ->
-            when (val argument = args.getVariable("x")) {
+            when (val argument = getIdent(token, "x", args)) {
                 is PDictionary -> argument.getPValue()
                     .map {
                         PDictionary(
@@ -71,6 +81,20 @@ object FunctionFactory {
                     }
                 is PString -> argument.getPValue().map { it.toString() }
                 else -> throw PositionalException("cannot cast type to array", token)
+            }
+        }
+        res["sin"] = EmbeddedFunction("sin", listOf(Token("angle"))) { token, args ->
+            when (val argument = getIdent(token, "angle", args)) {
+                is PInt -> sin(argument.getPValue().toDouble())
+                is PDouble -> sin(argument.getPValue())
+                else -> throw PositionalException("Expected number", token)
+            }
+        }
+        res["cos"] = EmbeddedFunction("cos", listOf(Token("angle"))) { token, args ->
+            when (val argument = getIdent(token, "angle", args)) {
+                is PInt -> cos(argument.getPValue().toDouble())
+                is PDouble -> cos(argument.getPValue())
+                else -> throw PositionalException("Expected number", token)
             }
         }
         return res

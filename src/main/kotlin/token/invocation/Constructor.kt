@@ -28,7 +28,7 @@ class Constructor(
         return evaluateType(type, symbolTable)
     }
 
-    fun evaluateType(type: Type, symbolTable: SymbolTable): Any {
+    private fun evaluateType(type: Type, symbolTable: SymbolTable): Any {
         resolveArguments(type, symbolTable)
         return if (resolving) type else resolveTree(type, symbolTable.changeVariable(type).changeScope())
     }
@@ -42,6 +42,7 @@ class Constructor(
             type.setProperty(arg.left.value, arg.right.evaluate(symbolTable).toProperty(arg.left, type))
             type.removeAssignment(arg.left)
         }
+        type.setProperty("this", type)
     }
 
     private fun resolveTree(root: Type, symbolTable: SymbolTable): Type {

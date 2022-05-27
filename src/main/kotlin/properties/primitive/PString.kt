@@ -45,7 +45,7 @@ class PString(value: String, parent: Type?) : Primitive(value, parent), Indexabl
                 listOf(Assignment(value = "end = this.size"))
             )
             { token, args ->
-                val string = args.getVariable("this")
+                val string = args.getPropertyOrNull("this")!!
                 val start = args.getVariable("start")
                 if (string !is PString)
                     throw PositionalException("Expected string", token)
@@ -61,7 +61,7 @@ class PString(value: String, parent: Type?) : Primitive(value, parent), Indexabl
             setFunction(s, EmbeddedFunction("replace",
                 listOf(Token(value="oldString"), Token(value="newString")))
             { token, args ->
-                val string = args.getVariable("this")
+                val string = args.getPropertyOrNull("this")!!
                 val oldString = args.getVariable("oldString")
                 val newString = args.getVariable("newString")
                 if (string is PString && oldString is PString && newString is PString)
@@ -69,25 +69,25 @@ class PString(value: String, parent: Type?) : Primitive(value, parent), Indexabl
                 else throw PositionalException("Expected string", token)
             })
             setFunction(s, EmbeddedFunction("reversed", listOf()) { token, args ->
-                val string = args.getVariable("this")
+                val string = args.getPropertyOrNull("this")!!
                 if (string is PString)
                     string.getPValue().reversed()
                 else throw PositionalException("Expected string", token)
             })
             setFunction(s, EmbeddedFunction("lowercase", listOf()) { token, args ->
-                val string = args.getVariable("this")
+                val string = args.getPropertyOrNull("this")!!
                 if (string is PString)
                     string.getPValue().lowercase()
                 else throw PositionalException("Expected string", token)
             })
             setFunction(s, EmbeddedFunction("uppercase", listOf()) { token, args ->
-                val string = args.getVariable("this")
+                val string = args.getPropertyOrNull("this")!!
                 if (string is PString)
                     string.getPValue().uppercase()
                 else throw PositionalException("Expected string", token)
             })
             setFunction(s, EmbeddedFunction("toArray", listOf()) { token, args ->
-                val string = args.getVariable("this")
+                val string = args.getPropertyOrNull("this")!!
                 if (string is PString)
                     string.getPValue().toCharArray().map { it.toString() }
                 else throw PositionalException("Expected string", token)

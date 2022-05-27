@@ -73,6 +73,7 @@ class Call(
                 throw PositionalException("Parameter not assigned", param, file = paramTable.getFileTable().fileName)
         for (i in assigned)
             paramTable.addVariable(i.key, i.value)
+        // TODO exceptions only to calls, not to params
 //        for ((index, arg) in arguments.withIndex())
 //            paramTable.addVariable(function.params[index].value, arg.evaluate(argTable).toVariable(arg))
     }
@@ -87,13 +88,13 @@ class Call(
 
     fun evaluateFunction(symbolTable: SymbolTable, function: Function, argTable: SymbolTable? = null): Any {
         var argTable = argTable ?: symbolTable
-        if (function.params.size < arguments.size)
-            throw PositionalException("Expected less arguments", this)
+     //   if (function.params.size < arguments.size)
+      //      throw PositionalException("Expected less arguments", this)
         // wtf
-        if (symbolTable.getVariableOrNull("this") != null)
-            symbolTable.addVariable("this", symbolTable.getVariable("this"))
-        if (symbolTable.getCurrentType() != null)
-            symbolTable.addVariable("this", symbolTable.getCurrentType()!!)
+//        if (symbolTable.getVariableOrNull("this") != null)
+//            symbolTable.addVariable("this", symbolTable.getVariable("this"))
+//        if (symbolTable.getCurrentType() != null)
+//            symbolTable.addVariable("this", symbolTable.getCurrentType()!!)
 
         val res = if (function is EmbeddedFunction)
             function.executeFunction(this, symbolTable)

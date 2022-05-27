@@ -18,27 +18,17 @@ import token.variable.TokenNumber
 import token.variable.TokenString
 import utils.Utils.toVariable
 
-/** parent, this - special phrases, that should be added to scope table and type assignments specifically **/
 open class Link(
-    symbol: String,
-    value: String,
-    position: Pair<Int, Int>,
-    bindingPower: Int,
+    symbol: String, value: String, position: Pair<Int, Int>, bindingPower: Int,
     nud: ((token: Token, parser: Parser) -> Token)?,
-    led: ((
-        token: Token, parser: Parser, token2: Token
-    ) -> Token)?,
+    led: ((token: Token, parser: Parser, token2: Token) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?, children: List<Token> = listOf()
 ) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable {
     constructor(token: Token) : this(
-        token.symbol,
-        token.value,
-        token.position,
-        token.bindingPower,
-        token.nud,
-        token.led,
-        token.std,
-        token.children
+        token.symbol, token.value,
+        token.position, token.bindingPower,
+        token.nud, token.led,
+        token.std, token.children
     )
 
     var index = 0
@@ -46,31 +36,21 @@ open class Link(
     var currentVariable: Variable? = null
     private lateinit var initialTable: SymbolTable
 
-    // for constructors and calls
-    private val arguments = mutableListOf<List<Any>>()
-
     override fun evaluate(symbolTable: SymbolTable): Any {
-        if(left.value=="this")
-            println()
         // On second evaluation it should be reset (if function with this token is called twice)
         index = 0
-        arguments.clear()
         initialTable = symbolTable
         table = symbolTable.copy()
         getFirstVariable()
-        arguments.add(emptyList())
 
         table = table.changeVariable(currentVariable!!)
         index++
         while (index < children.size) {
             getNextVariable(
-                currentVariable ?: throw PositionalException(
-                    "Cannot be casted to variable",
-                    children[index - 1]
-                )
+                currentVariable
+                    ?: throw PositionalException("Cannot be casted to variable", children[index - 1])
             )
             table = table.changeVariable(currentVariable!!)
-            arguments.add(emptyList())
             index++
         }
         return if (currentVariable is Primitive)
@@ -150,8 +130,9 @@ open class Link(
             }
             is Identifier -> {
                 val property = variable.getPropertyOrNull(children[index].value)
-                    ?: return (variable as Type).getAssignment(children[index])
-                        ?: throw PositionalException("Property not found", children[index])
+                    ?: if (variable is Type) (return variable.getAssignment(children[index])
+                        ?: throw PositionalException("Property not found", children[index]))
+                    else throw PositionalException("Property not found", children[index])
                 currentVariable = property
             }
             is Index -> {
@@ -256,7 +237,6 @@ open class Link(
 
     override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Assignment? {
         index = 0
-        arguments.clear()
         initialTable = symbolTable.changeVariable(parent)
         table = initialTable.copy()
         val firstResolved = checkFirstVariable()
@@ -273,7 +253,6 @@ open class Link(
             if (res != null)
                 return res
             table = table.changeVariable(currentVariable!!)
-            arguments.add(emptyList())
             index++
         }
         return null

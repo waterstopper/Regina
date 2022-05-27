@@ -65,11 +65,13 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 listOf(Token(value = "element")),
                 listOf(Parser("index = this.size").statements().first() as Assignment)
             ) { token, args ->
-                val list = args.getVariable("this")
+                val list = args.getPropertyOrNull("this")!!
                 if (list is PArray) {
                     val argument = args.getVariable("element")
                     val index = args.getVariable("index")
                     if (index !is PInt) throw PositionalException("expected integer as index", token.children[2])
+                    if (index.getPValue() < 0 || index.getPValue() > list.getPValue().size)
+                        throw PositionalException("Index out of bounds", token.children[1])
                     list.getPValue().add(index.getPValue(), argument)
                 } else throw PositionalException("add is not applicable for this type", token.children[1])
             })
@@ -77,7 +79,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 "remove",
                 listOf(Token(value = "element")),
             ) { token, args ->
-                val list = args.getVariable("this")
+                val list = args.getPropertyOrNull("this")!!
                 if (list is PArray) {
                     val argument = args.getVariable("element")
                     if (argument is Primitive) {
@@ -94,7 +96,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 } else throw PositionalException("remove is not applicable for this type", token.children[1])
             })
             setFunction(p, EmbeddedFunction("removeAt", listOf(Token(value = "index"))) { token, args ->
-                val list = args.getVariable("this")
+                val list = args.getPropertyOrNull("this")!!
                 val index = args.getVariable("index")
                 if (list is PArray) {
                     if (index is PInt)
@@ -107,7 +109,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 } else throw PositionalException("removeAt is not applicable for this type", token.children[1])
             })
             setFunction(p, EmbeddedFunction("has", listOf(Token(value = "element"))) { token, args ->
-                val list = args.getVariable("this")
+                val list = args.getPropertyOrNull("this")!!
                 val element = args.getVariable("element")
                 if (list is PArray) {
                     if (element is Primitive)

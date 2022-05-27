@@ -1,0 +1,47 @@
+class Point {
+    x = 0
+    y = 0
+    fun rotate() {
+    }
+
+    fun
+}
+
+class Segment {
+    p1 = Point()
+    p2 = Point()
+
+    fun middle() {
+        return Point(x = (p1.x + p2.x) / 2, y = (p1.y + p2.y) / 2)
+    }
+
+    fun intersects(other) {
+
+    }
+
+    fun isPerpendicular(other) {}
+}
+
+class Triangle {
+    p1 = Point()
+    p2 = Point()
+    p3 = Point()
+
+    fun centerMass() {
+        return Point(x = (p1.x + p2.x + p3.x) / 3, y = (p1.y + p2.y + p3.y) / 3)
+    }
+    fun rotate(angle, pivot = centerMass()) {
+
+    }
+}
+
+class Circle {
+}
+
+class Polyline {
+    points = []
+
+    fun centerMass() {
+
+    }
+}

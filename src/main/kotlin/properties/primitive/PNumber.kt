@@ -29,14 +29,14 @@ abstract class PNumber(value: Number, parent: Type?) : Primitive(value, parent) 
         private fun initializeEmbeddedNumberFunctions(): MutableList<Function> {
             val res = mutableListOf<Function>()
             res.add(EmbeddedFunction("abs", listOf()) { token, args ->
-                val number = args.getVariable("this")
+                val number = args.getPropertyOrNull("this")!!
                 if (number is PNumber)
                     if (number.getPValue().toDouble() >= 0) number.getPValue() else -number.getPValue()
                 else throw PositionalException("Expected number", token)
             })
             res.add(EmbeddedFunction("min", listOf(Token(value = "other"))) { token, args ->
                 val (number, other) = unifyNumbers(
-                    args.getVariable("this"),
+                    args.getPropertyOrNull("this")!!,
                     args.getVariable("other"),
                     token
                 )
@@ -46,7 +46,7 @@ abstract class PNumber(value: Number, parent: Type?) : Primitive(value, parent) 
             })
             res.add(EmbeddedFunction("max", listOf(Token(value = "other"))) { token, args ->
                 val (number, other) = unifyPNumbers(
-                    args.getVariable("this"),
+                    args.getPropertyOrNull("this")!!,
                     args.getVariable("other"),
                     token
                 )

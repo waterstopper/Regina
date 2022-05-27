@@ -36,6 +36,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
     }
 
     override fun getPropertyOrNull(name: String) = when (name) {
+        "this" -> this
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
         else -> properties[getIndex()][name]?.let { it(this) }
@@ -45,6 +46,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
     }
 
     override fun getProperty(token: Token): Property = when (token.value) {
+        "this" -> this
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
         else -> properties[getIndex()][token.value]?.let { it(this) }
@@ -54,6 +56,9 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
             ?: throw PositionalException("`${token.value}` not found", token)
     }
 
+    /**
+     * Does not include "this"
+     */
     override fun getProperties(): PDictionary {
         val res = properties[0]
         if (getIndex() in 2..3)
@@ -108,8 +113,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
                 is Double -> PDouble(value, parent)
                 is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent)
                 else -> throw PositionalException(
-                    "cannot create variable of type `${value::class}`",
-                    token
+                    "cannot create variable of type `${value::class}`", token
                 )
             }
         }

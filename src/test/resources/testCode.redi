@@ -27,7 +27,8 @@ class S {
 }
 
 class DoubleSegment {
-    root = Segment()
+    iter = 1
+    left = Segment()
 }
 
 fun main() {
@@ -167,7 +168,7 @@ fun checkType() {
 
 fun checkArray() {
     a = []
-    a.add(0,a)
+    a.add(a, 0)
     a.add([1,2])
     test(str(a)=="[this, [1, 2]]")
     test(a[0][0][1]==[1,2])
