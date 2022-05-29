@@ -1,6 +1,7 @@
 package evaluation
 
 import evaluation.Evaluation.evaluate
+import lexer.SemanticAnalyzer
 import org.junit.Test
 import readFile
 
@@ -12,6 +13,7 @@ internal class EvaluationTest {
         //  val text = File("src/test/resources/testCode").readText()
         val s = readFile("src/test/resources/testCode.redi")
         //println(s.treeView())
+        SemanticAnalyzer.initializeSuperTypes()
         evaluate(s, "testCode.redi")
     }
 }

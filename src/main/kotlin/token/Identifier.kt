@@ -1,7 +1,9 @@
 package token
 
 
+import Optional
 import lexer.Parser
+import lexer.PositionalException
 import properties.Type
 import properties.primitive.Primitive
 import table.SymbolTable
@@ -14,10 +16,14 @@ open class Identifier(
     nud: ((token: Token, parser: Parser) -> Token)?,
     led: ((token: Token, parser: Parser, token2: Token) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?
-) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable {
+) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable, Linkable {
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        val variable = symbolTable.getIdentifier(this)
+        val variable = symbolTable.getIdentifierOrNull(this)
+            ?: return symbolTable.getTypeOrNull(this) ?: throw PositionalException(
+                "Identifier `${value}` not found",
+                this
+            )
         if (variable is Primitive)
             return (variable).getPValue()
         return variable
@@ -35,8 +41,6 @@ open class Identifier(
     }
 
     override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Assignment? {
-//        println(this)
-//        println(parent.getAssignment(this)?.toTreeString())
         return parent.getAssignment(this)
     }
 

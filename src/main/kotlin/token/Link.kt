@@ -1,5 +1,6 @@
 package token
 
+import Optional
 import lexer.Parser
 import lexer.PositionalException
 import properties.Function
@@ -13,9 +14,7 @@ import token.invocation.Invocation
 import token.operator.Index
 import token.operator.TokenTernary
 import token.statement.Assignment
-import token.variable.TokenArray
-import token.variable.TokenNumber
-import token.variable.TokenString
+import utils.Utils.toProperty
 import utils.Utils.toVariable
 
 open class Link(
@@ -34,6 +33,7 @@ open class Link(
     var index = 0
     lateinit var table: SymbolTable
     var currentVariable: Variable? = null
+    var currentParent: Variable? = null
     private lateinit var initialTable: SymbolTable
 
     override fun evaluate(symbolTable: SymbolTable): Any {
@@ -41,8 +41,8 @@ open class Link(
         index = 0
         initialTable = symbolTable
         table = symbolTable.copy()
-        getFirstVariable()
-
+        if (!checkFirstVariable())
+            throw PositionalException("Not found", left)
         table = table.changeVariable(currentVariable!!)
         index++
         while (index < children.size) {
@@ -71,57 +71,46 @@ open class Link(
                 //  val function = variable.getFunction(children[index].left)
                 //    addFunction(function)
             }
-            is Identifier -> currentVariable = variable.getProperty(children[index])
-            is Index -> currentVariable = (children[index] as Index).evaluateIndex(table).toVariable(right.right)
+            is Identifier -> assignCurrentVariable(variable.getProperty(children[index]))
+            is Index -> assignCurrentVariable((children[index] as Index).evaluateIndex(table).toVariable(right.right))
         }
         return true
     }
 
-    protected open fun checkFirstVariable(canBeFile: Boolean = true): Assignment? {
+    protected open fun checkFirstVariable(canBeFile: Boolean = true): Boolean {
         when (children[index]) {
-            is TokenArray, is TokenNumber, is TokenString -> {
-                if (!canBeFile)
-                    throw PositionalException("Unexpected token", children[index])
-                currentVariable = children[index].evaluate(table).toVariable(children[index])
-            }
+//            is TokenArray, is TokenNumber, is TokenString -> {
+//                if (!canBeFile)
+//                    throw PositionalException("Unexpected token", children[index])
+//                assignCurrentVariable(children[index].evaluate(table).toVariable(children[index]))
+//            }
             is Identifier -> {
-                val variable = table.getVariableOrNull(children[index].value)
-                if (variable == null) {
-                    val property = table.getPropertyOrNull(children[index].value)
-                    currentVariable = if (property == null) {
-                        if ((table.getCurrentType() is Type)
-                            && (table.getCurrentType() as Type).getAssignment(children[index]) != null
-                        )
-                            return (table.getCurrentType() as Type).getAssignment(children[index])!!
-                        table.getObjectOrNull(children[index])
-                            ?: if (canBeFile) {
-                                addFile()
-                                index++
-                                return checkFirstVariable(false)
-                            } else throw PositionalException("Object not found in $children[index]", children[index])
-                    } else property
-                } else {
-                    if (!canBeFile)
-                        throw PositionalException("Object not found in $children[index]", children[index])
-                    currentVariable = variable
-                }
+                val identifier = table.getIdentifierOrNull(children[index])
+                if (identifier == null) {
+                    if (canBeFile) {
+                        addFile()
+                        index++
+                        checkFirstVariable(false)
+                    } else return false
+                } else assignCurrentVariable(identifier)
             }
             is TokenTernary -> {
                 val ternaryResult = children[index].evaluate(table).toVariable(children[index])
-                currentVariable = ternaryResult
+                assignCurrentVariable(ternaryResult)
             }
             is Invocation -> resolveInvocation()
+            //  is Index -> throw PositionalException("Not implemented")
             // unary minus, (1+2).max(...)
             else -> {
                 if (!canBeFile)
                     throw PositionalException("Unexpected token", children[index])
-                currentVariable = children[index].evaluate(table).toVariable(children[index])
+                assignCurrentVariable(children[index].evaluate(table).toVariable(children[index]))
             }
         }
-        return null
+        return true
     }
 
-    protected open fun checkNextVariable(variable: Variable): Assignment? {
+    protected open fun checkNextVariable(variable: Variable): Optional {
         when (children[index]) {
             is Invocation -> {
                 val function = variable.getFunction((children[index] as Invocation).name)
@@ -130,17 +119,15 @@ open class Link(
             }
             is Identifier -> {
                 val property = variable.getPropertyOrNull(children[index].value)
-                    ?: if (variable is Type) (return variable.getAssignment(children[index])
-                        ?: throw PositionalException("Property not found", children[index]))
+                    ?: if (variable is Type) (return Optional(variable.getAssignment(children[index])))
                     else throw PositionalException("Property not found", children[index])
-                currentVariable = property
+                assignCurrentVariable(property)
             }
             is Index -> {
                 throw PositionalException("not implemented")
             }
-            else -> throw PositionalException("Unexpected token", children[index])
         }
-        return null
+        return Optional(isGood = true)
     }
 
     /**
@@ -148,42 +135,29 @@ open class Link(
      */
     private fun getFirstVariable(canBeFile: Boolean = true) {
         when (children[index]) {
-            is TokenArray, is TokenNumber, is TokenString -> {
-                if (!canBeFile)
-                    throw PositionalException("Unexpected token", children[index])
-                currentVariable = children[index].evaluate(table).toVariable(children[index])
-            }
             is Identifier -> {
-                val variable = table.getVariableOrNull(children[index].value)
-                if (variable == null) {
-                    val property = table.getPropertyOrNull(children[index].value)
-                    if (property == null) {
-                        val obj = table.getObjectOrNull(children[index])
-                        if (obj == null) {
-                            if (canBeFile) {
-                                addFile()
-                                index++
-                                getFirstVariable(false)
-                            } else throw PositionalException("Object not found in $children[index]", children[index])
-                        } else currentVariable = obj
-                    } else currentVariable = property
-
-                } else {
-                    if (!canBeFile)
-                        throw PositionalException("Object not found in $children[index]", children[index])
-                    currentVariable = variable
-                }
+                val identifier = table.getIdentifierOrNull(children[index])
+                if (identifier == null) {
+                    if (canBeFile) {
+                        addFile()
+                        index++
+                        getFirstVariable(false)
+                    } else throw PositionalException(
+                        "Identifier not found in `${children[index - 1]}`",
+                        children[index]
+                    )
+                } else assignCurrentVariable(identifier)
             }
             is TokenTernary -> {
                 val ternaryResult = children[index].evaluate(table).toVariable(children[index])
-                currentVariable = ternaryResult
+                assignCurrentVariable(ternaryResult)
             }
             is Invocation -> resolveInvocation()
-            // unary minus, (1+2).max(...)
+            // unary minus, (1+2).max(...), [1,2,3].size
             else -> {
                 if (!canBeFile)
                     throw PositionalException("Unexpected token", children[index])
-                currentVariable = children[index].evaluate(table).toVariable(children[index])
+                assignCurrentVariable(children[index].evaluate(table).toVariable(children[index]))
             }
         }
     }
@@ -198,9 +172,9 @@ open class Link(
         val type = table.getTypeOrNull((children[index] as Invocation).name)
         if (type != null) {
             children[index] = Constructor(children[index])
-            // TODO children[index].evaluate()
+            val instance = children[index].evaluate(initialTable)
             // TODO add constructor args similar to call args here
-            currentVariable = type
+            assignCurrentVariable(type)
             return
         }
         throw PositionalException("Function and type not found", children[index])
@@ -221,7 +195,7 @@ open class Link(
         ) // table.changeScope(initialTable.getScope())
         (children[index] as Call).argumentsToParameters(function, initialTable, tableForEvaluation)
         val functionResult = (children[index] as Call).evaluateFunction(tableForEvaluation, function)
-        currentVariable = functionResult.toVariable(children[index])
+        assignCurrentVariable(functionResult.toVariable(children[index]))
     }
 
     init {
@@ -232,7 +206,13 @@ open class Link(
     }
 
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any?) {
-        TODO("Not yet implemented")
+        if (currentParent is Type)
+            currentVariable?.let {
+                (currentParent as Type).setProperty(
+                    children[children.lastIndex].value,
+                    it.toProperty(children[children.lastIndex])
+                )
+            }
     }
 
     override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Assignment? {
@@ -240,8 +220,8 @@ open class Link(
         initialTable = symbolTable.changeVariable(parent)
         table = initialTable.copy()
         val firstResolved = checkFirstVariable()
-        if (firstResolved is Assignment)
-            return firstResolved
+        if (!firstResolved)
+            return parent.getAssignment(left) ?: throw PositionalException("Assignment not found", left)
         index++
         while (index < children.size) {
             val res = checkNextVariable(
@@ -250,12 +230,17 @@ open class Link(
                     children[index - 1]
                 )
             )
-            if (res != null)
-                return res
+            if (res.isGood)
+                return res.value as Assignment?
             table = table.changeVariable(currentVariable!!)
             index++
         }
         return null
+    }
+
+    private fun assignCurrentVariable(value: Variable?) {
+        currentParent = currentVariable
+        currentVariable = value
     }
 
     override fun getPropertyName(): Token {

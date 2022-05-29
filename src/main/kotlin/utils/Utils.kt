@@ -12,6 +12,7 @@ object Utils {
     init {
         PArray.initializeEmbeddedArrayFunctions()
         PString.initializeEmbeddedStringFunctions()
+        PNumber.initializeEmbeddedNumberFunctions()
 
         PInt.initializeIntProperties()
         PDouble.initializeDoubleProperties()
@@ -36,6 +37,10 @@ object Utils {
     fun Any.toProperty(token: Token = Token(), parent: Type? = null): Property =
         if (this is Property) this else Primitive.createPrimitive(this, parent, token)
 
+    /**
+     * Prints AST with indentation to  show children.
+     * **For debug**.
+     */
     fun List<Token>.treeView(): String {
         val res = StringBuilder()
         for (t in this) {

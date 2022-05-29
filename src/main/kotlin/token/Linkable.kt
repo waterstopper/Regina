@@ -1,0 +1,3 @@
+package token
+
+interface Linkable

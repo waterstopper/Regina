@@ -1,13 +1,13 @@
 package token.operator
 
+import lexer.ExpectedTypeException
 import lexer.Parser
 import lexer.PositionalException
 import properties.Type
-import properties.primitive.Indexable
-import properties.primitive.PArray
-import properties.primitive.Primitive
+import properties.primitive.*
 import table.SymbolTable
 import token.Assignable
+import token.Linkable
 import token.Token
 import token.statement.Assignment
 import utils.Utils.toVariable
@@ -22,7 +22,7 @@ class Index(
         token: Token, parser: Parser, token2: Token
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?, children: List<Token> = listOf()
-) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable {
+) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable, Linkable {
     constructor(token: Token) : this(
         token.symbol,
         token.value,
@@ -51,16 +51,16 @@ class Index(
         val index = right.evaluate(symbolTable)
         return when (indexed) {
             is Indexable -> indexed[index, right]
-            else -> throw PositionalException("array, dictionary or string expected", this)
+            else -> throw ExpectedTypeException(listOf(PArray::class, PDictionary::class, PString::class), this)
         }
     }
 
     private fun getIndexableAndIndex(symbolTable: SymbolTable): Pair<Indexable, Int> {
-        val indexable = symbolTable.getVariable(left)
+        val indexable = symbolTable.getIdentifier(left)
         val number = right.evaluate(symbolTable)
         if (indexable is Indexable && number is Int)
             return Pair(indexable, number)
-        throw PositionalException("expected array and number", this)
+        throw ExpectedTypeException(listOf(PArray::class, Number::class), this, expectedMultiple = true)
     }
 
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any?) {
@@ -72,12 +72,12 @@ class Index(
         }
         parent.removeAssignment(assignment)
         val property = parent.getProperty(getPropertyName())
-        if (property !is PArray)
-            throw PositionalException("Non-array class indexed", this)
+        if (property !is Indexable)
+            throw ExpectedTypeException(listOf(PArray::class, PDictionary::class, PString::class), left)
         val index = right.evaluate(symbolTable)
         if (index !is Int)
             throw PositionalException("Index is not integer", this)
-        (property.getPValue())[index] = right.evaluate(symbolTable).toVariable(right)
+        property.set(index, right.evaluate(symbolTable).toVariable(right), left, right)
     }
 
     override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Assignment? {

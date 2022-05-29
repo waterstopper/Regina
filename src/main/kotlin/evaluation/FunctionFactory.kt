@@ -83,14 +83,14 @@ object FunctionFactory {
                 else -> throw PositionalException("cannot cast type to array", token)
             }
         }
-        res["sin"] = EmbeddedFunction("sin", listOf(Token("angle"))) { token, args ->
+        res["sin"] = EmbeddedFunction("sin", listOf(Token(value = "angle"))) { token, args ->
             when (val argument = getIdent(token, "angle", args)) {
                 is PInt -> sin(argument.getPValue().toDouble())
                 is PDouble -> sin(argument.getPValue())
                 else -> throw PositionalException("Expected number", token)
             }
         }
-        res["cos"] = EmbeddedFunction("cos", listOf(Token("angle"))) { token, args ->
+        res["cos"] = EmbeddedFunction("cos", listOf(Token(value = "angle"))) { token, args ->
             when (val argument = getIdent(token, "angle", args)) {
                 is PInt -> cos(argument.getPValue().toDouble())
                 is PDouble -> cos(argument.getPValue())

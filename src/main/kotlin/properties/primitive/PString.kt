@@ -1,5 +1,7 @@
 package properties.primitive
 
+import evaluation.FunctionFactory
+import evaluation.FunctionFactory.getIdent
 import lexer.PositionalException
 import properties.EmbeddedFunction
 import properties.Type
@@ -46,14 +48,12 @@ class PString(value: String, parent: Type?) : Primitive(value, parent), Indexabl
             )
             { token, args ->
                 val string = args.getPropertyOrNull("this")!!
-                val start = args.getVariable("start")
+                val start = getIdent(token, "start", args)
                 if (string !is PString)
                     throw PositionalException("Expected string", token)
                 if (start !is PInt)
                     throw PositionalException("Expected number as argument", token)
-                if (args.getVariableOrNull("end") == null)
-                    string.getPValue().substring(start.getPValue())
-                val end = args.getVariable("end")
+                val end = getIdent(token, "end", args)
                 if (end !is PInt)
                     throw PositionalException("Expected number as second argument", token)
                 string.getPValue().substring(start.getPValue(), end.getPValue())
@@ -62,8 +62,8 @@ class PString(value: String, parent: Type?) : Primitive(value, parent), Indexabl
                 listOf(Token(value="oldString"), Token(value="newString")))
             { token, args ->
                 val string = args.getPropertyOrNull("this")!!
-                val oldString = args.getVariable("oldString")
-                val newString = args.getVariable("newString")
+                val oldString = getIdent(token, "oldString", args)
+                val newString = getIdent(token, "newString", args)
                 if (string is PString && oldString is PString && newString is PString)
                     string.getPValue().replace(oldString.getPValue(), newString.getPValue())
                 else throw PositionalException("Expected string", token)

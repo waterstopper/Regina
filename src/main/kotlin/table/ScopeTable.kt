@@ -11,9 +11,9 @@ class ScopeTable {
         variables[name] = variable
     }
 
-    fun getVariable(token: Token) = variables[token.value] ?: throw PositionalException("identifier not found", token)
+    fun getVariable(token: Token) = variables[token.value] ?: throw PositionalException("Identifier not found", token)
     fun getVariable(name: String) = variables[name]
-        ?: throw PositionalException("identifier not found")
+        ?: throw PositionalException("Identifier not found")
 
     fun getVariableOrNull(name: String) = variables[name]
 

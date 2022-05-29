@@ -10,7 +10,10 @@
 package lexer
 
 import token.Declaration
+import token.Identifier
+import token.Linkable
 import token.Token
+import token.invocation.Invocation
 import token.operator.Index
 import token.operator.TokenTernary
 import token.statement.Block
@@ -312,16 +315,16 @@ class Lexer() {
 //            token
 //        }
 
-        //tokReg.prefixNud("if")
-
         tokReg.infixLed(".", 105) { token: Token, parser: Parser, left: Token ->
             token.children.add(left)
             token.children.add(parser.expression(105))
+            isLinkable(token.children.last())
             var t = parser.lexer.peek()
             while (t.symbol == "(LINK)") {
                 parser.advance("(LINK)")
                 token.children.add(parser.expression(105))
                 t = parser.lexer.peek()
+                isLinkable(token.children.last())
             }
             token
         }
@@ -567,4 +570,13 @@ class Lexer() {
 
     fun hasCommentAhead(): Boolean = consumeWhitespaceAndComments()
 
+    private fun isLinkable(token: Token) {
+        if (token !is Linkable)
+            throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), token)
+        var index = token
+        while (index is Index)
+            index = index.left
+        if (index !is Linkable)
+            throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), token)
+    }
 }

@@ -112,7 +112,10 @@ fun checkLink() {
 
     test(imported.getFileName() == "imported")
 
-    a = 1
+    //a = A()
+    //a.s = 10
+    //test(a.s == 10)
+    //test(a.t == 0)
     b = 2
 }
 
@@ -233,7 +236,7 @@ class Root {
 
 fun toDegrees(rad) {
 	return
-	a = b.c.d.e.f.g.h.parent.(if(a == true) u else b).t
+	a = b.c.d.e.f.g.h.parent.t
 }
 
 

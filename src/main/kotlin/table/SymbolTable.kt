@@ -32,8 +32,6 @@ class SymbolTable(
 
     private fun checkImports(check: (table: FileTable) -> Any?): List<Any> {
         val suitable = mutableListOf<Any>()
-        if (imports[fileTable] == null)
-            println(fileTable)
         for (table in imports[fileTable]!!) {
             val fromFile = check(table)
             if (fromFile != null)
@@ -151,24 +149,20 @@ class SymbolTable(
             ?: throw PositionalException("no main functions found")
         return fileTable.getFunctionOrNull("main") ?: throw PositionalException("no main function in current file")
     }
-
-    fun getVariable(token: Token) = scopeTable!!.getVariable(token)
-    fun getVariable(name: String) = scopeTable!!.getVariable(name)
     fun getVariableOrNull(name: String): Variable? = scopeTable!!.getVariableOrNull(name)
-    fun getIdentifier(token: Token): Variable {
+    fun getIdentifier(token: Token): Variable = getIdentifierOrNull(token) ?: throw PositionalException(
+        "Identifier `${token.value}` not found in `$fileTable`",
+        token
+    )
+
+    fun getIdentifierOrNull(token: Token): Variable? {
         val variable = scopeTable?.getVariableOrNull(token.value)
         if (variable != null)
             return variable
         val property = variableTable?.getPropertyOrNull(token.value)
         if (property != null)
             return property
-        val type = getTypeOrNull(token)
-        if (type != null)
-            return type
-        return getObjectOrNull(token) ?: throw PositionalException(
-            "Identifier `${token.value}` not found in `$fileTable`",
-            token
-        )
+        return getObjectOrNull(token)
     }
 
     fun getCurrentType() = variableTable

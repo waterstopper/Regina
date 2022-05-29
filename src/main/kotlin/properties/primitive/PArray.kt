@@ -1,5 +1,6 @@
 package properties.primitive
 
+import evaluation.FunctionFactory.getIdent
 import lexer.Parser
 import lexer.PositionalException
 import properties.EmbeddedFunction
@@ -35,14 +36,6 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
         return res.removeRange(res.lastIndex - 1..res.lastIndex).toString() + ']'
     }
 
-    private fun checkBounds(token: Token, index: Int) {
-        if (index > (value as MutableList<*>).lastIndex)
-            throw PositionalException(
-                "index $index out of bounds for array of size ${(value as MutableList<*>).size}",
-                token
-            )
-    }
-
     override fun equals(other: Any?): Boolean {
         if (other !is PArray) return false
         if (getPValue() == other.getPValue())
@@ -67,8 +60,8 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             ) { token, args ->
                 val list = args.getPropertyOrNull("this")!!
                 if (list is PArray) {
-                    val argument = args.getVariable("element")
-                    val index = args.getVariable("index")
+                    val argument = getIdent(token, "element", args)
+                    val index = getIdent(token, "index", args)
                     if (index !is PInt) throw PositionalException("expected integer as index", token.children[2])
                     if (index.getPValue() < 0 || index.getPValue() > list.getPValue().size)
                         throw PositionalException("Index out of bounds", token.children[1])
@@ -81,7 +74,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             ) { token, args ->
                 val list = args.getPropertyOrNull("this")!!
                 if (list is PArray) {
-                    val argument = args.getVariable("element")
+                    val argument = getIdent(token, "element", args)
                     if (argument is Primitive) {
                         var removed = false
                         for (e in (list.value as MutableList<*>)) {
@@ -97,7 +90,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             })
             setFunction(p, EmbeddedFunction("removeAt", listOf(Token(value = "index"))) { token, args ->
                 val list = args.getPropertyOrNull("this")!!
-                val index = args.getVariable("index")
+                val index = getIdent(token, "index", args)
                 if (list is PArray) {
                     if (index is PInt)
                         try {
@@ -110,7 +103,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             })
             setFunction(p, EmbeddedFunction("has", listOf(Token(value = "element"))) { token, args ->
                 val list = args.getPropertyOrNull("this")!!
-                val element = args.getVariable("element")
+                val element = getIdent(token, "element", args)
                 if (list is PArray) {
                     if (element is Primitive)
                         (list.value as MutableList<*>).any { (it is Primitive && it == element) }.toInt()
