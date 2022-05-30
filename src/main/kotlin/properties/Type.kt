@@ -3,9 +3,12 @@ package properties
 import lexer.PositionalException
 import properties.primitive.PDictionary
 import properties.primitive.PInt
+import table.SymbolTable
 import token.Token
 import token.TokenFactory
+import token.invocation.Constructor
 import token.statement.Assignment
+import java.util.*
 
 open class Type(
     val name: String,
@@ -102,5 +105,50 @@ open class Type(
         copy.assignments.forEach { it.parent = copy }
         copy.functions.addAll(this.functions)
         return copy
+    }
+
+    companion object{
+        var resolving = false
+
+        fun resolveTree(root: Type, symbolTable: SymbolTable): Type {
+            root.setProperty("parent", PInt(0, root))
+            resolving = true
+            do {
+                val (current, parent) = bfs(root) ?: break
+                val stack = Stack<Assignment>()
+                stack.add(current)
+                processAssignment(parent, symbolTable.changeVariable(parent), stack)
+            } while (true)
+            resolving = false
+            return root
+        }
+
+        fun processAssignment(parent: Type, symbolTable: SymbolTable, stack: Stack<Assignment>) {
+            while (stack.isNotEmpty()) {
+                val unresolved = stack.pop()
+                val top = unresolved.getFirstUnassigned(symbolTable, parent)
+                if (top != null)
+                    stack.add(top)
+                else unresolved.assign(parent, symbolTable.changeVariable(parent))
+            }
+        }
+
+        /**
+         * Find unresolved assignments
+         */
+        fun bfs(root: Type): Pair<Assignment, Type>? {
+            val stack = Stack<Type>()
+            val visited = Stack<Type>()
+            stack.add(root)
+            while (stack.isNotEmpty()) {
+                val current = stack.pop()
+                visited.add(current)
+                if (current.assignments.isNotEmpty())
+                    return Pair(current.assignments.first(), current)
+                val containers = current.getProperties().getPValue().values.filterIsInstance<Type>()
+                stack.addAll(containers.filter { !visited.contains(it) })
+            }
+            return null
+        }
     }
 }

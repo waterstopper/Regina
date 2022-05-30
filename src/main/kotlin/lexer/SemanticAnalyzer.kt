@@ -57,15 +57,19 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 "object" -> table = table.changeVariable(globalTable.getObjectOrNull((token as Declaration).name)!!)
                 "class" -> table = table.changeVariable(globalTable.getTypeOrNull((token as Declaration).name)!!)
             }
-            changeTokenType(token, table, 0)
+            changeTokenType(token, table, 0, table.getCurrentType() != null)
         }
     }
 
-    private fun changeTokenType(token: Token, symbolTable: SymbolTable, linkLevel: Int) {
+    private fun changeTokenType(token: Token, symbolTable: SymbolTable, linkLevel: Int, inClass: Boolean = false) {
         for ((index, child) in token.children.withIndex()) {
             when (child.symbol) {
                 // ignoring assignments like: a.b = ...
-                "(ASSIGNMENT)" -> symbolTable.addVariableOrNot(child.left)
+                "(ASSIGNMENT)" -> {
+                    symbolTable.addVariableOrNot(child.left)
+                    if (inClass)
+                        (child as Assignment).isProperty = true
+                }
                 "(LINK)" -> {
 //                    if (symbolTable.getVariableOrNull(child.left.value) != null) {
 //                        val variable = symbolTable.getVariable(child.left)
@@ -83,13 +87,18 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                         )
                     }
                 }
+                "{" -> {
+                    if (child.children.isEmpty())
+                        Logger.addWarning(child, "Empty block")
+                }
                 // "[]" -> token.children[index] = TokenArray(child)
                 //"[" -> token.children[index] = TokenIndexing(child)
             }
             changeTokenType(
                 token.children[index],
                 if (token.children[index].symbol == "fun") symbolTable.changeScope() else symbolTable,
-                if (token.children[index] is Link) linkLevel + 1 else 0
+                if (token.children[index] is Link) linkLevel + 1 else 0,
+                if (token.value != "fun") inClass else false
             )
         }
     }

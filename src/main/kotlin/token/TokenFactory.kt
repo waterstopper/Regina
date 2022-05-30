@@ -36,6 +36,19 @@ class TokenFactory {
     }
 
     fun copy(token: Token): Token {
+        if(token is Assignment){
+            val res = Assignment( token.symbol,
+                token.value,
+                token.position,
+                token.bindingPower,
+                token.nud,
+                token.led,
+                token.std,
+                token.children)
+            res.isProperty = token.isProperty
+            return res
+        }
+        // TODO unused
         return token::class.constructors.toMutableList()[0].call(
             token.symbol,
             token.value,

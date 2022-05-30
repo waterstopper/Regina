@@ -3,6 +3,7 @@ import evaluation.Evaluation.evaluate
 import lexer.Parser
 import lexer.PositionalException
 import lexer.SemanticAnalyzer
+import table.SymbolTable
 import token.Token
 import utils.Utils.treeView
 import java.io.File
@@ -12,6 +13,7 @@ fun main() {
     //println(Parser("(v-a).b.c[1][2][3].s.r").statements().treeView())
     val s = readFile("src/test/resources/testCode.redi")
     SemanticAnalyzer.initializeSuperTypes()
+    SymbolTable.initializeObjects()
     println(Evaluation.globalTable)
     evaluate(s, "testCode.redi")
 }

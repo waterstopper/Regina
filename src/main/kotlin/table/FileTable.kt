@@ -100,4 +100,5 @@ class FileTable(
     }
 
     fun getTypes(): MutableMap<String, Type> = types.associateBy { it.name }.toMutableMap()
+    fun getObjects() = objects
 }

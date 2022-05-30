@@ -1,9 +1,11 @@
 package table
 
+import evaluation.Evaluation.globalTable
 import evaluation.FunctionFactory.initializeEmbedded
 import lexer.PositionalException
 import properties.*
 import properties.Function
+import properties.Type.Companion.resolveTree
 import token.Token
 import utils.Utils.toVariable
 
@@ -28,6 +30,12 @@ class SymbolTable(
         }
 
         fun getEmbeddedNames(): MutableSet<String> = globalFile.getFunctionNames()
+
+        fun initializeObjects() {
+            for ((file, _) in imports)
+                for (obj in file.getObjects())
+                    resolveTree(obj, globalTable)
+        }
     }
 
     private fun checkImports(check: (table: FileTable) -> Any?): List<Any> {
@@ -81,16 +89,15 @@ class SymbolTable(
     }
 
     fun getFileTable() = fileTable
+    fun getScope() = scopeTable
+    fun getCurrentType() = variableTable
 
     fun changeScope(): SymbolTable {
         return SymbolTable(variableTable = variableTable, fileTable = fileTable)
     }
 
-    fun changeScope(scopeTable: ScopeTable?): SymbolTable {
-        return SymbolTable(scopeTable = scopeTable?.copy(), variableTable = variableTable, fileTable = fileTable)
-    }
-
-    fun getScope() = scopeTable
+    fun changeScope(scopeTable: ScopeTable?): SymbolTable =
+        SymbolTable(scopeTable = scopeTable?.copy(), variableTable = variableTable, fileTable = fileTable)
 
     fun changeFile(fileName: String): SymbolTable {
         return SymbolTable(scopeTable?.copy(), variableTable, imports.keys.find { it.fileName == fileName }
@@ -108,17 +115,15 @@ class SymbolTable(
         return false
     }
 
-    fun addImport(fileName: Token) {
-        imports[fileTable]!!.add(imports.keys.find { it.fileName == fileName.value }!!)
-    }
-
+    fun addImport(fileName: Token) = imports[fileTable]!!.add(imports.keys.find { it.fileName == fileName.value }!!)
     fun addType(token: Token) = fileTable.addType(token)
     fun addFunction(function: Function) = fileTable.addFunction(function)
     fun addObject(token: Token) = fileTable.addObject(token)
+
+
     fun addVariable(name: String, value: Variable) = scopeTable!!.addVariable(name, value)
-
-
     fun getImportOrNull(fileName: String) = imports[fileTable]!!.find { it.fileName == fileName }
+
     fun getImport(token: Token) =
         imports[fileTable]!!.find { it.fileName == token.value }
             ?: throw PositionalException("File not found", token)
@@ -141,6 +146,7 @@ class SymbolTable(
 
     fun getObjectOrNull(token: Token): Object? = getFromFilesOrNull { it.getObjectOrNull(token.value) } as Object?
     fun getTypeOrNull(token: Token): Type? = getFromFilesOrNull { it.getTypeOrNull(token.value) } as Type?
+
     fun getFunctionOrNull(token: Token): Function? =
         getFromFilesOrNull { it.getFunctionOrNull(token.value) } as Function?
             ?: if (variableTable != null) variableTable!!.getFunctionOrNull(token.value) else null
@@ -152,6 +158,7 @@ class SymbolTable(
     }
 
     fun getVariableOrNull(name: String): Variable? = scopeTable!!.getVariableOrNull(name)
+
     fun getIdentifier(token: Token): Variable = getIdentifierOrNull(token) ?: throw PositionalException(
         "Identifier `${token.value}` not found in `$fileTable`",
         token
@@ -167,8 +174,6 @@ class SymbolTable(
         return getObjectOrNull(token)
     }
 
-    fun getCurrentType() = variableTable
-
     fun getTypes(): MutableMap<String, MutableMap<String, Type>> {
         val res = mutableMapOf<String, MutableMap<String, Type>>()
         for (i in imports.keys)
@@ -183,7 +188,6 @@ class SymbolTable(
     fun getPropertyOrNull(name: String): Property? {
         return variableTable?.getPropertyOrNull(name)
     }
-
 
     fun copy() = SymbolTable(scopeTable?.copy() ?: ScopeTable(), variableTable, fileTable)
     fun addVariableOrNot(token: Token) = scopeTable?.addVariable(token.value, "".toVariable(token))

@@ -4,7 +4,6 @@ import Argumentable
 import lexer.Parser
 import lexer.PositionalException
 import properties.Type
-import properties.Variable
 import table.SymbolTable
 import token.Assignable
 import token.Link
@@ -28,6 +27,7 @@ class Assignment(
 
     var parent: Type? = null
     val name: String get() = left.value
+    var isProperty = false
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         val value = right.evaluate(symbolTable)
@@ -60,7 +60,7 @@ class Assignment(
 
     fun assign(parent: Type, symbolTable: SymbolTable) {
         parent.removeAssignment(this)
-        (left as Assignable).assign(this, parent, symbolTable,right.evaluate(symbolTable))
+        (left as Assignable).assign(this, parent, symbolTable, right.evaluate(symbolTable))
     }
 
     /**

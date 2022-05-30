@@ -3,8 +3,11 @@ object Constants {
 }
 
 fun toRadians(angle) {
-    log("FEKOEFKO")
     return double(angle) / 180 * Constants.PI
+}
+
+fun toDegrees(angle) {
+    return double(angle) * Constants.PI / 180
 }
 
 class Point {
@@ -22,6 +25,8 @@ class Point {
         ynew = this.x * s + this.y * c
         this.x = pivot.x + xnew
         this.y = pivot.y + ynew
+
+        return this
     }
 
 }

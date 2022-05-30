@@ -12,7 +12,6 @@ import token.invocation.Call
 import token.invocation.Constructor
 import token.invocation.Invocation
 import token.operator.Index
-import token.operator.TokenTernary
 import token.statement.Assignment
 import utils.Utils.toProperty
 import utils.Utils.toVariable
@@ -83,7 +82,6 @@ open class Link(
         return Optional(isGood = true)
     }
 
-
     private fun checkFirstVariable(canBeFile: Boolean = true): Boolean {
         when (children[index]) {
             is Identifier -> {
@@ -96,12 +94,7 @@ open class Link(
                     } else return false
                 } else assignCurrentVariable(identifier)
             }
-            is TokenTernary -> {
-                val ternaryResult = children[index].evaluate(table).toVariable(children[index])
-                assignCurrentVariable(ternaryResult)
-            }
             is Invocation -> resolveInvocation()
-            //  is Index -> throw PositionalException("Not implemented")
             // unary minus, (1+2).max(...)
             else -> {
                 if (!canBeFile)
@@ -110,39 +103,6 @@ open class Link(
             }
         }
         return true
-    }
-
-
-    /**
-     * Resolve till operations.last() has properties (primitive, type, object or function call)
-     */
-    private fun getFirstVariable(canBeFile: Boolean = true) {
-        when (children[index]) {
-            is Identifier -> {
-                val identifier = table.getIdentifierOrNull(children[index])
-                if (identifier == null) {
-                    if (canBeFile) {
-                        addFile()
-                        index++
-                        getFirstVariable(false)
-                    } else throw PositionalException(
-                        "Identifier not found in `${children[index - 1]}`",
-                        children[index]
-                    )
-                } else assignCurrentVariable(identifier)
-            }
-            is TokenTernary -> {
-                val ternaryResult = children[index].evaluate(table).toVariable(children[index])
-                assignCurrentVariable(ternaryResult)
-            }
-            is Invocation -> resolveInvocation()
-            // unary minus, (1+2).max(...), [1,2,3].size
-            else -> {
-                if (!canBeFile)
-                    throw PositionalException("Unexpected token", children[index])
-                assignCurrentVariable(children[index].evaluate(table).toVariable(children[index]))
-            }
-        }
     }
 
     private fun resolveInvocation() {
@@ -173,13 +133,11 @@ open class Link(
     private fun resolveFunctionCall(function: Function) {
         // (children[index] as Call).function = function
         var type = table.getCurrentType()
-        if (type == null || type !is Type) {
+        if (type == null || type !is Type)
             type = null
-        }
         val tableForEvaluation = SymbolTable(
             fileTable = table.getImportOrNull((type as Type?)?.fileName ?: "")
-                ?: table.getFileTable(),
-            variableTable = table.getCurrentType()
+                ?: table.getFileTable(), variableTable = table.getCurrentType()
         ) // table.changeScope(initialTable.getScope())
         (children[index] as Call).argumentsToParameters(function, initialTable, tableForEvaluation)
         val functionResult = (children[index] as Call).evaluateFunction(tableForEvaluation, function)

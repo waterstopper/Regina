@@ -7,6 +7,7 @@ import properties.EmbeddedFunction
 import properties.Type
 import token.statement.Assignment
 import utils.Utils.toProperty
+import kotlin.math.pow
 
 
 class PDouble(value: Double, parent: Type?) : PNumber(value, parent) {
@@ -29,11 +30,14 @@ class PDouble(value: Double, parent: Type?) : PNumber(value, parent) {
             ) { token, args ->
                 val number = getIdent(token, "this", args)
                 if (number !is PDouble)
-                    throw ExpectedTypeException(listOf(PDouble::class), token)
+                    throw ExpectedTypeException(listOf(PDouble::class), token, number)
                 val digits = getIdent(token, "digits", args)
                 if (digits !is PInt)
-                    throw ExpectedTypeException(listOf(PInt::class), token)
-                String.format("%.${digits}f", number.getPValue()).replace(',','.').toDouble()
+                    throw ExpectedTypeException(listOf(PInt::class), token, digits)
+                if (digits.getPValue() < 0) {
+                    val divisor = 10.0.pow(-digits.getPValue())
+                    (number.getPValue() / divisor).toInt() * divisor
+                } else String.format("%.${digits}f", number.getPValue()).replace(',', '.').toDouble()
             })
         }
     }

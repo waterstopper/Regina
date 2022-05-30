@@ -1,14 +1,15 @@
 package properties.primitive
 
 import evaluation.FunctionFactory.getIdent
+import lexer.ExpectedTypeException
 import lexer.PositionalException
 import properties.EmbeddedFunction
-import properties.Function
 import properties.Type
 import token.Token
 import utils.Utils.unaryMinus
 import utils.Utils.unifyNumbers
 import utils.Utils.unifyPNumbers
+import kotlin.math.pow
 
 open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
     override fun getIndex() = 1
@@ -48,6 +49,17 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
                 if (number is Int)
                     number.coerceAtLeast(other as Int)
                 else (number as Double).coerceAtLeast(other as Double)
+            })
+            setFunction(n, EmbeddedFunction("pow", listOf(Token(value = "deg"))) { token, args ->
+                val number = args.getPropertyOrNull("this")!!
+                val deg = getIdent(token, "deg", args)
+                if (deg !is PNumber)
+                    throw ExpectedTypeException(listOf(PNumber::class), token)
+                when (number) {
+                    is PInt -> number.getPValue().toDouble().pow(deg.getPValue().toDouble()).toInt()
+                    is PDouble -> number.getPValue().pow(deg.getPValue().toDouble())
+                    else -> throw ExpectedTypeException(listOf(PNumber::class), token)
+                }
             })
         }
     }

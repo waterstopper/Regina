@@ -6,6 +6,7 @@ import properties.Type
 import properties.Variable
 import properties.primitive.*
 import properties.primitive.PDictionary.Companion.initializeDictionaryProperties
+import table.SymbolTable.Companion.initializeObjects
 import token.Token
 
 object Utils {

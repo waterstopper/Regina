@@ -26,26 +26,29 @@ class NotFoundException(classes: Class<*>) : PositionalException("")
 class ExpectedTypeException(
     private val classes: List<KClass<*>>,
     token: Token,
+    private val value: Any? = null,
     private val expectedMultiple: Boolean = false
 ) : PositionalException("", token) {
     override val message: String
         get() {
             return "Expected " + classes.joinToString(
                 separator = if (expectedMultiple) " and " else " or "
-            ) {
-                when (it) {
-                    Function::class -> "function"
-                    PInt::class -> "Int"
-                    PDouble::class -> "Double"
-                    Number::class -> "Number"
-                    PString::class -> "String"
-                    PArray::class -> "Array"
-                    PDictionary::class -> "Dictionary"
-                    Identifier::class -> "Identifier"
-                    Invocation::class -> "Invocation"
-                    Index::class -> "Index"
-                    else -> "unknown"
-                }
-            }
+            ) { mapToString(it) } + if (value != null) ", but got ${mapToString(value::class)}" else ""
         }
+
+    private fun mapToString(mapped: KClass<*>): String {
+        return when (mapped) {
+            Function::class -> "function"
+            PInt::class -> "Int"
+            PDouble::class -> "Double"
+            PNumber::class -> "Number"
+            PString::class -> "String"
+            PArray::class -> "Array"
+            PDictionary::class -> "Dictionary"
+            Identifier::class -> "Identifier"
+            Invocation::class -> "Invocation"
+            Index::class -> "Index"
+            else -> "unknown"
+        }
+    }
 }

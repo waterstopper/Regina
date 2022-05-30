@@ -14,6 +14,7 @@ import token.statement.Assignment
 import utils.Utils.toVariable
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 object FunctionFactory {
     fun createFunction(token: Token): Function {
@@ -94,6 +95,13 @@ object FunctionFactory {
             when (val argument = getIdent(token, "angle", args)) {
                 is PInt -> cos(argument.getPValue().toDouble())
                 is PDouble -> cos(argument.getPValue())
+                else -> throw PositionalException("Expected number", token)
+            }
+        }
+        res["sqrt"] = EmbeddedFunction("sqrt", listOf(Token(value = "number"))) { token, args ->
+            when (val argument = getIdent(token, "number", args)) {
+                is PInt -> sqrt(argument.getPValue().toDouble())
+                is PDouble -> sqrt(argument.getPValue())
                 else -> throw PositionalException("Expected number", token)
             }
         }

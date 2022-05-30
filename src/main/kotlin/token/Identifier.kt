@@ -18,8 +18,6 @@ open class Identifier(
 ) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable, Linkable {
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        if(this.value == "xnew")
-            println()
         val variable = symbolTable.getIdentifierOrNull(this)
             ?: return symbolTable.getTypeOrNull(this) ?: throw PositionalException(
                 "Identifier `${value}` not found",
@@ -31,13 +29,14 @@ open class Identifier(
     }
 
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
-        if (parent != null) {
+        if (parent != null && assignment.isProperty) {
             parent.setProperty(this.value, value.toProperty(assignment.right, parent))
             if (parent.getProperty(this) is Type) {
                 (parent.getProperty(this) as Type).parent = parent
                 (parent.getProperty(this) as Type).setProperty("parent", parent)
             }
-        } else symbolTable.addVariable(this.value, value.toVariable(this))
+        }
+        symbolTable.addVariable(this.value, value.toVariable(this))
     }
 
     override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Assignment? {
