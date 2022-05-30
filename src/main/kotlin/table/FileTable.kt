@@ -33,7 +33,7 @@ class FileTable(
 
     fun addObject(token: Token) {
         val name = token.left.value
-        val (assignments, functions) = createAssignmentsAndFunctions(token)
+        val (assignments, functions) = createAssignmentsAndFunctions(token.right)
         objects.add(Object(name, assignments, fileName))
         // TODO add functions
     }

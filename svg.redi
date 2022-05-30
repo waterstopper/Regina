@@ -3,19 +3,13 @@ fun add(node, sb) {
     added = node.exportArgs["exported"]
     propertiesArray = array(node.properties)
     attributes = array(node.exportArgs["attributes"])
-    log(propertiesArray)
-    log(attributes)
     if(added != 0) {
-        log(added)
         sb.add("<" + added)
         i = 0
-        log(attributes)
         while(i < attributes.size) {
             sb.add(attributes[i]["key"] + "=\"" + attributes[i]["value"] + "\"")
-            log(attributes)
             i = i + 1
         }
-        log(attributes[i-1])
         sb.add(if(containers.has(added)) ">" else "/>")
     }
     if(containers.has(added)) {
@@ -23,7 +17,6 @@ fun add(node, sb) {
         while(i < propertiesArray.size) {
             if(propertiesArray[i]["value"].exportArgs["type"] == "node" \
                 & propertiesArray[i]["value"].exportArgs["inParent"]) {
-                log("KEK")
                 add(propertiesArray[i]["value"], sb)
                 propertiesArray.removeAt(i)
                 i = i - 1
@@ -37,8 +30,6 @@ fun add(node, sb) {
         if((propertiesArray[i]["value"].properties["exportArgs"] != 0) & propertiesArray[i]["value"].exportArgs["type"] == "node" \
             & (!propertiesArray[i]["value"].exportArgs["inParent"] & !containers.has(added))) {
             if(propertiesArray[i]["key"]!="parent" & propertiesArray[i]["key"] != "this") {
-                log(propertiesArray[i])
-                log(propertiesArray[i]["value"])
                 add(propertiesArray[i]["value"], sb)
                }
             propertiesArray.removeAt(i)
@@ -59,13 +50,16 @@ fun create(root, width, height) {
     sb.add("<svg \"" + width + "\" height \"" + height + "\">\n")
     add(root, sb)
     sb.add("</svg>")
-    log(sb.string)
+    log(sb.toString())
 }
 
 class StringBuilder {
     string = []
     fun add(s) {
         string.add(s)
+    }
+    fun toString() {
+        return string.joinToString("")
     }
 }
 

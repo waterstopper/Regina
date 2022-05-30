@@ -37,19 +37,18 @@ open class Link(
     private lateinit var initialTable: SymbolTable
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        // On second evaluation it should be reset (if function with this token is called twice)
-        index = 0
-        initialTable = symbolTable
-        table = symbolTable.copy()
+        reset(symbolTable)
         if (!checkFirstVariable())
             throw PositionalException("Not found", left)
         table = table.changeVariable(currentVariable!!)
         index++
         while (index < children.size) {
-            getNextVariable(
+            val isResolved = checkNextVariable(
                 currentVariable
                     ?: throw PositionalException("Cannot be casted to variable", children[index - 1])
             )
+            if (!isResolved.isGood)
+                throw PositionalException("Link not resolved", children[index])
             table = table.changeVariable(currentVariable!!)
             index++
         }
@@ -58,32 +57,35 @@ open class Link(
             ?: throw PositionalException("Unexpected return", children[--index])
     }
 
-    /**
-     * Not applicable for 1st element in link
-     */
-    protected open fun getNextVariable(variable: Variable): Boolean {
+    private fun checkNextVariable(variable: Variable): Optional {
         when (children[index]) {
             is Invocation -> {
                 val function = variable.getFunction((children[index] as Invocation).name)
                 children[index] = Call(children[index])
                 resolveFunctionCall(function)
-                return true
-                //  val function = variable.getFunction(children[index].left)
-                //    addFunction(function)
             }
-            is Identifier -> assignCurrentVariable(variable.getProperty(children[index]))
-            is Index -> assignCurrentVariable((children[index] as Index).evaluateIndex(table).toVariable(right.right))
+            is Identifier -> {
+                val property = variable.getPropertyOrNull(children[index].value)
+                    ?: if (variable is Type) (return Optional(variable.getAssignment(children[index])))
+                    else throw PositionalException("Property not found", children[index])
+                assignCurrentVariable(property)
+            }
+            is Index -> {
+                var index = children[index].left
+                while (index is Index)
+                    index = index.left
+                variable.getPropertyOrNull(index.value)
+                    ?: if (variable is Type) (return Optional(variable.getAssignment(index)))
+                    else throw PositionalException("Property not found", index)
+                assignCurrentVariable((children[this.index] as Index).evaluateIndex(table).toVariable(right.right))
+            }
         }
-        return true
+        return Optional(isGood = true)
     }
 
-    protected open fun checkFirstVariable(canBeFile: Boolean = true): Boolean {
+
+    private fun checkFirstVariable(canBeFile: Boolean = true): Boolean {
         when (children[index]) {
-//            is TokenArray, is TokenNumber, is TokenString -> {
-//                if (!canBeFile)
-//                    throw PositionalException("Unexpected token", children[index])
-//                assignCurrentVariable(children[index].evaluate(table).toVariable(children[index]))
-//            }
             is Identifier -> {
                 val identifier = table.getIdentifierOrNull(children[index])
                 if (identifier == null) {
@@ -110,25 +112,6 @@ open class Link(
         return true
     }
 
-    protected open fun checkNextVariable(variable: Variable): Optional {
-        when (children[index]) {
-            is Invocation -> {
-                val function = variable.getFunction((children[index] as Invocation).name)
-                children[index] = Call(children[index])
-                resolveFunctionCall(function)
-            }
-            is Identifier -> {
-                val property = variable.getPropertyOrNull(children[index].value)
-                    ?: if (variable is Type) (return Optional(variable.getAssignment(children[index])))
-                    else throw PositionalException("Property not found", children[index])
-                assignCurrentVariable(property)
-            }
-            is Index -> {
-                throw PositionalException("not implemented")
-            }
-        }
-        return Optional(isGood = true)
-    }
 
     /**
      * Resolve till operations.last() has properties (primitive, type, object or function call)
@@ -174,7 +157,7 @@ open class Link(
             children[index] = Constructor(children[index])
             val instance = children[index].evaluate(initialTable)
             // TODO add constructor args similar to call args here
-            assignCurrentVariable(type)
+            assignCurrentVariable(instance.toVariable(children[index]))
             return
         }
         throw PositionalException("Function and type not found", children[index])
@@ -189,8 +172,13 @@ open class Link(
     // here symbol table is ignored. Only value with same fileName
     private fun resolveFunctionCall(function: Function) {
         // (children[index] as Call).function = function
+        var type = table.getCurrentType()
+        if (type == null || type !is Type) {
+            type = null
+        }
         val tableForEvaluation = SymbolTable(
-            fileTable = table.getFileTable(),
+            fileTable = table.getImportOrNull((type as Type?)?.fileName ?: "")
+                ?: table.getFileTable(),
             variableTable = table.getCurrentType()
         ) // table.changeScope(initialTable.getScope())
         (children[index] as Call).argumentsToParameters(function, initialTable, tableForEvaluation)
@@ -205,20 +193,25 @@ open class Link(
         }
     }
 
-    override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any?) {
-        if (currentParent is Type)
-            currentVariable?.let {
-                (currentParent as Type).setProperty(
-                    children[children.lastIndex].value,
-                    it.toProperty(children[children.lastIndex])
-                )
-            }
+    override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
+        // hacky way, not good.
+        // TODO in type functions are added to type properties
+        getFirstUnassigned(parent ?: Type("@Fictive", null, mutableListOf(), ""), symbolTable)
+        // if the last child in link is assigned
+        if (index == children.lastIndex)
+            currentVariable = currentParent
+        if (currentVariable is Type)
+            (currentVariable as Type).setProperty(
+                children[children.lastIndex].value,
+                value.toProperty(assignment.right)
+            )
     }
 
     override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Assignment? {
-        index = 0
-        initialTable = symbolTable.changeVariable(parent)
-        table = initialTable.copy()
+        reset(symbolTable, parent)
+        val unassignedInFirst = left.traverseUnresolved(symbolTable, parent)
+        if (unassignedInFirst != null)
+            return unassignedInFirst
         val firstResolved = checkFirstVariable()
         if (!firstResolved)
             return parent.getAssignment(left) ?: throw PositionalException("Assignment not found", left)
@@ -243,7 +236,12 @@ open class Link(
         currentVariable = value
     }
 
-    override fun getPropertyName(): Token {
-        TODO("Not yet implemented")
+    private fun reset(symbolTable: SymbolTable, parent: Type? = null) {
+        // On second evaluation it should be reset (if function with this token is called twice)
+        index = 0
+        initialTable = if (parent != null) symbolTable.changeVariable(parent) else symbolTable
+        table = symbolTable.copy()
     }
+
+    override fun getPropertyName(): Token = (children.last() as Assignable).getPropertyName()
 }

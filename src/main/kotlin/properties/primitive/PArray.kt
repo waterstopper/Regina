@@ -110,6 +110,19 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                     else (list.value as MutableList<*>).any { it == element }.toInt()
                 } else throw PositionalException("has is not applicable for this type", token.children[1])
             })
+            setFunction(
+                p, EmbeddedFunction(
+                    "joinToString", listOf(),
+                    listOf(Parser("separator = \",\"").statements().first() as Assignment)
+                ) { token, args ->
+                    val array = getIdent(token, "this", args)
+                    val separator = getIdent(token, "separator", args)
+                    if (array !is PArray)
+                        throw PositionalException("joinToString is not applicable for this type", token.children[1])
+                    if (separator !is PString)
+                        throw PositionalException("joinToString should have String as separator", token.children[1])
+                    array.getPValue().joinToString(separator = separator.getPValue())
+                })
         }
     }
 

@@ -1,10 +1,29 @@
+object Constants {
+    PI = 3.1415926539
+}
+
+fun toRadians(angle) {
+    log("FEKOEFKO")
+    return double(angle) / 180 * Constants.PI
+}
+
 class Point {
     x = 0
     y = 0
-    fun rotate() {
+    // angle in degrees
+    fun rotate(angle, pivot = Point()) {
+        s = sin(toRadians(angle))
+        c = cos(toRadians(angle))
+        log(s + " " + c)
+        this.x = this.x - pivot.x
+        this.y = this.y - pivot.y
+
+        xnew = this.x * c - this.y * s
+        ynew = this.x * s + this.y * c
+        this.x = pivot.x + xnew
+        this.y = pivot.y + ynew
     }
 
-    fun
 }
 
 class Segment {

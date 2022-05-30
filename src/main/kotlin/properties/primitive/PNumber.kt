@@ -21,7 +21,6 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
     }
 
     companion object {
-
         fun initializeEmbeddedNumberFunctions() {
             val n = PNumber(0, null)
             setFunction(n, EmbeddedFunction("abs", listOf()) { token, args ->

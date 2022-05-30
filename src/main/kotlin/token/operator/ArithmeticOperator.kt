@@ -65,7 +65,7 @@ class ArithmeticOperator(
     }
 
     private fun evaluateDuplicatedOperators(first: Number, second: Number, token: Token): Number {
-        if (first is Double) {
+        if (first is Double || second is Double) {
             val a = first.toDouble()
             val b = second.toDouble()
             return when (token.symbol) {

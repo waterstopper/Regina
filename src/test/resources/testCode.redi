@@ -1,6 +1,7 @@
 import imported
 import svg
 import math
+import geometry2D
 
 class TestClass {
     // sb.add(attributes[i]["key"] + "=\"" + attributes[i]["value"] + "\"")
@@ -18,9 +19,9 @@ class Nothing {
     exportArgs = {"type":"node","attributes":{}}
 }
 
-class S {
+class Segment {
     iter = if(parent == 0) 0 else (1 + parent.iter)
-    root = if(iter < 2) S() else Nothing()
+    root = if(iter < 2) Segment() else Nothing()
     start = Position(x = if(parent == 0) 0 else parent.end.x, y = if(parent == 0) 0 else parent.end.y)
     end = math.rotate(Position(x = start.x, y = start.y + 10), 30, start)
     exportArgs = {"exported":"line","type":"node","attributes":{"x1": start.x, "y1": start.y}}
@@ -28,27 +29,37 @@ class S {
 
 class DoubleSegment {
     iter = 1
-    left = Segment()
+   // left = Segment()
+   // right = Segment()
 }
 
 fun main() {
+    //a = Point(x = 5, y = 3)
+    //a.rotate(45)
+    //log(a.x + " " + a.y)
+    a = [1,2,3,4]
+    log(a.joinToString(""))
+
+    log(2.345453.round(12))
+
     B() is A
     m = {"a":1,2:"c"}
     log(m)
     //a = []
     //a.add(0,a)
-    //a = Segment()
-    a = S()
+    //a = Something()
+    a = Segment()
     svg.create(a,100,100)
     log(a)
     a = DoubleSegment()
     log(a)
     a = TestClass()
     log(a)
-    a = Segment()
+    a = Something()
     log(a)
     checkArray()
     checkArray()
+    assignmentTest()
 
 
     test(addition(2, 3) == 5)
@@ -69,7 +80,7 @@ fun main() {
 //	a = toRadians(32)
 //	log(rndInt(64,999))
 //	log(rndInt(64,999))
-//	c = Segment()
+//	c = Something()
 //	arr = [c,"a",1]
 //	log(arr)
 //	add(arr,2)
@@ -86,9 +97,9 @@ fun main() {
 //	log([0] == [0.0])
 //	whileFun()
 	//Root()
-	//c = Segment()
+	//c = Something()
 	//d = c
-	//c.e = Segment()
+	//c.e = Something()
 //	log(c)
 //	log(d)
 
@@ -117,6 +128,15 @@ fun checkLink() {
     //test(a.s == 10)
     //test(a.t == 0)
     b = 2
+}
+
+fun assignmentTest() {
+    a = b = c = 2
+    test(a == 2 & b == 2 & c == 2)
+    a = A()
+    a.s = 2
+    a.s = 3
+    test(a.s == 3)
 }
 
 fun checkMultipleCalls(a) {
@@ -185,7 +205,7 @@ fun checkArray() {
     test([1,2,3].has(1))
 }
 
-class Segment {
+class Something {
 	c = a + b + a
 	iter = 1
 	a = 5
@@ -230,7 +250,7 @@ class Colors {
 }
 
 class Root {
-	segm = Segment()
+	segm = Something()
 	iter = 0
 }
 
@@ -254,6 +274,7 @@ fun abs(x) {
 
 // here two blocks inside each other. Return won't be passed.
 fun toRadians(deg) {
+    log("FIEFNEEFIN")
 	if(deg > 3){
 		return abs( \
 		-deg) * 3 / 180

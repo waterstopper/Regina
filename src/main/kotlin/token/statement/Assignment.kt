@@ -38,7 +38,6 @@ class Assignment(
             if (symbolTable.getCurrentType() is Type) (symbolTable.getCurrentType() as Type) else null,
             symbolTable, value
         )
-        assignLValue(left, value, symbolTable.getCurrentType(), symbolTable)
         return value
     }
 
@@ -60,7 +59,8 @@ class Assignment(
     }
 
     fun assign(parent: Type, symbolTable: SymbolTable) {
-        (left as Assignable).assign(this, parent, symbolTable)
+        parent.removeAssignment(this)
+        (left as Assignable).assign(this, parent, symbolTable,right.evaluate(symbolTable))
     }
 
     /**
@@ -74,50 +74,5 @@ class Assignment(
 
     override fun hashCode(): Int {
         return left.hashCode()
-    }
-
-//    override fun copy(): TokenAssignment = TokenAssignment(
-//        symbol,
-//        value,
-//        position,
-//        bindingPower,
-//        nud,
-//        led,
-//        std,
-//        children.map { it.copy() }.toMutableList()
-//    )
-
-    private fun assignLValue(token: Token, value: Any, parent: Variable?, symbolTable: SymbolTable) {
-//        if (token is Identifier) {
-//            symbolTable.addVariable(token.value, value.toVariable(token))
-//            return
-//        }
-//        // all variables inside PArray property of type won't have such type as parent
-//        if (token is Index) {
-//            val (array, index) = token.getArrayAndIndex(symbolTable)
-//            array.getPValue()[index] = value.toVariable(right)
-//            return
-//        }
-//        var importTable = symbolTable
-//        var current = token
-//        while (current is Link) {
-//            // left is type
-//            if (importTable.getVariableOrNull(current.left.value) != null) {
-//                val type = importTable.getVariableOrNull(current.left.value)
-//                if (type is Type) {
-//                    importTable = symbolTable.changeType(type)
-//                    current = current.right
-//                } else throw PositionalException("primitive does not contain properties", current.left)
-//            } else if (importTable.getObjectOrNull(current.left) != null) {
-//                importTable = symbolTable.changeType(importTable.getObjectOrNull(current.left)!!)
-//                current = current.right
-//            } else if (importTable.getImportOrNull(current.left.value) != null) {
-//                importTable = symbolTable.changeFile(current.left.value)
-//                current = current.right
-//            }
-//        }
-//        if (current is Identifier)
-//            importTable.addVariable(current.value, value.toVariable(current, parent))
-//        else throw PositionalException("expected identifier or link", current)
     }
 }

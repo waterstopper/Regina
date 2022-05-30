@@ -13,6 +13,7 @@ object Utils {
         PArray.initializeEmbeddedArrayFunctions()
         PString.initializeEmbeddedStringFunctions()
         PNumber.initializeEmbeddedNumberFunctions()
+        PDouble.initializeEmbeddedDoubleFunctions()
 
         PInt.initializeIntProperties()
         PDouble.initializeDoubleProperties()

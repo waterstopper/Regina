@@ -124,7 +124,7 @@ class SymbolTable(
             ?: throw PositionalException("File not found", token)
 
     fun getType(token: Token): Type =
-        getFromFiles(token) { it.getTypeOrNull(token.value) ?: throw PositionalException("EF", token) } as Type?
+        getFromFiles(token) { it.getTypeOrNull(token.value) } as Type?
             ?: throw PositionalException(
                 "Type `${token.value}` not found",
                 token
@@ -143,12 +143,14 @@ class SymbolTable(
     fun getTypeOrNull(token: Token): Type? = getFromFilesOrNull { it.getTypeOrNull(token.value) } as Type?
     fun getFunctionOrNull(token: Token): Function? =
         getFromFilesOrNull { it.getFunctionOrNull(token.value) } as Function?
+            ?: if (variableTable != null) variableTable!!.getFunctionOrNull(token.value) else null
 
     fun getMain(): Function {
         val mains = getFromFilesOrNull { it.getFunctionOrNull("main") }
             ?: throw PositionalException("no main functions found")
         return fileTable.getFunctionOrNull("main") ?: throw PositionalException("no main function in current file")
     }
+
     fun getVariableOrNull(name: String): Variable? = scopeTable!!.getVariableOrNull(name)
     fun getIdentifier(token: Token): Variable = getIdentifierOrNull(token) ?: throw PositionalException(
         "Identifier `${token.value}` not found in `$fileTable`",

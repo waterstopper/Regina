@@ -63,14 +63,12 @@ class Index(
         throw ExpectedTypeException(listOf(PArray::class, Number::class), this, expectedMultiple = true)
     }
 
-    override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any?) {
+    override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
         if (parent == null) {
-            val rValue = assignment.right.evaluate(symbolTable)
             val (arr, ind) = getIndexableAndIndex(symbolTable)
-            arr.set(ind, rValue.toVariable(assignment.right), left, right)
+            arr.set(ind, value.toVariable(assignment.right), left, right)
             return
         }
-        parent.removeAssignment(assignment)
         val property = parent.getProperty(getPropertyName())
         if (property !is Indexable)
             throw ExpectedTypeException(listOf(PArray::class, PDictionary::class, PString::class), left)

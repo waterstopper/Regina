@@ -1,6 +1,6 @@
-data class Optional(val value: Any? = null, var isGood: Boolean = true) {
+data class Optional(val value: Any? = null, var isGood: Boolean = false) {
     init {
-        if (value == null)
-            isGood = false
+        if (value != null)
+            isGood = true
     }
 }

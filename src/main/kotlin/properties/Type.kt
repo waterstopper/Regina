@@ -2,6 +2,7 @@ package properties
 
 import lexer.PositionalException
 import properties.primitive.PDictionary
+import properties.primitive.PInt
 import token.Token
 import token.TokenFactory
 import token.statement.Assignment
@@ -10,7 +11,7 @@ open class Type(
     val name: String,
     parent: Type?,
     val assignments: MutableList<Assignment>,
-    private val fileName: String,
+    val fileName: String,
     private val exported: Any? = null,
     private val exportArgs: Any? = null,
     var supertype: Type? = null
@@ -52,7 +53,10 @@ open class Type(
     override fun getProperty(token: Token) = when (token.value) {
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
-        else -> properties[token.value] ?: throw PositionalException("`${token.value}` not found in `$name`", token)
+        else -> properties[token.value] ?: PInt(
+            0,
+            this
+        )//throw PositionalException("`${token.value}` not found in `$name`", token)
     }
 
     fun setProperty(name: String, value: Property) {
