@@ -145,6 +145,6 @@ fun all(classRef) {
         } else {
         }
         }
-        stack.add(res.properties isnot Value)
+        stack.add(res.properties !is Value)
     }
 }//

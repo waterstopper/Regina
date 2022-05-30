@@ -195,7 +195,7 @@ fun checkType() {
 	test(A() is A)
 	log(B() is A)
 	test(B() is A) // TODO initialize supertypes
-	test(0 isnot Array)
+	test(0 !is Array)
 }
 
 fun checkArray() {
@@ -309,5 +309,5 @@ fun all(classRef) {
 		} else {
 		}
 	}
-	stack.add(res.properties isnot Value)
+	stack.add(res.properties !is Value)
 }

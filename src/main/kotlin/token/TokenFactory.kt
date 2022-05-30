@@ -18,7 +18,7 @@ import token.variable.TokenString
 class TokenFactory {
     private val nonArithmeticOperators = listOf("+", "==", "!=")
     private val arithmeticOperators = listOf("-", "*", "/", "%", ">=", "<=", ">", "<", "!", "&", "|")
-    private val wordOperators = listOf("is", "isnot", "!is")
+    private val wordOperators = listOf("is")
 
     fun createWordToken(
         symbol: String,

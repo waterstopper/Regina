@@ -304,7 +304,7 @@ class Lexer() {
 
         tokReg.infix("is", 15)
         tokReg.infix("!is", 15)
-        tokReg.infix("isnot", 15)
+        //tokReg.infix("isnot", 15)
 
 
         tokReg.prefix("-")
