@@ -1,7 +1,9 @@
 package lexer
 
 import properties.Function
+import properties.Variable
 import properties.primitive.*
+import table.FileTable
 import token.Identifier
 import token.Token
 import token.invocation.Invocation
@@ -21,7 +23,16 @@ open class PositionalException(
         else "$errorMessage at ${position.second},${position.first}-${position.first + length - 1}"
 }
 
-class NotFoundException(classes: Class<*>) : PositionalException("")
+class NotFoundException(
+    token: Token = Token(),
+    fileName: String = "",
+    file: FileTable = FileTable(""),
+    val variable: Variable? = null
+) :
+    PositionalException("", token, file = if (fileName == "") file.fileName else fileName) {
+    override val message: String
+        get() = "Not found" + (variable?.toString() ?: "")
+}
 
 class ExpectedTypeException(
     private val classes: List<KClass<*>>,
@@ -38,7 +49,7 @@ class ExpectedTypeException(
 
     private fun mapToString(mapped: KClass<*>): String {
         return when (mapped) {
-            Function::class -> "function"
+            Function::class -> "Function"
             PInt::class -> "Int"
             PDouble::class -> "Double"
             PNumber::class -> "Number"
@@ -48,7 +59,7 @@ class ExpectedTypeException(
             Identifier::class -> "Identifier"
             Invocation::class -> "Invocation"
             Index::class -> "Index"
-            else -> "unknown"
+            else -> mapped.toString().split(".").last()
         }
     }
 }

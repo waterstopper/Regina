@@ -1,7 +1,7 @@
 import imported
 import svg
 import math
-import geometry2D
+import geometry2D as geom
 
 class TestClass {
     // sb.add(attributes[i]["key"] + "=\"" + attributes[i]["value"] + "\"")
@@ -34,6 +34,7 @@ class DoubleSegment {
 }
 
 fun main() {
+    log(A() is B)
     log(12345.0.round(-2))
     a = Point(x = 5, y = 3)
     b = a.rotate(90)

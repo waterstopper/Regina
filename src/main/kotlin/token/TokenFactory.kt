@@ -18,7 +18,7 @@ import token.variable.TokenString
 class TokenFactory {
     private val nonArithmeticOperators = listOf("+", "==", "!=")
     private val arithmeticOperators = listOf("-", "*", "/", "%", ">=", "<=", ">", "<", "!", "&", "|")
-    private val wordOperators = listOf("is", "isnot")
+    private val wordOperators = listOf("is", "isnot", "!is")
 
     fun createWordToken(
         symbol: String,
@@ -36,15 +36,17 @@ class TokenFactory {
     }
 
     fun copy(token: Token): Token {
-        if(token is Assignment){
-            val res = Assignment( token.symbol,
+        if (token is Assignment) {
+            val res = Assignment(
+                token.symbol,
                 token.value,
                 token.position,
                 token.bindingPower,
                 token.nud,
                 token.led,
                 token.std,
-                token.children)
+                token.children
+            )
             res.isProperty = token.isProperty
             return res
         }
@@ -71,6 +73,7 @@ class TokenFactory {
         std: ((token: Token, parser: Parser) -> Token)?
     ): Token {
         return when (symbol) {
+            "!is" -> TypeOperator(symbol, value, position, bindingPower, nud, led, std)
             "(" -> Invocation(symbol, value, position, bindingPower, nud, led, std)
             "." -> Link(("(LINK)"), value, position, bindingPower, nud, led, std)
             "=" -> Assignment("(ASSIGNMENT)", value, position, bindingPower, nud, led, std)

@@ -51,7 +51,7 @@ class Index(
         val index = right.evaluate(symbolTable)
         return when (indexed) {
             is Indexable -> indexed[index, right]
-            else -> throw ExpectedTypeException(listOf(PArray::class, PDictionary::class, PString::class), this)
+            else -> throw ExpectedTypeException(listOf(PArray::class, PDictionary::class, PString::class), this, this)
         }
     }
 
@@ -71,7 +71,7 @@ class Index(
         }
         val property = parent.getProperty(getPropertyName())
         if (property !is Indexable)
-            throw ExpectedTypeException(listOf(PArray::class, PDictionary::class, PString::class), left)
+            throw ExpectedTypeException(listOf(PArray::class, PDictionary::class, PString::class), left, property)
         val index = right.evaluate(symbolTable)
         if (index !is Int)
             throw PositionalException("Index is not integer", this)

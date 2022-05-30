@@ -1,6 +1,7 @@
 package token
 
 import Optional
+import lexer.NotFoundException
 import lexer.Parser
 import lexer.PositionalException
 import properties.Function
@@ -38,7 +39,7 @@ open class Link(
     override fun evaluate(symbolTable: SymbolTable): Any {
         reset(symbolTable)
         if (!checkFirstVariable())
-            throw PositionalException("Not found", left)
+            throw NotFoundException(left, file = symbolTable.getFileTable())
         table = table.changeVariable(currentVariable!!)
         index++
         while (index < children.size) {
@@ -66,7 +67,7 @@ open class Link(
             is Identifier -> {
                 val property = variable.getPropertyOrNull(children[index].value)
                     ?: if (variable is Type) (return Optional(variable.getAssignment(children[index])))
-                    else throw PositionalException("Property not found", children[index])
+                    else throw NotFoundException(children[index])
                 assignCurrentVariable(property)
             }
             is Index -> {
@@ -136,8 +137,8 @@ open class Link(
         if (type == null || type !is Type)
             type = null
         val tableForEvaluation = SymbolTable(
-            fileTable = table.getImportOrNull((type as Type?)?.fileName ?: "")
-                ?: table.getFileTable(), variableTable = table.getCurrentType()
+            fileTable = if (type is Type) table.getFileFromType(type,children[index])
+            else table.getFileTable(), variableTable = table.getCurrentType()
         ) // table.changeScope(initialTable.getScope())
         (children[index] as Call).argumentsToParameters(function, initialTable, tableForEvaluation)
         val functionResult = (children[index] as Call).evaluateFunction(tableForEvaluation, function)
@@ -154,7 +155,12 @@ open class Link(
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
         // hacky way, not good.
         // TODO in type functions are added to type properties
-        getFirstUnassigned(parent ?: Type("@Fictive", null, mutableListOf(), ""), symbolTable)
+        getFirstUnassigned(
+            parent ?: Type(
+                "@Fictive",
+                null, mutableListOf(), "@global"
+            ), symbolTable
+        )
         // if the last child in link is assigned
         if (index == children.lastIndex)
             currentVariable = currentParent

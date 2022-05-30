@@ -1,6 +1,6 @@
 package table
 
-import lexer.PositionalException
+import lexer.NotFoundException
 import properties.Variable
 import token.Token
 
@@ -11,9 +11,9 @@ class ScopeTable {
         variables[name] = variable
     }
 
-    fun getVariable(token: Token) = variables[token.value] ?: throw PositionalException("Identifier not found", token)
+    fun getVariable(token: Token) = variables[token.value] ?: throw NotFoundException(token)
     fun getVariable(name: String) = variables[name]
-        ?: throw PositionalException("Identifier not found")
+        ?: throw NotFoundException()
 
     fun getVariableOrNull(name: String) = variables[name]
 

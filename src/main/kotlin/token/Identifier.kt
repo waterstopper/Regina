@@ -1,8 +1,8 @@
 package token
 
 
+import lexer.NotFoundException
 import lexer.Parser
-import lexer.PositionalException
 import properties.Type
 import properties.primitive.Primitive
 import table.SymbolTable
@@ -19,9 +19,9 @@ open class Identifier(
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         val variable = symbolTable.getIdentifierOrNull(this)
-            ?: return symbolTable.getTypeOrNull(this) ?: throw PositionalException(
-                "Identifier `${value}` not found",
-                this
+            ?: return symbolTable.getTypeOrNull(this) ?: throw NotFoundException(
+                this,
+                file = symbolTable.getFileTable()
             )
         if (variable is Primitive)
             return (variable).getPValue()

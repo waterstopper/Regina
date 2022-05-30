@@ -1,5 +1,6 @@
 package properties.primitive
 
+import lexer.NotFoundException
 import lexer.PositionalException
 import properties.*
 import properties.Function
@@ -53,7 +54,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
             ?: (if (getIndex() in 2..3)
                 properties[1][token.value]?.let { it(this) } ?: properties[0][token.value]?.let { it(this) }
             else properties[0][token.value]?.let { it(this) })
-            ?: throw PositionalException("`${token.value}` not found", token)
+            ?: throw NotFoundException(token, variable = this)
     }
 
     /**

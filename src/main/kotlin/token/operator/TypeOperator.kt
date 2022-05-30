@@ -27,7 +27,7 @@ class TypeOperator(
     override fun evaluate(symbolTable: SymbolTable): Any {
         return when (symbol) {
             "is" -> evaluateTypeCheck(symbolTable).toInt()
-            "isnot" -> (!evaluateTypeCheck(symbolTable)).toInt()
+            "isnot", "!is" -> (!evaluateTypeCheck(symbolTable)).toInt()
             else -> throw PositionalException("unknown word for operator", this)
         }
     }

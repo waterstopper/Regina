@@ -107,6 +107,16 @@ class Lexer() {
     }
 
     private fun nextOperator(): Token {
+        if (index + 2 <= source.lastIndex && source.substring(index..index + 2) == "!is") {
+            move()
+            move()
+            move()
+            return tokReg.operator(
+                source.substring(index - 3 until index),
+                source.substring(index - 3 until index),
+                Pair(position.first - 3, position.second)
+            )
+        }
 //        // for !is
 //        if (index + 1 < source.lastIndex && tokReg.defined(source.substring(index..index + 2))) {
 //            move()
@@ -270,6 +280,7 @@ class Lexer() {
         tokReg.consumable("(EOF)")
         tokReg.consumable("{")
         tokReg.consumable("}")
+        tokReg.consumable("as")
 
         tokReg.infix("+", 50)
         tokReg.infix("-", 50)
@@ -292,6 +303,7 @@ class Lexer() {
         //tokReg.infix(":", 20)
 
         tokReg.infix("is", 15)
+        tokReg.infix("!is", 15)
         tokReg.infix("isnot", 15)
 
 
@@ -485,6 +497,10 @@ class Lexer() {
         tokReg.stmt("import") { token: Token, parser: Parser ->
             val res = Declaration(token)
             res.children.add(parser.expression(0))
+            if (parser.lexer.peek().value == "as") {
+                parser.advance("as")
+                res.children.add(parser.expression(0))
+            }
             res
         }
 
@@ -572,11 +588,11 @@ class Lexer() {
 
     private fun isLinkable(token: Token) {
         if (token !is Linkable)
-            throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), token)
+            throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), token, token)
         var index = token
         while (index is Index)
             index = index.left
         if (index !is Linkable)
-            throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), token)
+            throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), token, token)
     }
 }

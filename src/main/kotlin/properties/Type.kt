@@ -59,7 +59,7 @@ open class Type(
         else -> properties[token.value] ?: PInt(
             0,
             this
-        )//throw PositionalException("`${token.value}` not found in `$name`", token)
+        )
     }
 
     fun setProperty(name: String, value: Property) {

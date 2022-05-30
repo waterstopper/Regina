@@ -1,6 +1,8 @@
 package table
 
 import evaluation.FunctionFactory
+import lexer.ExpectedTypeException
+import lexer.NotFoundException
 import lexer.PositionalException
 import properties.Function
 import properties.Object
@@ -42,18 +44,15 @@ class FileTable(
 
     fun getTypeOrNull(name: String): Type? = types.find { it.name == name }?.copy()
     fun getType(token: Token): Type = types.find { it.name == token.value }?.copy()
-        ?: throw PositionalException("Type `${token.value}` not found", token)
+        ?: throw NotFoundException(token)
 
     fun getUncopiedType(token: Token): Type = types.find { it.name == token.value }
-        ?: throw PositionalException("Type `${token.value}` not found", token)
+        ?: throw throw NotFoundException(token)
 
 
     fun getObjectOrNull(name: String) = objects.find { it.name == name }
     fun getFunction(call: Call): Function =
-        functions.find { it.name == call.name.value } ?: throw PositionalException(
-            "`${call.name}` not found",
-            call
-        )
+        functions.find { it.name == call.name.value } ?: throw NotFoundException(call)
 
     fun getFunctionOrNull(name: String) = functions.find { it.name == name }
     fun getFunctionNames() = functions.map { it.name }.toMutableSet()
@@ -68,7 +67,7 @@ class FileTable(
                 functions.add(
                     FunctionFactory.createFunction(a)
                 )
-            else throw PositionalException("expected assignment or function", a)
+            else throw ExpectedTypeException(listOf(Assignment::class, Function::class), a)
         }
 
         return Pair(res, functions)

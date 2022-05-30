@@ -54,11 +54,11 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
                 val number = args.getPropertyOrNull("this")!!
                 val deg = getIdent(token, "deg", args)
                 if (deg !is PNumber)
-                    throw ExpectedTypeException(listOf(PNumber::class), token)
+                    throw ExpectedTypeException(listOf(PNumber::class), token, deg)
                 when (number) {
                     is PInt -> number.getPValue().toDouble().pow(deg.getPValue().toDouble()).toInt()
                     is PDouble -> number.getPValue().pow(deg.getPValue().toDouble())
-                    else -> throw ExpectedTypeException(listOf(PNumber::class), token)
+                    else -> throw ExpectedTypeException(listOf(PNumber::class), token, number)
                 }
             })
         }

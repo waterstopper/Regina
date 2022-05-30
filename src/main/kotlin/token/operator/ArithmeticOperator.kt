@@ -1,5 +1,6 @@
 package token.operator
 
+import lexer.ExpectedTypeException
 import lexer.Parser
 import lexer.PositionalException
 import table.SymbolTable
@@ -31,22 +32,22 @@ class ArithmeticOperator(
             "&" -> {
                 val a = left.evaluate(symbolTable)
                 if (a !is Number)
-                    throw PositionalException("Expected number", left)
+                    throw ExpectedTypeException(listOf(Number::class), left, a)
                 return if (a != 0) {
                     val b = right.evaluate(symbolTable)
                     if (b !is Number)
-                        throw PositionalException("Expected number", right)
+                        throw ExpectedTypeException(listOf(Number::class), right, b)
                     (a != 0 && b != 0).toInt()
                 } else 0
             }
             "|" -> {
                 val a = left.evaluate(symbolTable)
                 if (a !is Number)
-                    throw PositionalException("Expected number", left)
+                    throw ExpectedTypeException(listOf(Number::class), left, a)
                 return if (a == 0) {
                     val b = right.evaluate(symbolTable)
                     if (b !is Number)
-                        throw PositionalException("Expected number", right)
+                        throw ExpectedTypeException(listOf(Number::class), right, b)
                     (a != 0 || b != 0).toInt()
                 } else 1
             }

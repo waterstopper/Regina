@@ -104,8 +104,8 @@ class SymbolTable(
             ?: throw PositionalException("File not found"))
     }
 
-    // TODO dangerous if type is in different file
-    fun changeVariable(type: Variable) = SymbolTable(scopeTable?.copy(), type, fileTable)
+    fun changeVariable(type: Variable) =
+        SymbolTable(scopeTable?.copy(), type, if (type is Type) changeFile(type.fileName).fileTable else fileTable)
 
     fun addFile(fileName: String): Boolean {
         if (imports[FileTable(fileName)] == null) {
@@ -123,6 +123,8 @@ class SymbolTable(
 
     fun addVariable(name: String, value: Variable) = scopeTable!!.addVariable(name, value)
     fun getImportOrNull(fileName: String) = imports[fileTable]!!.find { it.fileName == fileName }
+    fun getFileFromType(type: Type, token: Token) = imports.keys.find { it.fileName == type.fileName }
+        ?: throw PositionalException("File `${type.fileName}` not found", token)
 
     fun getImport(token: Token) =
         imports[fileTable]!!.find { it.fileName == token.value }

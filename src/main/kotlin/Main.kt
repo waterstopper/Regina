@@ -10,7 +10,8 @@ import java.io.File
 import java.io.FileNotFoundException
 
 fun main() {
-    //println(Parser("(v-a).b.c[1][2][3].s.r").statements().treeView())
+//    println(Parser("A !is B").statements().treeView())
+    // println(Parser("(v-a).b.c[1][2][3].s.r").statements().treeView())
     val s = readFile("src/test/resources/testCode.redi")
     SemanticAnalyzer.initializeSuperTypes()
     SymbolTable.initializeObjects()
