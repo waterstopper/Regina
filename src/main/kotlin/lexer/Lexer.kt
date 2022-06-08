@@ -30,9 +30,8 @@ class Lexer() {
     private var index: Int = 0
     var position: Pair<Int, Int> = Pair(0, 0)
     private var tok: Token = Token()
-    private var cached: Boolean = false
     private val tokens = mutableListOf<Token>()
-    private var tokenIndex = 0
+    private var tokenIndex = -1
 
     constructor(source: String = "") : this() {
         this.source = source
@@ -49,8 +48,7 @@ class Lexer() {
     }
 
     fun next(): Token {
-        cached = false
-        return tokens[tokenIndex++]
+        return tokens[++tokenIndex]
     }
 
     private fun nextString(): Token {
@@ -166,7 +164,6 @@ class Lexer() {
     private fun createNextToken(): Token {
         if(tokens.isNotEmpty() && tokens.last().value == "continue")
             println()
-        cached = false
         var tempIndex = -1
         while (index != tempIndex) {
             tempIndex = index
@@ -244,19 +241,10 @@ class Lexer() {
         return res
     }
 
-    fun peek(): Token {
-        if (cached)
-            return tok
-        if(tokenIndex >= tokens.size)
+    fun peek(offset:Int=1): Token {
+        if(tokenIndex + offset >= tokens.size)
             return tokens.last()
-        val ind = tokenIndex
-        val pos = tokens[tokenIndex].position//Pair(position.first, position.second)
-        val res = next()
-        tok = res
-        cached = true
-        tokenIndex = ind
-        position = pos
-        return res
+        return tokens[tokenIndex + offset]
     }
 
     private fun toNextLine() {
