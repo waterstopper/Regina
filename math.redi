@@ -2,7 +2,87 @@ fun rotate(point, angle, pivot){
     return point
 }
 
-// Return array of doubles as a solution of x^2 + bx + c = 0
+// solve equation of type a_0 + a_1x + ... + a_{n-1}x^{n-1} = 0
+0un solve(args) {
+    if (args.size == 0) {
+        throw("Expected more args", args)
+    }
+    if(args.size == 1) {
+        
+    }
+}
+
+// x^3 + ax + b = 0
+fun newton(a, b) {
+    s = 1.0
+    while (b + a > -1) {
+        a = a * 4.0
+        b = b * 8.0
+        s = s * 0.5
+    }
+    while (b + 2 * a < -8.0)
+    {
+        a = a * 0.25
+        b = b * 0.125
+        s = s * 2.0
+    }
+    x = 1.5
+    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
+    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
+    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
+    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
+    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
+    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
+    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
+    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
+    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
+    return x * s
+}
+
+// x^3 + ax^2 + bx + c = 0
+fun solve3(a, b, c) {
+    if (c == 0) {
+        solution = 0.0
+    }
+    else {
+        a3 = a / 3.0
+        p = b - a3 * a
+        q = c - (a3 * a3 + p) * a3
+        if ( q < 0 )
+        {
+            solution = newton(p, q)
+        }
+        else if (q > 0) {
+            solution = -newton (p, -q)
+        }
+        else {
+            solution = = 0
+        }
+        solution = solution - a3
+        t = solution * (solution * 3.0 + a * 2.0) + b
+        if (abs(t) > 0.001) {
+            solution = solution - (solution * (solution * (solution + a ) + b ) + c ) / t
+        }
+        a = a + solution
+        b = b + solution * a
+    }
+    return solution + solve2(a, b)
+}
+// x^2 + ax + b = 0
+solve2 (a, b) {
+    if ( b == 0 ) {
+        return if(a == 0) [0.0] else [0.0, -double(a)]
+    }
+    solution = []
+    a = a * -0.5
+    d = a * a - b
+    if ( d < 0 ) { return 0 }
+    d = sqrt(d)
+    solution.add(double(if(a > 0) a + d else a - d))
+    solution.add(b / solution[0])
+}
+
+// Return array of doubles as a solution of ax^2 + bx + c = 0
 fun solveSquare(a, b, c) {
     solution = [0, 0]
     if (a == 0) {
