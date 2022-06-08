@@ -3,13 +3,18 @@ fun rotate(point, angle, pivot){
 }
 
 // solve equation of type a_0 + a_1x + ... + a_{n-1}x^{n-1} = 0
-0un solve(args) {
+fun solve(args) {
     if (args.size == 0) {
         throw("Expected more args", args)
     }
     if(args.size == 1) {
         
     }
+}
+// http://prografix.narod.ru/rus_alg_ur4.html
+// x^4 + ax^3 + bx^2 + cx + d = 0
+fun solve4(a, b, c, d) {
+    
 }
 
 // x^3 + ax + b = 0
