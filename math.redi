@@ -2,10 +2,6 @@ fun rotate(point, angle, pivot) {
     return point
 }
 
-fun abs(x) {
-	return if (x < 0) -x else x
-}
-
 // solve equation of type a_0 + a_1x + ... + a_{n-1}x^{n-1} = 0
 fun solve(args) {
     if (args.size == 0) {
@@ -65,7 +61,7 @@ fun solve3(a, b, c) {
         }
         solution = solution - a3
         t = solution * (solution * 3.0 + a * 2.0) + b
-        if (abs(t) > 0.001) {
+        if (t.abs() > 0.001) {
             solution = solution - (solution * (solution * (solution + a ) + b ) + c ) / t
         }
         a = a + solution
