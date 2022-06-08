@@ -1,5 +1,6 @@
 package lexer
 
+import Logger
 import token.Declaration
 import token.Identifier
 import token.Linkable
@@ -30,11 +31,26 @@ class Lexer() {
     var position: Pair<Int, Int> = Pair(0, 0)
     private var tok: Token = Token()
     private var cached: Boolean = false
-    val last: Token = Token()
+    private val tokens = mutableListOf<Token>()
+    private var tokenIndex = 0
 
     constructor(source: String = "") : this() {
         this.source = source
         getRegistry()
+        addTokens()
+    }
+
+    private fun addTokens() {
+        while (index < source.length)
+            tokens.add(createNextToken())
+        tokens.add(Token("(EOF)", "(EOF)", position))
+        if (tokens.size >= 100000)
+            Logger.addWarning(tokens.last(), "File too large")
+    }
+
+    fun next(): Token {
+        cached = false
+        return tokens[tokenIndex++]
     }
 
     private fun nextString(): Token {
@@ -138,7 +154,7 @@ class Lexer() {
             )
         }
         if (source[index] == '\n')
-            toNextLine()
+            while (index < source.length && source[index] == '\n') toNextLine()
         else if (tokReg.defined(source[index].toString())) move()
         else throw PositionalException("invalid operator", position = position, length = 1)
         return tokReg.operator(
@@ -147,7 +163,9 @@ class Lexer() {
         )
     }
 
-    fun next(): Token {
+    private fun createNextToken(): Token {
+        if(tokens.isNotEmpty() && tokens.last().value == "continue")
+            println()
         cached = false
         var tempIndex = -1
         while (index != tempIndex) {
@@ -199,6 +217,10 @@ class Lexer() {
                     return false
             }
             toNextLine()
+            tokens.add(tokReg.operator(
+                source[index - 1].toString(),
+                source[index - 1].toString(), Pair(position.first - 1, position.second)
+            ))
             return true
         } else if (index < source.length && source[index] == '/' && index < source.lastIndex && source[index + 1] == '*') {
             while (!(source[index] == '*' && source[index + 1] == '/')) {
@@ -225,12 +247,14 @@ class Lexer() {
     fun peek(): Token {
         if (cached)
             return tok
-        val ind = index
-        val pos = Pair(position.first, position.second)
+        if(tokenIndex >= tokens.size)
+            return tokens.last()
+        val ind = tokenIndex
+        val pos = tokens[tokenIndex].position//Pair(position.first, position.second)
         val res = next()
         tok = res
         cached = true
-        index = ind
+        tokenIndex = ind
         position = pos
         return res
     }

@@ -1,5 +1,6 @@
 import evaluation.Evaluation
 import evaluation.Evaluation.evaluate
+import lexer.Lexer
 import lexer.Parser
 import lexer.PositionalException
 import lexer.SemanticAnalyzer

@@ -1,11 +1,16 @@
-fun rotate(point, angle, pivot){
+fun rotate(point, angle, pivot) {
     return point
+}
+
+fun abs(x) {
+	return if (x < 0) -x else x
 }
 
 // solve equation of type a_0 + a_1x + ... + a_{n-1}x^{n-1} = 0
 fun solve(args) {
     if (args.size == 0) {
-        throw("Expected more args", args)
+        log("Expected more args")
+        test(1==0)
     }
     if(args.size == 1) {
         
@@ -25,8 +30,7 @@ fun newton(a, b) {
         b = b * 8.0
         s = s * 0.5
     }
-    while (b + 2 * a < -8.0)
-    {
+    while (b + 2 * a < -8.0) {
         a = a * 0.25
         b = b * 0.125
         s = s * 2.0
@@ -48,20 +52,16 @@ fun newton(a, b) {
 fun solve3(a, b, c) {
     if (c == 0) {
         solution = 0.0
-    }
-    else {
+    } else {
         a3 = a / 3.0
         p = b - a3 * a
         q = c - (a3 * a3 + p) * a3
-        if ( q < 0 )
-        {
+        if ( q < 0 ) {
             solution = newton(p, q)
-        }
-        else if (q > 0) {
-            solution = -newton (p, -q)
-        }
-        else {
-            solution = = 0
+        } else if (q > 0) {
+            solution = -newton(p, -q)
+        } else {
+            solution = 0
         }
         solution = solution - a3
         t = solution * (solution * 3.0 + a * 2.0) + b
@@ -74,7 +74,7 @@ fun solve3(a, b, c) {
     return solution + solve2(a, b)
 }
 // x^2 + ax + b = 0
-solve2 (a, b) {
+fun solve2 (a, b) {
     if ( b == 0 ) {
         return if(a == 0) [0.0] else [0.0, -double(a)]
     }
@@ -92,23 +92,18 @@ fun solveSquare(a, b, c) {
     solution = [0, 0]
     if (a == 0) {
         if (c == 0) {
-            if (b == 0)
-                return [1, 2, 3]
+            if (b == 0) { return [1, 2, 3] }
             return [0.0]
-        }
-        else {
+        } else {
             if ( b == 0 ) { return [] }
             return [0.0]
         }
-    }
-    else {
+    } else {
         if ( c == 0 ) {
             return [0.0, -double(b) / a]
-        }
-        else
-        {
+        } else {
             b = b * -0.5
-            d = b * b - a * c;
+            d = b * b - a * c
             if (d < 0) { return 0 }
             d = sqrt(d)
             t = double(if(b > 0) b + d else b - d)

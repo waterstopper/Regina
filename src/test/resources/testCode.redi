@@ -175,7 +175,7 @@ fun checkWhile() {
 	arg = 0
 	if(1 == 1){
 		while(arg < 10) {
-			if(arg > 5){
+			if(arg > 5) {
 				break
 			}
 			test(arg <= 5)

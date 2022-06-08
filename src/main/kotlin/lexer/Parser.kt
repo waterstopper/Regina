@@ -85,7 +85,9 @@ class Parser() {
     }
 
     fun block(): Token {
-        val token = lexer.next()
+        var token = lexer.next()
+        if(token.symbol == "\n")
+            token = lexer.next()
         if (token.symbol != "{")
             throw PositionalException("expected a block start '{'", position = lexer.position)
         return token.std?.let { it(token, this) } ?: throw PositionalException(
