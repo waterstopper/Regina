@@ -7,7 +7,9 @@ import properties.Function
 import token.Token
 
 /**
- * Stores Array, String, Int, Double values
+ * Stores Dictionary, Array, String, Int, Double values.
+ *
+ * **Array and Dictionary are mutable**, unlike other primitive classes
  */
 abstract class Primitive(protected open var value: Any, parent: Type?) : Property(parent) {
     open fun getIndex() = 0

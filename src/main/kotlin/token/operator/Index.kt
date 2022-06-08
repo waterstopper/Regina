@@ -12,6 +12,12 @@ import token.Token
 import token.statement.Assignment
 import utils.Utils.toVariable
 
+/**
+ * Format: `a[i]` -  `[]` is index, `a` is indexed value
+ *  ([PArray] or [PDictionary]) and `i` is [PInt] or key of dictionary.
+ *
+ * Token that represents taking value from collection by index or key
+ */
 class Index(
     symbol: String,
     value: String,

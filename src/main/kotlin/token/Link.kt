@@ -17,6 +17,20 @@ import token.statement.Assignment
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
+/**
+ * Format: `a.b.c.d` - `a`, `b`, `c` and `d` are children of link
+ *
+ * Represents tokens separated by dots. These tokens are link children. In Regina, links have many purposes:
+ * 1. A property of class, object or a primitive: `Point.x` or `Segment.parent.iter`
+ * 2. A function of class, object or a primitive: `Double.round()`
+ * 3. Reference to a class, object or a function from another file: `importedFile.className`
+ * 4.
+ * That's why links are complex, they should be carefully evaluated and assigned.
+ *
+ * Link invariants:
+ * * First token in link might be anything
+ * * n-th token is [Linkable]: [Identifier], [Invocation] or [Index]
+ */
 open class Link(
     symbol: String, value: String, position: Pair<Int, Int>, bindingPower: Int,
     nud: ((token: Token, parser: Parser) -> Token)?,
@@ -127,7 +141,7 @@ open class Link(
     private fun addFile() {
         val fileTable = table.getImportOrNull(left.value)
             ?: throw PositionalException("Expected variable, object or package name", left)
-        table = table.changeFile(fileTable.fileName)
+        table = table.changeFile(fileTable)
     }
 
     // here symbol table is ignored. Only value with same fileName
@@ -137,7 +151,7 @@ open class Link(
         if (type == null || type !is Type)
             type = null
         val tableForEvaluation = SymbolTable(
-            fileTable = if (type is Type) table.getFileFromType(type,children[index])
+            fileTable = if (type is Type) table.getFileFromType(type, children[index])
             else table.getFileTable(), variableTable = table.getCurrentType()
         ) // table.changeScope(initialTable.getScope())
         (children[index] as Call).argumentsToParameters(function, initialTable, tableForEvaluation)
@@ -158,7 +172,7 @@ open class Link(
         getFirstUnassigned(
             parent ?: Type(
                 "@Fictive",
-                null, mutableListOf(), "@global"
+                null, mutableListOf(), symbolTable.getImport(Token(value = "@global"))
             ), symbolTable
         )
         // if the last child in link is assigned
@@ -179,6 +193,7 @@ open class Link(
         val firstResolved = checkFirstVariable()
         if (!firstResolved)
             return parent.getAssignment(left) ?: throw PositionalException("Assignment not found", left)
+        table = table.changeVariable(currentVariable!!)
         index++
         while (index < children.size) {
             val res = checkNextVariable(

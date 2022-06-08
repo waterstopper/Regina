@@ -77,15 +77,15 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                     val argument = getIdent(token, "element", args)
                     if (argument is Primitive) {
                         var removed = false
-                        for (e in (list.value as MutableList<*>)) {
+                        for (e in list.getPValue()) {
                             if (e is Primitive && e == argument) {
                                 removed = true
-                                (list.value as MutableList<*>).remove(e)
+                                list.getPValue().remove(e)
                                 break
                             }
                         }
                         removed.toInt()
-                    } else (list.value as MutableList<*>).remove(argument).toInt()
+                    } else list.getPValue().remove(argument).toInt()
                 } else throw PositionalException("remove is not applicable for this type", token.children[1])
             })
             setFunction(p, EmbeddedFunction("removeAt", listOf(Token(value = "index"))) { token, args ->
@@ -94,9 +94,9 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 if (list is PArray) {
                     if (index is PInt)
                         try {
-                            (list.value as MutableList<*>).removeAt(index.getPValue())!!
+                            list.getPValue().removeAt(index.getPValue())
                         } catch (e: IndexOutOfBoundsException) {
-                            throw PositionalException("index ${index.getPValue()} out of bounds for length ${(list.value as MutableList<*>).size}")
+                            throw PositionalException("index ${index.getPValue()} out of bounds for length ${list.getPValue().size}")
                         }
                     else throw PositionalException("expected integer as index", token.children[2])
                 } else throw PositionalException("removeAt is not applicable for this type", token.children[1])
@@ -106,8 +106,8 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 val element = getIdent(token, "element", args)
                 if (list is PArray) {
                     if (element is Primitive)
-                        (list.value as MutableList<*>).any { (it is Primitive && it == element) }.toInt()
-                    else (list.value as MutableList<*>).any { it == element }.toInt()
+                        list.getPValue().any { (it is Primitive && it == element) }.toInt()
+                    else list.getPValue().any { it == element }.toInt()
                 } else throw PositionalException("has is not applicable for this type", token.children[1])
             })
             setFunction(

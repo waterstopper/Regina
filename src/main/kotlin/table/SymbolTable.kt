@@ -16,7 +16,7 @@ class SymbolTable(
     private var fileTable: FileTable = FileTable("")
 ) {
     companion object {
-        private val imports = mutableMapOf<FileTable, MutableSet<FileTable>>()
+        private val imports = mutableMapOf<FileTable, MutableMap<String, FileTable>>()
 
         //private val embedded: MutableMap<String, Function> = initializeEmbedded()
         private val globalFile = initializeGlobal()
@@ -25,7 +25,7 @@ class SymbolTable(
             val res = FileTable("@global")
             for (i in initializeEmbedded())
                 res.addFunction(i.value)
-            imports[res] = mutableSetOf()
+            imports[res] = mutableMapOf()
             return res
         }
 
@@ -40,7 +40,7 @@ class SymbolTable(
 
     private fun checkImports(check: (table: FileTable) -> Any?): List<Any> {
         val suitable = mutableListOf<Any>()
-        for (table in imports[fileTable]!!) {
+        for (table in imports[fileTable]!!.values) {
             val fromFile = check(table)
             if (fromFile != null)
                 suitable.add(fromFile)
@@ -76,7 +76,7 @@ class SymbolTable(
         if (inCurrent != null)
             return fileTable
         val suitable = mutableListOf<FileTable>()
-        for (table in imports[fileTable]!!) {
+        for (table in imports[fileTable]!!.values) {
             val fromFile = getValue(table)
             if (fromFile != null)
                 suitable.add(table)
@@ -99,35 +99,44 @@ class SymbolTable(
     fun changeScope(scopeTable: ScopeTable?): SymbolTable =
         SymbolTable(scopeTable = scopeTable?.copy(), variableTable = variableTable, fileTable = fileTable)
 
+    fun changeFile(fileTable: FileTable): SymbolTable {
+        return SymbolTable(scopeTable?.copy(), variableTable, imports.keys.find { it == fileTable }
+            ?: throw PositionalException("File not found"))
+    }
+
     fun changeFile(fileName: String): SymbolTable {
         return SymbolTable(scopeTable?.copy(), variableTable, imports.keys.find { it.fileName == fileName }
             ?: throw PositionalException("File not found"))
     }
+
 
     fun changeVariable(type: Variable) =
         SymbolTable(scopeTable?.copy(), type, if (type is Type) changeFile(type.fileName).fileTable else fileTable)
 
     fun addFile(fileName: String): Boolean {
         if (imports[FileTable(fileName)] == null) {
-            imports[FileTable(fileName)] = mutableSetOf(globalFile)
+            imports[FileTable(fileName)] = mutableMapOf("@global" to globalFile)
             return true
         }
         return false
     }
 
-    fun addImport(fileName: Token) = imports[fileTable]!!.add(imports.keys.find { it.fileName == fileName.value }!!)
+    fun addImport(fileName: Token, importName: Token) {
+        imports[fileTable]!![importName.value] = imports.keys.find { it.fileName == fileName.value }!!
+    }
+
     fun addType(token: Token) = fileTable.addType(token)
     fun addFunction(function: Function) = fileTable.addFunction(function)
     fun addObject(token: Token) = fileTable.addObject(token)
 
 
     fun addVariable(name: String, value: Variable) = scopeTable!!.addVariable(name, value)
-    fun getImportOrNull(fileName: String) = imports[fileTable]!!.find { it.fileName == fileName }
-    fun getFileFromType(type: Type, token: Token) = imports.keys.find { it.fileName == type.fileName }
-        ?: throw PositionalException("File `${type.fileName}` not found", token)
+    fun getImportOrNull(importName: String) = imports[fileTable]!![importName]
+    fun getFileFromType(type: Type, token: Token) = imports.keys.find { it == type.fileName }
+        ?: throw PositionalException("File `${type.fileName.fileName}` not found", token)
 
     fun getImport(token: Token) =
-        imports[fileTable]!!.find { it.fileName == token.value }
+        imports[fileTable]!![token.value]
             ?: throw PositionalException("File not found", token)
 
     fun getType(token: Token): Type =
@@ -201,7 +210,11 @@ class SymbolTable(
             res.append("\n")
             res.append(i.stringNotation())
             if (imports[i]?.isNotEmpty() == true)
-                res.append("\n\timports: ${imports[i]!!.joinToString(separator = ",")}\n")
+                res.append(
+                    "\n\timports: ${
+                        imports[i]!!.map { Pair(it.value, it.key) }.joinToString(separator = ",")
+                    }\n"
+                )
         }
         return res.toString()
     }

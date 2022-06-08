@@ -42,7 +42,7 @@ class Call(
     override fun evaluate(symbolTable: SymbolTable): Any {
         val function = symbolTable.getFunction(left)
         val newTable =
-            symbolTable.changeFile(symbolTable.getFileOfValue(left) { it.getFunctionOrNull(left.value) }.fileName)
+            symbolTable.changeFile(symbolTable.getFileOfValue(left) { it.getFunctionOrNull(left.value) })
         argumentsToParameters(function, symbolTable, newTable)
         return evaluateFunction(newTable, function)
     }

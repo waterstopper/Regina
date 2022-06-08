@@ -11,6 +11,18 @@ import table.SymbolTable
 import token.operator.TokenTernary
 import token.statement.Assignment
 
+/**
+ * Tokens are building blocks of evaluated code.
+ * * Each token represents some code element: variable identifier, operator, code block etc.
+ * * Tokens are nodes of [abstract syntax tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree)
+ * * Tokens are used for [evaluation][evaluate]
+ *
+ * @property children children of a token in a syntax tree.
+ * Usually these are the tokens that current one interacts with.
+ * For instance, children of an addition token are its operands.
+ * @property nud similarly to [led] and [std] taken from [TDOP parser](https://www.cristiandima.com/top-down-operator-precedence-parsing-in-go).
+ * For more details, see [Lexer][lexer.Lexer]
+ */
 open class Token(
     var symbol: String = "",
     var value: String = "",
@@ -22,15 +34,9 @@ open class Token(
     val children: MutableList<Token> = mutableListOf()
 ) {
     val left: Token
-        get() = if(children.isEmpty()) {
-            println()
-            Token("")
-        } else children[0]
+        get() = children[0]
     val right: Token
         get() = children[1]
-
-//    open fun copy(): Token =
-//        Token(symbol, value, position, bindingPower, nud, led, std, children.map { it.copy() }.toMutableList())
 
     fun toTreeString(indentation: Int = 0): String {
         val res = StringBuilder()
@@ -44,7 +50,7 @@ open class Token(
         return res.toString()
     }
 
-    fun find(symbol: String): Token? {
+    private fun find(symbol: String): Token? {
         if (this.symbol == symbol)
             return this
         for (t in children) {
@@ -54,12 +60,6 @@ open class Token(
         }
         return null
     }
-
-//    fun findAndReplace(symbol: String,newValue:String):Token?{
-//        for(t in children){
-//            //if(t.symbol==symbol)
-//        }
-//    }
 
     private fun findAndRemove(symbol: String) {
         val inChildren = children.find { it.value == symbol }
@@ -72,12 +72,21 @@ open class Token(
 
     override fun toString(): String = if (symbol == value) symbol else "$symbol:$value"
 
+    /**
+     * The most important method during interpretation.
+     *
+     * Recursively invoked when code is evaluated.
+     *
+     * Each parent token defines how its children should be evaluated/
+     */
     open fun evaluate(symbolTable: SymbolTable): Any {
         throw PositionalException("Not implemented", this)
     }
 
     /**
      * BFS all tokens. If  returned Token(LEAVE) - do not visit children
+     *
+     * TODO replace returned value with [Optional]
      */
     fun traverseUntil(condition: (token: Token) -> Token?): Token? {
         val forThis = condition(this)
@@ -120,7 +129,7 @@ open class Token(
             return false
         var areEqual = true
         for (i in children.indices)
-            areEqual = children[i].equals(other.children[i])
+            areEqual = children[i] == other.children[i]
         return areEqual
     }
 

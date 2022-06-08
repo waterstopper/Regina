@@ -24,7 +24,7 @@ class FileTable(
         val exported = if (token.children[2].value != "") token.children[2].value else null
 
         val (assignments, functions) = createAssignmentsAndFunctions(token.children[3])
-        val added = Type(name, null, assignments, fileName, exported)
+        val added = Type(name, null, assignments, this, exported)
         added.functions.addAll(functions)
         if (types.find { it.name == name } != null)
             throw PositionalException("found class with same name in `$fileName`", token)
@@ -36,8 +36,8 @@ class FileTable(
     fun addObject(token: Token) {
         val name = token.left.value
         val (assignments, functions) = createAssignmentsAndFunctions(token.right)
-        objects.add(Object(name, assignments, fileName))
-        // TODO add functions
+        objects.add(Object(name, assignments, this))
+        objects.last().functions.addAll(functions)
     }
 
     fun addFunction(function: Function) = functions.add(function)

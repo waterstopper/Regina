@@ -29,7 +29,7 @@ class Formatter(filePath: String) {
         val text =
             StringBuilder(File(filePath).readText()).split('\n').map { it.trimStart { c -> c == ' ' || c == '\t' } }
 
-        text.forEach { result.add(java.lang.StringBuilder(it)) }
+        text.forEach { result.add(StringBuilder(it)) }
 
         val statements = Parser(text.joinToString(separator = "\n")).statements()
         return SemanticAnalyzer(filePath, statements).analyze()

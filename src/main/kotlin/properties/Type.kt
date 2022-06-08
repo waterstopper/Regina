@@ -3,23 +3,27 @@ package properties
 import lexer.PositionalException
 import properties.primitive.PDictionary
 import properties.primitive.PInt
+import table.FileTable
 import table.SymbolTable
 import token.Token
 import token.TokenFactory
-import token.invocation.Constructor
 import token.statement.Assignment
-import java.util.*
 
+/**
+ * Is a class. In documentation might be referred as class or type interchangeably.
+ *
+ * Classes are mutable, meaning assigning same instance to different variables `a` and b` will change `a` if `b` is changed.
+ */
 open class Type(
     val name: String,
     parent: Type?,
     val assignments: MutableList<Assignment>,
-    val fileName: String,
+    val fileName: FileTable,
     private val exported: Any? = null,
     private val exportArgs: Any? = null,
     var supertype: Type? = null
 ) :
-    Property(parent), Invokable {
+    Property(parent) {
     private val properties = mutableMapOf<String, Property>()
     val functions = mutableListOf<Function>()
 
@@ -107,7 +111,7 @@ open class Type(
         return copy
     }
 
-    companion object{
+    companion object {
         var resolving = false
 
         fun resolveTree(root: Type, symbolTable: SymbolTable): Type {
@@ -115,7 +119,7 @@ open class Type(
             resolving = true
             do {
                 val (current, parent) = bfs(root) ?: break
-                val stack = Stack<Assignment>()
+                val stack = mutableListOf<Assignment>()
                 stack.add(current)
                 processAssignment(parent, symbolTable.changeVariable(parent), stack)
             } while (true)
@@ -123,9 +127,9 @@ open class Type(
             return root
         }
 
-        fun processAssignment(parent: Type, symbolTable: SymbolTable, stack: Stack<Assignment>) {
+        private fun processAssignment(parent: Type, symbolTable: SymbolTable, stack: MutableList<Assignment>) {
             while (stack.isNotEmpty()) {
-                val unresolved = stack.pop()
+                val unresolved = stack.removeLast()
                 val top = unresolved.getFirstUnassigned(symbolTable, parent)
                 if (top != null)
                     stack.add(top)
@@ -136,12 +140,12 @@ open class Type(
         /**
          * Find unresolved assignments
          */
-        fun bfs(root: Type): Pair<Assignment, Type>? {
-            val stack = Stack<Type>()
-            val visited = Stack<Type>()
+        private fun bfs(root: Type): Pair<Assignment, Type>? {
+            val stack = mutableListOf<Type>()
+            val visited = mutableListOf<Type>()
             stack.add(root)
             while (stack.isNotEmpty()) {
-                val current = stack.pop()
+                val current = stack.removeLast()
                 visited.add(current)
                 if (current.assignments.isNotEmpty())
                     return Pair(current.assignments.first(), current)

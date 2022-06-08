@@ -1,3 +1,0 @@
-package properties
-
-interface Invokable

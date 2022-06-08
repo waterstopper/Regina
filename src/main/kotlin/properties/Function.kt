@@ -8,8 +8,7 @@ open class Function(
     val params: List<Token>,
     val withDefaultParams: List<Assignment>,
     val body: Token
-) :
-    Invokable {
+) {
     override fun toString(): String = "$name(${params.joinToString(separator = ",")})"
 
     // TODO wtf is this equals

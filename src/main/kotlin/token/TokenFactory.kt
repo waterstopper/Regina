@@ -93,6 +93,8 @@ class TokenFactory {
         ): Invocation {
             // TODO not checking that variable contains function
             // TODO not checking a[i].b where a[i] is object
+            if(tokenIdentifier.left.value=="Point")
+                println()
             if (symbolTable.getFunctionOrNull(tokenIdentifier.left) != null
                 || linkLevel >= 2
                 || (upperToken is Link && (symbolTable.getVariableOrNull(upperToken.left.value) != null

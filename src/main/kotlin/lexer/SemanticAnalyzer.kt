@@ -12,6 +12,9 @@ import token.Token
 import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
 import token.statement.Assignment
 
+/**
+ * Performs basic semantic analysis and creates symbol table for future evaluation
+ */
 class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
 
     fun analyze(): List<Token> {
@@ -38,7 +41,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 "import" -> {
                     if (globalTable.getImportOrNull(token.left.value) == null) {
                         val isNewFile = globalTable.addFile(token.left.value)
-                        globalTable.addImport(token.left)
+                        globalTable.addImport(token.left, token.right)
                         if (isNewFile) {
                             readFile(token.left.value)
                             globalTable = globalTable.changeFile(fileName)
@@ -170,7 +173,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                     currentTable.getUncopiedType(token.name).supertype = supertype
                 }
             }
-            globalTable.changeFile(initialFileTable.fileName)
+            globalTable.changeFile(initialFileTable)
         }
     }
 }

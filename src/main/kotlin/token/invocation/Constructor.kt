@@ -4,13 +4,11 @@ import lexer.PositionalException
 import properties.Type
 import properties.Type.Companion.resolveTree
 import properties.Type.Companion.resolving
-import properties.primitive.PInt
 import table.SymbolTable
 import token.Identifier
 import token.Token
 import token.statement.Assignment
 import utils.Utils.toProperty
-import java.util.*
 
 class Constructor(
     token: Token

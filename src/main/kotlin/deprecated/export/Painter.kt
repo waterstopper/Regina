@@ -4,7 +4,6 @@ package deprecated.export
 //import com.github.nwillc.ksvg.elements.Element
 //import com.github.nwillc.ksvg.elements.LINE
 //import com.github.nwillc.ksvg.elements.SVG
-//import java.util.*
 //@Deprecated("")
 //class Painter(val root: OldContainer) {
 //    val svg = SVG.svg(true) {

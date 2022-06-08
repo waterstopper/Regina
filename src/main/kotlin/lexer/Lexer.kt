@@ -1,12 +1,3 @@
-/**
- * AST building algorithm was taken and rewritten from:
- * https://www.cristiandima.com/top-down-operator-precedence-parsing-in-go
- *
- * Important changes:
- * 1. ";" is (mostly) replaced by \n
- * 2. changed return statement: expected
- * 3. array and string indexing commented out exception applicable for function calls
- */
 package lexer
 
 import token.Declaration
@@ -22,6 +13,13 @@ import token.variable.TokenArray
 import token.variable.TokenDictionary
 import token.variable.TokenNumber
 
+/**
+ * Lexer creates tokens from text
+ *
+ * Important changes:
+ * 1. ";" is replaced by \n
+ * 2. ternary operator and functions follow kotlin style
+ */
 class Lexer() {
 
     private var source: String = ""
@@ -306,7 +304,6 @@ class Lexer() {
         tokReg.infix("!is", 15)
         //tokReg.infix("isnot", 15)
 
-
         tokReg.prefix("-")
         tokReg.prefix("!")
 
@@ -500,6 +497,15 @@ class Lexer() {
             if (parser.lexer.peek().value == "as") {
                 parser.advance("as")
                 res.children.add(parser.expression(0))
+                if (res.right !is Identifier)
+                    throw PositionalException("Expected identifier, not a link after `as` directive", res.right)
+            } else {
+                if (res.left !is Identifier)
+                    throw PositionalException(
+                        "Imports containing folders in name should be declared like:\n" +
+                                "`import path as identifier` and used in code accordingly", res
+                    )
+                res.children.add(Token(res.left.symbol, res.left.value))
             }
             res
         }
@@ -555,6 +561,7 @@ class Lexer() {
                 parser.advance("\n")
             WordStatement(token)
         }
+
         // TODO advance comment
         tokReg.stmt("continue") { token: Token, parser: Parser ->
             if (parser.lexer.peek().symbol != "}")
@@ -586,6 +593,11 @@ class Lexer() {
 
     fun hasCommentAhead(): Boolean = consumeWhitespaceAndComments()
 
+    /**
+     * Check if [token] can be used as a child inside [Link][token.Link]
+     *
+     * First child of [Link][token.Link] can be anything
+     */
     private fun isLinkable(token: Token) {
         if (token !is Linkable)
             throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), token, token)

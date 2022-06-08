@@ -34,6 +34,15 @@ class DoubleSegment {
 }
 
 fun main() {
+    testing = 1
+    if(1) {
+        testing = 2
+        }
+    log(testing)
+    prim = 123.123
+    r = prim
+    r.round()
+    log(prim)
     log(A() is B)
     log(12345.0.round(-2))
     a = Point(x = 5, y = 3)

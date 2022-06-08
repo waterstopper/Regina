@@ -5,7 +5,6 @@ import lexer.PositionalException
 import lexer.SemanticAnalyzer
 import table.SymbolTable
 import token.Token
-import utils.Utils.treeView
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -33,3 +32,18 @@ fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {
 }
 
 fun parseFilePath(path: String): String = path.split("/").last()
+
+//fun createJsonFromResources() {
+//    File("src/main/resources/info.json").createNewFile()
+//    val res = File("src/main/resources/info.json").bufferedWriter()
+//    res.append('{')
+//    File("src/main/resources").walk().forEach {
+//        res.append("\"${it.name}\":")
+//        if(it.isFile)
+//            res.append("\"${it.readText()}\",")
+//        else res.append("\"{}\",")
+//        println(it.path)
+//    }
+//    res.append('}')
+//    res.flush()
+//}

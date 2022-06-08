@@ -1,6 +1,6 @@
 package token.invocation
 
-import Argumentable
+
 import lexer.Parser
 import table.SymbolTable
 import token.Linkable
@@ -17,7 +17,7 @@ open class Invocation(
     ) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?,
     children: List<Token> = emptyList()
-) : Token(symbol, value, position, bindingPower, nud, led, std), Argumentable, Linkable {
+) : Token(symbol, value, position, bindingPower, nud, led, std), Linkable {
     val name: Token
         get() = left
 

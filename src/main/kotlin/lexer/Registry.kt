@@ -1,7 +1,3 @@
-/**
- * AST building algorithm was taken and rewritten from:
- * https://www.cristiandima.com/top-down-operator-precedence-parsing-in-go
- */
 package lexer
 
 import token.Identifier
@@ -9,6 +5,15 @@ import token.Token
 import token.TokenFactory
 import token.variable.TokenString
 
+/**
+ * Registers common token groups, such as:
+ * * [Statement][stmt] usually a token that can be on one line (assignment, declaration, block)
+ * * [Infix][stmt] parses left and right expressions into its children. Examples: +, /, *, is, ==.
+ * [Right infix][infixRight] is similar, but is right associative (like assignment).
+ * * [Prefix][prefix] maked expression on the right its child. Examples: unary minus, logic not `!`
+ *
+ * @property table dictionary of registered token symbols mapped to created tokens
+ */
 class Registry {
     private val table = mutableMapOf<String, Token>()
 

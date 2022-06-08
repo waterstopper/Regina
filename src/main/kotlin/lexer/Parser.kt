@@ -1,13 +1,12 @@
-/**
- * AST building algorithm was taken and rewritten from:
- * https://www.cristiandima.com/top-down-operator-precedence-parsing-in-go
- *
- * Changes: advance changed to ignore \n
- */
 package lexer
 
 import token.Token
 
+/**
+ * Parses created tokens into AST
+ *
+ * Changes: advance changed to ignore \n
+ */
 class Parser() {
     lateinit var lexer: Lexer
 

@@ -1,6 +1,7 @@
 package evaluation
 
 import evaluation.Evaluation.rnd
+import lexer.ExpectedTypeException
 import lexer.PositionalException
 import properties.EmbeddedFunction
 import properties.Function
@@ -12,6 +13,7 @@ import table.SymbolTable
 import token.Token
 import token.statement.Assignment
 import utils.Utils.toVariable
+import java.io.File
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -45,6 +47,20 @@ object FunctionFactory {
         res["log"] = EmbeddedFunction("log", listOf(Token(value = "x")))
         { token, args -> println(getIdent(token, "x", args)) }
         res["input"] = EmbeddedFunction("input", listOf()) { _, _ -> readLine() ?: "" }
+        res["write"] = EmbeddedFunction(
+            "write",
+            listOf(
+                Token(value = "content"),
+                Token(value = "fileName")
+            )
+        ) { token, args ->
+            val fileName = getIdent(token,"fileName",args)
+            val content = getIdent(token, "content", args)
+            if(fileName !is PString || content !is PString)
+                throw ExpectedTypeException(listOf(PString::class),token)
+            val file = File(fileName.getPValue())
+            file.writeText(content.getPValue())
+        }
         res["test"] = EmbeddedFunction("test", listOf(Token(value = "x"))) { token, args ->
             val ident = getIdent(token, "x", args)
             if (ident !is PInt || ident.getPValue() == 0)

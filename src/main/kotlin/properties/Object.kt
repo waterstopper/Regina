@@ -1,6 +1,10 @@
 package properties
 
+import table.FileTable
 import token.statement.Assignment
 
-class Object(name: String, assignments: MutableList<Assignment>, fileName: String) :
+/**
+ * Object is a [singleton][https://en.wikipedia.org/wiki/Singleton_pattern] Type
+ */
+class Object(name: String, assignments: MutableList<Assignment>, fileName: FileTable) :
     Type(name, null, assignments, fileName)

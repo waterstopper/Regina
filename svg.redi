@@ -1,3 +1,39 @@
+object usedValues {
+    containers = ["group", "svg"]
+}
+
+// should have a name
+class Node {
+    attributes = []
+    children = []
+
+    fun toString() {
+        res = StringBuilder()
+        res.add("<" + this.name)
+        i = 0
+        while(i < attributes.size) {
+            res.add(" ")
+            res.add(attributes[i].toString())
+            i = i + 1
+        }
+        res.add(if(children.size == 0) "/>" else ">")
+        i = 0
+        while(i < children.size) {
+            res.add(children[i].toString())
+            i = i + 1
+        }
+        if(children.size != 0) {
+            res.add("<" + this.name + "/>")
+        }
+    }
+}
+// should have a name and a value
+class Attribute {
+    fun toString() {
+        return name + "=\"" + value + "\""
+    }
+}
+
 fun add(node, sb) {
     containers = ["group, svg"]
     added = node.exportArgs["exported"]
