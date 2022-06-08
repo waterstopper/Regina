@@ -1,3 +1,33 @@
 fun rotate(point, angle, pivot){
     return point
 }
+
+// Return array of doubles as a solution of x^2 + bx + c = 0
+fun solveSquare(a, b, c) {
+    solution = [0, 0]
+    if (a == 0) {
+        if (c == 0) {
+            if (b == 0)
+                return [1, 2, 3]
+            return [0.0]
+        }
+        else {
+            if ( b == 0 ) { return [] }
+            return [0.0]
+        }
+    }
+    else {
+        if ( c == 0 ) {
+            return [0.0, -double(b) / a]
+        }
+        else
+        {
+            b = b * -0.5
+            d = b * b - a * c;
+            if (d < 0) { return 0 }
+            d = sqrt(d)
+            t = double(if(b > 0) b + d else b - d)
+            return [c / t, t / a]
+        }
+    }
+}
