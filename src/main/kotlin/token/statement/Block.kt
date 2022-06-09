@@ -7,6 +7,8 @@ import utils.Utils.toBoolean
 
 class Block(token: Token) :
     Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {
+    constructor(position: Pair<Int, Int>) : this(Token("{", "{", position))
+
     override fun evaluate(symbolTable: SymbolTable): Any {
         return when (symbol) {
             "{" -> evaluateBlock(symbolTable)

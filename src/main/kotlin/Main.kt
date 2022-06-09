@@ -6,10 +6,28 @@ import lexer.PositionalException
 import lexer.SemanticAnalyzer
 import table.SymbolTable
 import token.Token
+import utils.Utils.treeView
 import java.io.File
 import java.io.FileNotFoundException
 
 fun main() {
+    val statements = Parser("""
+        while(asew)
+            doo()   
+
+        if(cond)
+        {
+            doThis()
+        }
+        /** ауц
+        ацуау
+        **/
+        else
+        {
+            doThat()
+        }
+    """).statements()
+    println(statements.treeView())
 //    println(Parser("A !is B").statements().treeView())
     // println(Parser("(v-a).b.c[1][2][3].s.r").statements().treeView())
     val s = readFile("src/test/resources/testCode.redi")

@@ -47,9 +47,8 @@ class Lexer() {
             Logger.addWarning(tokens.last(), "File too large")
     }
 
-    fun next(): Token {
-        return tokens[++tokenIndex]
-    }
+    fun next(): Token = tokens[++tokenIndex]
+    fun prev(): Token = tokens[--tokenIndex]
 
     fun isLineSeparator(text: String, index: Int): Boolean {
         if (index == text.lastIndex)
@@ -61,10 +60,10 @@ class Lexer() {
 
     fun moveAfterLineSeparator(text: String, index: Int): Int {
         if (index == text.lastIndex)
-            return if(text[index] == '\r' || text[index] == '\n') index + 1 else index
+            return if (text[index] == '\r' || text[index] == '\n') index + 1 else index
         if (text[index] == '\r' && text[index + 1] == '\n')
             return index + 2
-        return if(text[index] == '\r' || text[index] == '\n') index + 1 else index
+        return if (text[index] == '\r' || text[index] == '\n') index + 1 else index
     }
 
     private fun nextString(): Token {
@@ -79,7 +78,7 @@ class Lexer() {
                 continue
             }
             // TODO probably out of bounds if multiline string
-            if (isLineSeparator(source,index))
+            if (isLineSeparator(source, index))
                 throw Exception("Unterminated string at ${position.second}:${position.first}")
             res.append(source[index])
             move()
@@ -167,9 +166,14 @@ class Lexer() {
                 Pair(position.first - 2, position.second)
             )
         }
-        if (isLineSeparator(source,index))
-            while (index < source.length && isLineSeparator(source,index)) toNextLine()
-        else if (tokReg.defined(source[index].toString())) move()
+        if (isLineSeparator(source, index)) {
+            var currentPos = position
+            while (index < source.length && isLineSeparator(source, index)) {
+                toNextLine()
+                consumeWhitespaceAndComments()
+            }
+            return tokReg.operator("\n", "\n", Pair(currentPos.first, currentPos.second))
+        } else if (tokReg.defined(source[index].toString())) move()
         else throw PositionalException("invalid operator", position = position, length = 1)
         return tokReg.operator(
             source[index - 1].toString(),
@@ -184,7 +188,7 @@ class Lexer() {
         if (source[index] == '\\') {
             index++
             consumeWhitespaceAndComments()
-            if (!isLineSeparator(source,index))
+            if (!isLineSeparator(source, index))
                 throw PositionalException("\n", position = position, length = 1)
             else index = moveAfterLineSeparator(source, index)
             consumeWhitespaceAndComments()
@@ -214,22 +218,22 @@ class Lexer() {
 
     private fun consumeComments(): Boolean {
         if (index < source.length && source[index] == '/' && index < source.lastIndex && source[index + 1] == '/') {
-            while (!isLineSeparator(source,index)) {
+            while (!isLineSeparator(source, index)) {
                 move()
                 if (index == source.length)
                     return false
             }
-            toNextLine()
-            tokens.add(
-                tokReg.operator(
-                    source[index - 1].toString(),
-                    source[index - 1].toString(), Pair(position.first - 1, position.second)
-                )
-            )
+//            toNextLine()
+//            tokens.add(
+//                tokReg.operator(
+//                    source[index - 1].toString(),
+//                    source[index - 1].toString(), Pair(position.first - 1, position.second)
+//                )
+//            )
             return true
         } else if (index < source.length && source[index] == '/' && index < source.lastIndex && source[index + 1] == '*') {
             while (!(source[index] == '*' && source[index + 1] == '/')) {
-                if (isLineSeparator(source,index))
+                if (isLineSeparator(source, index))
                     toNextLine()
                 else move()
                 if (index + 1 >= source.length)
@@ -243,8 +247,8 @@ class Lexer() {
 
     private fun consumeWhitespace(): Boolean {
         // '\t', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
-        val res = index < source.length && !isLineSeparator(source,index) && source[index].isWhitespace()
-        while (index < source.length && !isLineSeparator(source,index) && source[index].isWhitespace())
+        val res = index < source.length && !isLineSeparator(source, index) && source[index].isWhitespace()
+        while (index < source.length && !isLineSeparator(source, index) && source[index].isWhitespace())
             move()
         return res
     }
@@ -468,6 +472,10 @@ class Lexer() {
             res.children.add(parser.expression(0))
             res.children.add(parser.block())
             var next = parser.lexer.peek()
+            if (next.value == "\n" && parser.lexer.peek(2).value == "else") {
+                parser.lexer.next()
+                next = parser.lexer.peek()
+            }
             if (next.value == "else") {
                 parser.lexer.next()
                 next = parser.lexer.peek()
@@ -594,5 +602,9 @@ class Lexer() {
             index = index.left
         if (index !is Linkable)
             throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), token, token)
+    }
+
+    private fun fictionalBlock() {
+
     }
 }

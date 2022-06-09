@@ -1,6 +1,7 @@
 package lexer
 
 import token.Token
+import token.statement.Block
 
 /**
  * Parses created tokens into AST
@@ -86,10 +87,15 @@ class Parser() {
 
     fun block(): Token {
         var token = lexer.next()
-        if(token.symbol == "\n")
+        if (token.symbol == "\n")
             token = lexer.next()
-        if (token.symbol != "{")
-            throw PositionalException("expected a block start '{'", position = lexer.position)
+        if (token.symbol != "{") {
+            lexer.prev()
+            val res = Block(Pair(token.position.first - 1, token.position.second))
+            res.children.add(statement())
+            return res
+            // throw PositionalException("expected a block start '{'", position = lexer.position)
+        }
         return token.std?.let { it(token, this) } ?: throw PositionalException(
             "expected statement",
             position = lexer.position
