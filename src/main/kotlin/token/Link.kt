@@ -73,11 +73,7 @@ open class Link(
 
     private fun checkNextVariable(variable: Variable): Optional {
         when (children[index]) {
-            is Invocation -> {
-                val function = variable.getFunction((children[index] as Invocation).name)
-                children[index] = Call(children[index])
-                resolveFunctionCall(function)
-            }
+            is Call -> resolveFunctionCall(variable.getFunction((children[index] as Call)))
             is Identifier -> {
                 val property = variable.getPropertyOrNull(children[index].value)
                     ?: if (variable is Type) (return Optional(variable.getAssignment(children[index])))
@@ -93,6 +89,7 @@ open class Link(
                     else throw PositionalException("Property not found", index)
                 assignCurrentVariable((children[this.index] as Index).evaluateIndex(table).toVariable(right.right))
             }
+            else -> throw PositionalException("Unexpected token", children[index])
         }
         return Optional(isGood = true)
     }
@@ -109,7 +106,9 @@ open class Link(
                     } else return false
                 } else assignCurrentVariable(identifier)
             }
-            is Invocation -> resolveInvocation()
+            is Call -> resolveFunctionCall(table.getFunction(children[index]))
+            is Constructor -> assignCurrentVariable(children[index].evaluate(initialTable).toVariable(children[index]))
+            is Invocation -> throw PositionalException("EOFKE", children[index])//resolveInvocation()
             // unary minus, (1+2).max(...)
             else -> {
                 if (!canBeFile)

@@ -22,7 +22,9 @@ class Call(
         this.children.addAll(token.children)
     }
 
-    private val arguments: List<Token>
+    val allArgs = children.subList(1, children.size)
+
+    val unnamedArgs: List<Token>
         get() {
             val res = mutableListOf<Token>()
             var i = 1
@@ -32,17 +34,17 @@ class Call(
             }
             return res
         }//children.subList(1, children.size)
-    private val namedArguments: List<Assignment>
-        get() = children.subList(arguments.size + 1, children.size) as List<Assignment>
+    val namedArgs: List<Assignment>
+        get() = children.subList(unnamedArgs.size + 1, children.size) as List<Assignment>
 
     /**
      * For function evaluation, new scope table is needed, to which all arguments will be
      * passed, named like parameters
      */
     override fun evaluate(symbolTable: SymbolTable): Any {
-        val function = symbolTable.getFunction(left)
+        val function = symbolTable.getFunction(this)
         val newTable =
-            symbolTable.changeFile(symbolTable.getFileOfValue(left) { it.getFunctionOrNull(left.value) })
+            symbolTable.changeFile(symbolTable.getFileOfValue(left) { it.getFunctionOrNull(this) })
         argumentsToParameters(function, symbolTable, newTable)
         return evaluateFunction(newTable, function)
     }
@@ -52,23 +54,23 @@ class Call(
      */
     fun argumentsToParameters(function: Function, argTable: SymbolTable, paramTable: SymbolTable) {
         val assigned = mutableMapOf<String, Variable>()
-        for ((index, arg) in arguments.withIndex()) {
+        for ((index, arg) in unnamedArgs.withIndex()) {
             val paramName = getParamName(index, function)
             if (assigned[paramName] != null)
                 throw PositionalException("Argument already assigned", arg)
             assigned[paramName] = arg.evaluate(argTable).toVariable(arg)
         }
-        for (nArg in namedArguments) {
+        for (nArg in namedArgs) {
             if (!function.hasParam(nArg.name))
                 throw PositionalException("Parameter with name `${nArg.name}` absent", nArg)
             if (assigned[nArg.name] != null)
                 throw PositionalException("Argument already assigned", nArg)
             assigned[nArg.name] = nArg.right.evaluate(argTable).toVariable(nArg)
         }
-        for (defaultParam in function.withDefaultParams)
+        for (defaultParam in function.defaultParams)
             if (assigned[defaultParam.name] == null)
                 assigned[defaultParam.name] = defaultParam.right.evaluate(paramTable).toVariable(defaultParam)
-        for (param in function.params)
+        for (param in function.nonDefaultParams)
             if (assigned[param.value] == null)
                 throw PositionalException("Parameter not assigned", param, file = paramTable.getFileTable().fileName)
         for (i in assigned)
@@ -79,17 +81,17 @@ class Call(
     }
 
     private fun getParamName(index: Int, function: Function): String {
-        return if (function.params.lastIndex < index) {
-            if (function.params.size + function.withDefaultParams.lastIndex < index)
+        return if (function.nonDefaultParams.lastIndex < index) {
+            if (function.nonDefaultParams.size + function.defaultParams.lastIndex < index)
                 throw PositionalException("More arguments than parameters", children[index])
-            else function.withDefaultParams[index - function.params.size].name
-        } else function.params[index].value
+            else function.defaultParams[index - function.nonDefaultParams.size].name
+        } else function.nonDefaultParams[index].value
     }
 
     fun evaluateFunction(symbolTable: SymbolTable, function: Function, argTable: SymbolTable? = null): Any {
         var argTable = argTable ?: symbolTable
-     //   if (function.params.size < arguments.size)
-      //      throw PositionalException("Expected less arguments", this)
+        //   if (function.params.size < arguments.size)
+        //      throw PositionalException("Expected less arguments", this)
         // wtf
 //        if (symbolTable.getVariableOrNull("this") != null)
 //            symbolTable.addVariable("this", symbolTable.getVariable("this"))

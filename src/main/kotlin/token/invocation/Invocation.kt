@@ -2,6 +2,7 @@ package token.invocation
 
 
 import lexer.Parser
+import lexer.PositionalException
 import table.SymbolTable
 import token.Linkable
 import token.Token
@@ -22,6 +23,7 @@ open class Invocation(
         get() = left
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        return left.evaluate(symbolTable)
+        throw PositionalException("FDIEFJ ${this.left.value}", this, file = symbolTable.getFileTable().fileName)
+        //return left.evaluate(symbolTable)
     }
 }

@@ -6,7 +6,6 @@ import properties.Type
 import properties.Variable
 import properties.primitive.*
 import properties.primitive.PDictionary.Companion.initializeDictionaryProperties
-import table.SymbolTable.Companion.initializeObjects
 import token.Token
 
 object Utils {
@@ -74,5 +73,9 @@ object Utils {
         return if (this is Double)
             -this
         else -this.toInt()
+    }
+
+    fun <T> List<T>.subList(start: Int): List<T> {
+        return this.subList(start, this.size)
     }
 }

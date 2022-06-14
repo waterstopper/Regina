@@ -5,6 +5,15 @@ import lexer.PositionalException
 import properties.*
 import properties.Function
 import token.Token
+import token.invocation.Call
+import kotlin.Any
+import kotlin.Boolean
+import kotlin.Double
+import kotlin.Exception
+import kotlin.Int
+import kotlin.Number
+import kotlin.String
+import kotlin.let
 
 /**
  * Stores Dictionary, Array, String, Int, Double values.
@@ -70,23 +79,21 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         return PDictionary(res.mapValues { it.value(this) }.toMutableMap(), null)
     }
 
+    override fun getFunction(token: Token): Function =
+        getFunctionOrNull(token) ?: throw PositionalException(
+            "Primitive does not contain `${token.value}` function",
+            token
+        )
+//            ?: (if (getIndex() in 2..3)
+//                functions[1].find { it.name == token.value } ?: functions[0].find { it.name == token.value }
+//            else functions[0].find { it.name == token.value })
+//            ?: throw PositionalException("Primitive does not contain `${token.value}` function", token)
 
-    override fun hasProperty(token: Token): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun getFunctionOrNull(token: Token): Function? = Function.getFunctionOrNull(
+        token as Call, if (getIndex() in 2..3)
+            (functions[getIndex()] + functions[1]) + functions[0] else functions[getIndex()]
+    )
 
-    override fun getFunction(token: Token)
-            : Function =
-        functions[getIndex()].find { it.name == token.value }
-            ?: (if (getIndex() in 2..3)
-                functions[1].find { it.name == token.value } ?: functions[0].find { it.name == token.value }
-            else functions[0].find { it.name == token.value })
-            ?: throw PositionalException("Primitive does not contain `${token.value}` function", token)
-
-    override fun getFunctionOrNull(name: String) = functions[getIndex()].find { it.name == name }
-        ?: (if (getIndex() in 2..3)
-            functions[1].find { it.name == name } ?: functions[0].find { it.name == name }
-        else functions[0].find { it.name == name })
 //    private fun getPrimitiveIndex(): Int {
 //        return when (this) {
 //            is PArray -> 0
@@ -107,7 +114,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         }
 
         val properties = List(7) { mutableMapOf<String, (s: Primitive) -> Property>() }
-        val functions = List(7) { mutableListOf<Function>() }
+        val functions = List(7) { mutableSetOf<Function>() }
         fun createPrimitive(value: Any, parent: Type? = null, token: Token = Token()): Primitive {
             return when (value) {
                 is String -> PString(value, parent)

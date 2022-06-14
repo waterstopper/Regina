@@ -9,8 +9,12 @@ import token.Declaration
 import token.Identifier
 import token.Link
 import token.Token
+import token.TokenFactory.Companion.changeInvocationOnSecondPositionInLink
 import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
+import token.invocation.Call
+import token.invocation.Invocation
 import token.statement.Assignment
+import utils.Utils.subList
 
 /**
  * Performs basic semantic analysis and creates symbol table for future evaluation
@@ -18,6 +22,7 @@ import token.statement.Assignment
 class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
 
     fun analyze(): List<Token> {
+        // println(tokens.treeView())
         println("Analyzing: `$fileName`")
         createAssociations()
         // TODO do the same for all imports
@@ -48,7 +53,8 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                         }
                     } else Logger.addWarning(token.left, "Same import found above")
                 }
-                else -> throw PositionalException("class or function can be top level declaration", token)
+                else ->
+                    throw PositionalException("Only class, object or function can be top level declaration", token)
             }
     }
 
@@ -60,76 +66,99 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 "object" -> table = table.changeVariable(globalTable.getObjectOrNull((token as Declaration).name)!!)
                 "class" -> table = table.changeVariable(globalTable.getTypeOrNull((token as Declaration).name)!!)
             }
-            changeTokenType(token, table, 0, table.getCurrentType() != null)
+            changeInvocationType(token, table)
         }
     }
 
-    private fun changeTokenType(token: Token, symbolTable: SymbolTable, linkLevel: Int, inClass: Boolean = false) {
-        for ((index, child) in token.children.withIndex()) {
-            when (child.symbol) {
-                // ignoring assignments like: a.b = ...
-                "(ASSIGNMENT)" -> {
-                    symbolTable.addVariableOrNot(child.left)
-                    if (inClass)
-                        (child as Assignment).isProperty = true
+    private fun changeInvocationType(token: Token, symbolTable: SymbolTable) {
+        if (token is Link) {
+            if (token.left is Invocation) {
+                checkParamsOrArgs(token.left.children.subList(1), true)
+                createSpecificIdentifierFromInvocation(token.left, symbolTable, token, 0)
+            }
+            if (token.right is Invocation) {
+                checkParamsOrArgs(token.right.children.subList(1), true)
+                if (token.left is Identifier) {
+                    symbolTable.addVariableOrNot(token.left)
+                    changeInvocationOnSecondPositionInLink(symbolTable, token)
+                } else token.children[1] = Call(token.right)
+            }
+            for ((index, child) in token.children.subList(2).withIndex())
+                if (child is Invocation) {
+                    checkParamsOrArgs(child.children.subList(1), true)
+                    token.children[index] = Call(child)
                 }
-                "(LINK)" -> {
-//                    if (symbolTable.getVariableOrNull(child.left.value) != null) {
-//                        val variable = symbolTable.getVariable(child.left)
-//                        if(variable is Type)
+//            for (child in token.children)
+//                changeInvocationType(child, symbolTable)
+        } else {
+            if (token is Assignment)
+                symbolTable.addVariableOrNot(token.left)
+            for ((index, child) in token.children.withIndex()) {
+                if (child is Invocation) {
+                    checkParamsOrArgs(child.children.subList(1), token.symbol != "fun")
+                    if (token.symbol != "fun")
+                        createSpecificIdentifierFromInvocation(child, symbolTable, token, index)
+                }
+
+                // TODO there child might be alreay changed to other token, Invocation -> Call.
+                // changeInvocationType(token.children[index], symbolTable)
+            }
+        }
+        for (child in token.children)
+            changeInvocationType(child, symbolTable)
+    }
+
+//    // TODO make it customized for invocation changing
+//    private fun changeTokenType(
+//        token: Token,
+//        symbolTable: SymbolTable,
+//        isInsideLink: Boolean,
+//        inClass: Boolean = false
+//    ) {
+//        for ((index, child) in token.children.withIndex()) {
+//            when (child.symbol) {
+//                "(LINK)" -> {
+//                    if (child.left is Identifier) {
+//                    } else if (child.left is Invocation) {
+//
 //                    }
-                }
-                "(" -> {
-                    if (token.value != "fun" && token.symbol != "(LINK)") {
-                        token.children[index] =
-                            createSpecificIdentifierFromInvocation(child, symbolTable, linkLevel, token)
-                        checkParamsOrArgs(
-                            token.children[index].children.subList(
-                                1, token.children[index].children.size
-                            ), areArgs = true
-                        )
-                    }
-                }
-                "{" -> {
-                    if (child.children.isEmpty())
-                        Logger.addWarning(child, "Empty block")
-                }
-                // "[]" -> token.children[index] = TokenArray(child)
-                //"[" -> token.children[index] = TokenIndexing(child)
-            }
-            changeTokenType(
-                token.children[index],
-                if (token.children[index].symbol == "fun") symbolTable.changeScope() else symbolTable,
-                if (token.children[index] is Link) linkLevel + 1 else 0,
-                if (token.value != "fun") inClass else false
-            )
-        }
-    }
-
-    private fun checkIntersections(tokens: List<Token>) {
-        val classes = mutableSetOf<String>()
-        val functions = SymbolTable.getEmbeddedNames()
-        for (token in tokens) {
-            when (token.symbol) {
-                "class" -> {
-                    classes.add((token as Declaration).name.value)
-                }
-                "fun" -> {
-                    val added = functions.add(token.left.left.value)
-                    if (!added)
-                        throw  PositionalException(
-                            if (SymbolTable.getEmbeddedNames()
-                                    .contains(functions.last())
-                            ) "reserved function name" else "same function name within one file", token.left.left
-                        )
-                    checkParamsOrArgs(token.left.children.subList(1, token.left.children.size))
-                }
-            }
-        }
-        val intersections = classes.intersect(functions)
-        if (intersections.isNotEmpty())
-            throw PositionalException("`$fileName` contains functions and classes with same names: $intersections")
-    }
+//                }
+//                // ignoring assignments like: a.b = ...
+//                "(ASSIGNMENT)" -> {
+//                    symbolTable.addVariableOrNot(child.left)
+//                    if (inClass)
+//                        (child as Assignment).isProperty = true
+//                }
+//                "(" -> {
+//                    if (token.value != "fun" && token.symbol != "(LINK)") {
+//                        token.children[index] =
+//                            createSpecificIdentifierFromInvocation(
+//                                child,
+//                                symbolTable,
+//                                if (isInsideLink) index else 0,
+//                                token
+//                            )
+//                    }
+//                    // applicable for constructors in links too
+//                    checkParamsOrArgs(
+//                        token.children[index].children.subList(
+//                            1, token.children[index].children.size
+//                        ), areArgs = token.value != "fun"
+//                    )
+//                }
+//                "{" -> {
+//                    if (child.children.isEmpty())
+//                        Logger.addWarning(child, "Empty block")
+//                }
+//            }
+//            changeTokenType(
+//                token.children[index],
+//                if (token.children[index].symbol == "fun") symbolTable.changeScope() else symbolTable,
+//                token.children[index] is Link,
+//                if (token.value != "fun") inClass else false
+//            )
+//        }
+//    }
 
     private fun checkParamsOrArgs(params: List<Token>, areArgs: Boolean = false) {
         var wasAssignment = false
@@ -137,21 +166,10 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             when (param) {
                 is Assignment -> wasAssignment = true
                 is Identifier -> if (wasAssignment)
-                    throw PositionalException("Default values should be after other", param)
-                else -> if (!areArgs) throw PositionalException("expected identifier as function parameter", param)
+                    throw PositionalException("Default params should be after other", param)
+                else -> if (!areArgs) throw PositionalException("Expected identifier as function parameter", param)
                 else if (wasAssignment) throw  PositionalException("Named args should be after other", param)
             }
-    }
-
-    /**
-     * Constructor params are assignments, because of the dynamic structure of type
-     */
-    private fun checkConstructorParams(params: List<Token>) {
-        for (param in params)
-            if (param.value != "=") throw PositionalException(
-                "expected assignment as constructor parameter",
-                param
-            )
     }
 
     companion object {

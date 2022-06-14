@@ -123,7 +123,61 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                         throw PositionalException("joinToString should have String as separator", token.children[1])
                     array.getPValue().joinToString(separator = separator.getPValue())
                 })
+            setFunction(
+                p, EmbeddedFunction(
+                    "sort", listOf(),
+                    listOf(Parser("desc = false").statements().first() as Assignment)
+                ) { token, args ->
+                    val array = getIdent(token, "this", args)
+                    val desc = getIdent(token, "desc", args)
+                    if (array !is PArray)
+                        throw PositionalException("sort is not applicable for this type", token.children[1])
+                    if (desc !is PInt)
+                        throw PositionalException("sort should have Int as desc value", token.children[1])
+                    val comparator = Comparator<Variable> { a, b -> compareVariables(a, b) }
+                    array.getPValue().sortWith(comparator)
+                    if (desc.getPValue() != 0)
+                        array.getPValue().reverse()
+                })
+            setFunction(
+                p, EmbeddedFunction(
+                    "sorted", listOf(),
+                    listOf(Parser("desc = false").statements().first() as Assignment)
+                ) { token, args ->
+                    val array = getIdent(token, "this", args)
+                    val desc = getIdent(token, "desc", args)
+                    if (array !is PArray)
+                        throw PositionalException("sort is not applicable for this type", token.children[1])
+                    if (desc !is PInt)
+                        throw PositionalException("sort should have Int as desc value", token.children[1])
+                    val comparator = Comparator<Variable> { a, b -> compareVariables(a, b) }
+                    val res = array.getPValue().sortedWith(comparator)
+                    if (desc.getPValue() != 0) res.reversed() else res
+                })
+        }
+
+        private fun compareVariables(a: Variable, b: Variable): Int {
+            return if (a is Type) compareType(a, b) else return comparePrimitive(a as Primitive, b)
+        }
+
+        private fun compareType(type: Type, variable: Variable): Int {
+            return when (variable) {
+                is Type -> if (type.equalToType(variable)) 0 else (type.name > variable.name).toInt()
+                else -> 1
+            }
+        }
+
+        // TODO compare by index
+        private fun comparePrimitive(primitive: Primitive, variable: Variable): Int {
+            return when (variable) {
+                is Type -> 0
+                is PArray, is PDictionary -> {
+                    if (primitive is PArray || primitive is PDictionary) {
+                        0
+                    } else 0
+                }
+                else -> 0
+            }
         }
     }
-
 }

@@ -1,19 +1,18 @@
-import evaluation.Evaluation
 import evaluation.Evaluation.evaluate
-import lexer.Lexer
 import lexer.Parser
 import lexer.PositionalException
 import lexer.SemanticAnalyzer
-import table.SymbolTable
 import token.Token
 import utils.Utils.treeView
 import java.io.File
 import java.io.FileNotFoundException
 
 fun main() {
+    val other = Parser("log([1,2,3].has(1))").statements()
+    println(other.treeView())
     val statements = Parser("""
         while(asew)
-            doo()   
+            doo()
 
         if(cond)
         {
@@ -30,10 +29,14 @@ fun main() {
     println(statements.treeView())
 //    println(Parser("A !is B").statements().treeView())
     // println(Parser("(v-a).b.c[1][2][3].s.r").statements().treeView())
+//    val s = readFile("src/test/resources/testCode.redi")
+//    SemanticAnalyzer.initializeSuperTypes()
+//    SymbolTable.initializeObjects()
+//    println(Evaluation.globalTable)
+//    evaluate(s, "testCode.redi")
     val s = readFile("src/test/resources/testCode.redi")
     SemanticAnalyzer.initializeSuperTypes()
-    SymbolTable.initializeObjects()
-    println(Evaluation.globalTable)
+    // println(Evaluation.globalTable)
     evaluate(s, "testCode.redi")
 }
 

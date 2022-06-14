@@ -27,8 +27,8 @@ class FileTable(
         val added = Type(name, null, assignments, this, exported)
         added.functions.addAll(functions)
         if (types.find { it.name == name } != null)
-            throw PositionalException("found class with same name in `$fileName`", token)
-        types.add(added)
+            throw PositionalException("Two classes with same name in `$fileName`", token)
+        val res = types.add(added)
         for (assignment in added.assignments)
             assignment.parent = added
     }
@@ -36,11 +36,17 @@ class FileTable(
     fun addObject(token: Token) {
         val name = token.left.value
         val (assignments, functions) = createAssignmentsAndFunctions(token.right)
+        if (objects.find { it.name == name } != null)
+            throw PositionalException("Two objects with same name", token)
         objects.add(Object(name, assignments, this))
         objects.last().functions.addAll(functions)
     }
 
-    fun addFunction(function: Function) = functions.add(function)
+    fun addFunction(function: Function) {
+        val res = functions.add(function)
+        if (!res)
+            throw PositionalException("Two functions with same signature (name and number of non-default parameters) `$function` in $fileName")
+    }
 
     fun getTypeOrNull(name: String): Type? = types.find { it.name == name }?.copy()
     fun getType(token: Token): Type = types.find { it.name == token.value }?.copy()
@@ -51,18 +57,29 @@ class FileTable(
 
 
     fun getObjectOrNull(name: String) = objects.find { it.name == name }
-    fun getFunction(call: Call): Function =
-        functions.find { it.name == call.name.value } ?: throw NotFoundException(call)
 
-    fun getFunctionOrNull(name: String) = functions.find { it.name == name }
-    fun getFunctionNames() = functions.map { it.name }.toMutableSet()
+    fun getFunction(token: Token): Function =
+        getFunctionOrNull(token) ?: throw PositionalException("Function not found in `$fileName`", token)
+
+    fun getFunctionOrNull(token: Token): Function? = Function.getFunctionOrNull(token as Call, functions)
+
+    fun getMain(): Function {
+        val mains = functions.filter { it.name == "main" }
+        if (mains.isEmpty())
+            throw PositionalException("main not found in `$fileName`")
+        if (mains.size > 1)
+            throw PositionalException("found 2 or more main functions in `$fileName`")
+        return mains.first()
+    }
 
     private fun createAssignmentsAndFunctions(token: Token): Pair<MutableList<Assignment>, List<Function>> {
         val res = mutableListOf<Assignment>()
         val functions = mutableListOf<Function>()
         for (a in token.children) {
-            if (a is Assignment)
+            if (a is Assignment) {
                 res.add(a)
+                a.isProperty = true
+            }
             else if (a.symbol == "fun")
                 functions.add(
                     FunctionFactory.createFunction(a)

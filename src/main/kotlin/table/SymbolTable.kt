@@ -5,7 +5,6 @@ import evaluation.FunctionFactory.initializeEmbedded
 import lexer.PositionalException
 import properties.*
 import properties.Function
-import properties.Type.Companion.resolveTree
 import token.Token
 import utils.Utils.toVariable
 
@@ -29,12 +28,17 @@ class SymbolTable(
             return res
         }
 
-        fun getEmbeddedNames(): MutableSet<String> = globalFile.getFunctionNames()
+//        fun initializeObjects() {
+//            for ((file, _) in imports)
+//                for (obj in file.getObjects())
+//                    resolveTree(obj, globalTable)
+//        }
 
-        fun initializeObjects() {
-            for ((file, _) in imports)
-                for (obj in file.getObjects())
-                    resolveTree(obj, globalTable)
+        fun clearTable() {
+            println("imports cleared")
+            globalTable = SymbolTable()
+            imports.clear()
+            imports[globalFile] = mutableMapOf()
         }
     }
 
@@ -147,7 +151,7 @@ class SymbolTable(
             )
 
     fun getFunction(token: Token): Function {
-        val res = getFromFilesOrNull { it.getFunctionOrNull(token.value) } as Function?
+        val res = getFromFilesOrNull { it.getFunctionOrNull(token) } as Function?
         if (res == null) {
             if (variableTable == null) throw PositionalException("Function `${token.value}` not found", token)
             return variableTable!!.getFunction(token)
@@ -159,16 +163,16 @@ class SymbolTable(
     fun getTypeOrNull(token: Token): Type? = getFromFilesOrNull { it.getTypeOrNull(token.value) } as Type?
 
     fun getFunctionOrNull(token: Token): Function? =
-        getFromFilesOrNull { it.getFunctionOrNull(token.value) } as Function?
-            ?: if (variableTable != null) variableTable!!.getFunctionOrNull(token.value) else null
+        getFromFilesOrNull { it.getFunctionOrNull(token) } as Function?
+            ?: if (variableTable != null) variableTable!!.getFunctionOrNull(token) else null
 
     fun getMain(): Function {
-        val mains = getFromFilesOrNull { it.getFunctionOrNull("main") }
+        val mains = getFromFilesOrNull { it.getMain() }
             ?: throw PositionalException("no main functions found")
-        return fileTable.getFunctionOrNull("main") ?: throw PositionalException("no main function in current file")
+        return fileTable.getMain()
     }
 
-    fun getVariableOrNull(name: String): Variable? = scopeTable!!.getVariableOrNull(name)
+    fun getVariableOrNull(name: String): Variable? = scopeTable?.getVariableOrNull(name)
 
     fun getIdentifier(token: Token): Variable = getIdentifierOrNull(token) ?: throw PositionalException(
         "Identifier `${token.value}` not found in `$fileTable`",
@@ -176,7 +180,7 @@ class SymbolTable(
     )
 
     fun getIdentifierOrNull(token: Token): Variable? {
-        val variable = scopeTable?.getVariableOrNull(token.value)
+        val variable = getVariableOrNull(token.value)
         if (variable != null)
             return variable
         val property = variableTable?.getPropertyOrNull(token.value)

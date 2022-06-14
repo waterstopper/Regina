@@ -1,0 +1,14 @@
+import math
+
+fun main() {
+    testSolve2()
+}
+
+fun testSolve2() {
+    test(solve2(0, 0) == [0.0])
+    log(solve2(1, 0).sorted())
+    test(solve2(1, 0).sorted() == [-1.0, 0.0])
+    test(solve2(0, 1) == [])
+    test(solve2(2, 1) == [-1.0])
+    test(solve2(0, -1).sorted() == [-1.0, 1.0])
+}

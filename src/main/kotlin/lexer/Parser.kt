@@ -46,7 +46,6 @@ class Parser() {
 //        // TODO added these lines to ignore \n
         while (token.value == "\n" && symbol != "\n")
             token = lexer.next()
-
         if (token.symbol != symbol)
             throw PositionalException(
                 "expected ${if (symbol != "\n") symbol else "line break"}",
@@ -81,20 +80,26 @@ class Parser() {
             return token
         }
         token = expression(0)
-        advance("\n")
+        val peeked = lexer.peek()
+        if (peeked.symbol == "\n" || peeked.symbol == "(EOF)")
+            advance("\n")
+        else if (peeked.symbol != "}")
+            throw PositionalException("Expected block end or line break", peeked)
         return token
     }
 
-    fun block(): Token {
+    fun block(canBeSingleStatement: Boolean = false): Token {
         var token = lexer.next()
         if (token.symbol == "\n")
             token = lexer.next()
         if (token.symbol != "{") {
-            lexer.prev()
-            val res = Block(Pair(token.position.first - 1, token.position.second))
-            res.children.add(statement())
-            return res
-            // throw PositionalException("expected a block start '{'", position = lexer.position)
+            if (canBeSingleStatement) {
+                lexer.prev()
+                val res = Block(Pair(token.position.first - 1, token.position.second))
+                res.children.add(statement())
+                return res
+            }
+            throw PositionalException("Expected a block start '{'", position = token.position)
         }
         return token.std?.let { it(token, this) } ?: throw PositionalException(
             "expected statement",

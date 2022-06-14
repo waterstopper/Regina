@@ -1,6 +1,5 @@
 package evaluation
 
-import evaluation.Evaluation.rnd
 import lexer.ExpectedTypeException
 import lexer.PositionalException
 import properties.EmbeddedFunction
@@ -17,8 +16,12 @@ import java.io.File
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 object FunctionFactory {
+    private var randomSeed = 42
+    private var rnd = Random(randomSeed)
+
     fun createFunction(token: Token): Function {
         if (token.left.value != "(")
             throw PositionalException("expected parentheses after function name", token.left)
@@ -31,8 +34,8 @@ object FunctionFactory {
         }
         return Function(
             name = token.left.left.value,
-            params = withoutDefault,
-            withDefaultParams = withDefault,
+            nonDefaultParams = withoutDefault,
+            defaultParams = withDefault,
             body = token.children[1]
         )
     }
@@ -54,10 +57,10 @@ object FunctionFactory {
                 Token(value = "fileName")
             )
         ) { token, args ->
-            val fileName = getIdent(token,"fileName",args)
+            val fileName = getIdent(token, "fileName", args)
             val content = getIdent(token, "content", args)
-            if(fileName !is PString || content !is PString)
-                throw ExpectedTypeException(listOf(PString::class),token)
+            if (fileName !is PString || content !is PString)
+                throw ExpectedTypeException(listOf(PString::class), token)
             val file = File(fileName.getPValue())
             file.writeText(content.getPValue())
         }
@@ -67,6 +70,14 @@ object FunctionFactory {
                 throw PositionalException("test failed", token)
         }
         res["rnd"] = EmbeddedFunction("rnd", listOf()) { _, _ -> rnd.nextDouble() }
+        res["seed"] = EmbeddedFunction("seed", listOf(Token(value = "x"))) { token, args ->
+            val seed = getIdent(token, "x", args)
+            if (seed !is PInt)
+                throw ExpectedTypeException(listOf(PInt::class), token)
+            randomSeed = seed.getPValue()
+            rnd = Random(randomSeed)
+            Unit
+        }
         res["str"] = EmbeddedFunction("str", listOf(Token(value = "x")))
         { token, args -> getIdent(token, "x", args).toString() }
         res["int"] = EmbeddedFunction("int", listOf(Token(value = "x"))) { token, args ->

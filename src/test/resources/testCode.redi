@@ -34,6 +34,7 @@ class DoubleSegment {
 }
 
 fun main() {
+    log([1,2,3].has(1))
     testing = 1
     if(1) {
         testing = 2
@@ -120,6 +121,11 @@ fun main() {
 	a = [5,2]
 	a[0] = "fads"
 	log(a)
+	testMath()
+}
+
+fun testMath() {
+    log(solve2(2,1))
 }
 
 fun checkLink() {

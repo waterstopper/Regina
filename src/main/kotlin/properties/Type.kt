@@ -7,6 +7,7 @@ import table.FileTable
 import table.SymbolTable
 import token.Token
 import token.TokenFactory
+import token.invocation.Call
 import token.statement.Assignment
 
 /**
@@ -24,7 +25,7 @@ open class Type(
     var supertype: Type? = null
 ) :
     Property(parent) {
-    private val properties = mutableMapOf<String, Property>()
+    protected val properties = mutableMapOf<String, Property>()
     val functions = mutableListOf<Function>()
 
     fun getAssignment(token: Token): Assignment? = assignments.find { it.left == token }
@@ -38,16 +39,10 @@ open class Type(
         return null
     }
 
-    override fun getFunctionOrNull(name: String): Function? = functions.find { it.name == name }
-    override fun getFunction(token: Token) = functions.find { it.name == token.value }
-        ?: throw PositionalException("\"$name\" class does not contain `${token.value}` function", token)
+    override fun getFunctionOrNull(token: Token): Function? = Function.getFunctionOrNull(token as Call, functions)
 
-    override fun hasProperty(token: Token): Boolean {
-        return when (token.value) {
-            "parent" -> getParentOrNull() is Type
-            else -> properties[token.value] != null
-        }
-    }
+    override fun getFunction(token: Token) = getFunctionOrNull(token)
+        ?: throw PositionalException("Class `$name` does not contain function", token)
 
     override fun getProperties() = PDictionary(properties, this)
 
@@ -88,11 +83,15 @@ open class Type(
     fun inherits(other: Type): Boolean {
         var type: Type? = this
         while (type != null) {
-            if (type.name == other.name && type.fileName == other.fileName)
+            if (type.equalToType(other))
                 return true
             type = type.supertype
         }
         return false
+    }
+
+    fun equalToType(other: Type): Boolean {
+        return name == other.name && fileName == other.fileName && other !is Object
     }
 
     fun copy(): Type {
@@ -127,7 +126,7 @@ open class Type(
             return root
         }
 
-        private fun processAssignment(parent: Type, symbolTable: SymbolTable, stack: MutableList<Assignment>) {
+        fun processAssignment(parent: Type, symbolTable: SymbolTable, stack: MutableList<Assignment>) {
             while (stack.isNotEmpty()) {
                 val unresolved = stack.removeLast()
                 val top = unresolved.getFirstUnassigned(symbolTable, parent)

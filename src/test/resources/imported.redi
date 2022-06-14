@@ -1,7 +1,11 @@
 object A {
-    prop = 2
+    property = // ...
+    prop = a
+    a = 10
+    b = 10 // b not initialized
 }
 
-fun i(){
-return 2
+fun i() {
+    log(A.prop) // init a, then init prop
+    return 2
 }

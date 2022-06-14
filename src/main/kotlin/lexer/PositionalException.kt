@@ -4,6 +4,7 @@ import properties.Function
 import properties.Variable
 import properties.primitive.*
 import table.FileTable
+import table.SymbolTable.Companion.clearTable
 import token.Identifier
 import token.Token
 import token.invocation.Invocation
@@ -17,6 +18,10 @@ open class PositionalException(
     private val length: Int = 1,
     private val file: String = ""
 ) : Exception() {
+    init {
+        // TODO why clear table? because it can interrupt evaluation. Cannot do it because try catch in FileTable.getFunctionOrNull
+        clearTable()
+    }
     override val message: String
         get() = if (token.value != "")
             "`${token.value}` $errorMessage at ${token.position.second},${token.position.first}-${token.position.first + token.value.length - 1}"
@@ -31,7 +36,8 @@ class NotFoundException(
 ) :
     PositionalException("", token, file = if (fileName == "") file.fileName else fileName) {
     override val message: String
-        get() = "Not found" + (variable?.toString() ?: "")
+        get() =
+            "Not found " + (variable?.toString() ?: "")
 }
 
 class ExpectedTypeException(

@@ -286,10 +286,19 @@ class Lexer() {
         tokReg.symbol("(STRING)")
 
         //tokReg.symbol("parent")
+// TODO not working
+        tokReg.prefixNud("false") { token: Token, parser: Parser ->
+            val a=  0
+            TokenNumber("0", token.position)
+        }
 
+        tokReg.prefixNud("true") { token: Token, parser: Parser ->
+
+            TokenNumber("1", token.position)
+        }
         tokReg.symbol("true")
         tokReg.symbol("false")
-        tokReg.symbol("none")
+        // tokReg.symbol("none")
 
         tokReg.consumable("\n")
         tokReg.consumable(")")
@@ -412,7 +421,7 @@ class Lexer() {
                 token.symbol = "()"
                 token.value = "TUPLE"
                 token
-            } else
+            } else // TODO figure out why return child
                 token.children[0]
         }
 
@@ -470,7 +479,7 @@ class Lexer() {
         tokReg.stmt("if") { token: Token, parser: Parser ->
             val res = Block(token)
             res.children.add(parser.expression(0))
-            res.children.add(parser.block())
+            res.children.add(parser.block(canBeSingleStatement = true))
             var next = parser.lexer.peek()
             if (next.value == "\n" && parser.lexer.peek(2).value == "else") {
                 parser.lexer.next()
@@ -482,7 +491,7 @@ class Lexer() {
                 if (next.value == "if")
                     res.children.add(parser.statement())
                 else
-                    res.children.add(parser.block())
+                    res.children.add(parser.block(canBeSingleStatement = true))
             }
             res
         }
@@ -548,7 +557,7 @@ class Lexer() {
         tokReg.stmt("while") { token: Token, parser: Parser ->
             val res = Block(token)
             res.children.add(parser.expression(0))
-            res.children.add(parser.block())
+            res.children.add(parser.block(canBeSingleStatement = true))
             res
         }
 

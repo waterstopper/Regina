@@ -71,16 +71,20 @@ fun solve3(a, b, c) {
 }
 // x^2 + ax + b = 0
 fun solve2 (a, b) {
-    if ( b == 0 ) {
+    if ( b == 0 )
         return if(a == 0) [0.0] else [0.0, -double(a)]
-    }
     solution = []
     a = a * -0.5
     d = a * a - b
-    if ( d < 0 ) { return 0 }
+    if ( d < 0 )
+        return []
     d = sqrt(d)
-    solution.add(double(if(a > 0) a + d else a - d))
-    solution.add(b / solution[0])
+    if(d == 0)
+        return [a]
+    return [a + d, a - d]
+//    solution.add(double(if(a > 0) a + d else a - d))
+//    solution.add(b / solution[0])
+//    return solution
 }
 
 // Return array of doubles as a solution of ax^2 + bx + c = 0

@@ -7,13 +7,9 @@ import token.invocation.Call
 import token.invocation.Constructor
 import token.invocation.Invocation
 import token.operator.ArithmeticOperator
-import token.operator.Index
 import token.operator.Operator
 import token.operator.TypeOperator
 import token.statement.Assignment
-import token.variable.TokenArray
-import token.variable.TokenNumber
-import token.variable.TokenString
 
 class TokenFactory {
     private val nonArithmeticOperators = listOf("+", "==", "!=")
@@ -88,25 +84,44 @@ class TokenFactory {
         fun createSpecificIdentifierFromInvocation(
             tokenIdentifier: Token,
             symbolTable: SymbolTable,
-            linkLevel: Int,
-            upperToken: Token
+            upperToken: Token,
+            index: Int
         ): Invocation {
-            // TODO not checking that variable contains function
-            // TODO not checking a[i].b where a[i] is object
-            if(tokenIdentifier.left.value=="Point")
-                println()
-            if (symbolTable.getFunctionOrNull(tokenIdentifier.left) != null
-                || linkLevel >= 2
-                || (upperToken is Link && (symbolTable.getVariableOrNull(upperToken.left.value) != null
-                        || upperToken.left is TokenArray
-                        || upperToken.left is TokenString
-                        || upperToken.left is TokenNumber
-                        || upperToken.left is Index))
+            if (symbolTable.getFunctionOrNull(Call(tokenIdentifier)) != null)
+                upperToken.children[index] = Call(tokenIdentifier)
+            else if (symbolTable.getTypeOrNull(tokenIdentifier.left) != null)
+                upperToken.children[index] = Constructor(tokenIdentifier)
+            else throw PositionalException("No class and function found", tokenIdentifier.left)
+            return upperToken.children[index] as Invocation
+//            // TODO not checking that variable contains function
+//            // TODO not checking a[i].b where a[i] is object
+//            if (symbolTable.getFunctionOrNull(Call(tokenIdentifier)) != null
+//                || (upperToken is Link && (symbolTable.getVariableOrNull(upperToken.left.value) != null
+//                        || upperToken.left is TokenArray
+//                        || upperToken.left is TokenString
+//                        || upperToken.left is TokenNumber
+//                        || upperToken.left is Index))
+//            ) {
+//                return Call(tokenIdentifier)
+//            } else if (symbolTable.getTypeOrNull(tokenIdentifier.left) != null)
+//                return Constructor(tokenIdentifier)
+//            throw PositionalException("Unknown invocated identifier `${tokenIdentifier.left.value}`", tokenIdentifier)
+        }
+
+        fun changeInvocationOnSecondPositionInLink(symbolTable: SymbolTable, link: Link): Invocation {
+            if (symbolTable.getVariableOrNull(link.left.value) != null
+                || symbolTable.getObjectOrNull(link.left) != null
             ) {
-                return Call(tokenIdentifier)
-            } else if (symbolTable.getTypeOrNull(tokenIdentifier.left) != null && linkLevel <= 1)
-                return Constructor(tokenIdentifier)
-            throw PositionalException("Unknown invocated identifier `${tokenIdentifier.left.value}`", tokenIdentifier)
+                link.children[1] = Call(link.right)
+                return link.children[1] as Call
+            }
+            val fileTable = symbolTable.getImport(link.left)
+            if (fileTable.getFunctionOrNull(Call(link.right)) != null)
+                link.children[1] = Call(link.right)
+            else if (fileTable.getTypeOrNull(link.right.left.value) != null)
+                link.children[1] = Constructor(link.right)
+            else throw PositionalException("No class and function found in `${fileTable.fileName}`", link.right)
+            return link.children[1] as Invocation
         }
     }
 }

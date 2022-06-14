@@ -24,6 +24,8 @@ class Registry {
         std: ((token: Token, parser: Parser) -> Token)?,
     ) {
         if (table[symbol] != null) {
+            // It is debatable whether these should be overridden on `register` call or not
+            // This is initial (not my) design
             val value = table[symbol]!!
             if (nud != null && value.nud == null)
                 value.nud = nud
