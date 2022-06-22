@@ -18,3 +18,5 @@ jobs:
 
       - name: "ktlint"
         uses: fabiocapasso93/gha-kotlin-linter@v1.0
+        with:
+          auto_fix: true
