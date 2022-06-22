@@ -1,10 +1,7 @@
 package lexer
 
 import Logger
-import token.Declaration
-import token.Identifier
-import token.Linkable
-import token.Token
+import token.*
 import token.invocation.Invocation
 import token.operator.Index
 import token.operator.TokenTernary
@@ -78,7 +75,7 @@ class Lexer() {
                 continue
             }
             // TODO probably out of bounds if multiline string
-            if (isLineSeparator(source, index))
+            if (isLineSeparator(source, index) || index == source.lastIndex)
                 throw Exception("Unterminated string at ${position.second}:${position.first}")
             res.append(source[index])
             move()
@@ -174,7 +171,7 @@ class Lexer() {
             }
             return tokReg.operator("\n", "\n", Pair(currentPos.first, currentPos.second))
         } else if (tokReg.defined(source[index].toString())) move()
-        else throw PositionalException("invalid operator", position = position, length = 1)
+        else throw PositionalException("Invalid operator", position = position, length = 1)
         return tokReg.operator(
             source[index - 1].toString(),
             source[index - 1].toString(), Pair(position.first - 1, position.second)
@@ -185,11 +182,12 @@ class Lexer() {
         consumeWhitespaceAndComments()
         if (index == source.length)
             return tokReg.token("(EOF)", "(EOF)", position)
+        // go to next line symbol - to separate long expressions
         if (source[index] == '\\') {
             index++
             consumeWhitespaceAndComments()
             if (!isLineSeparator(source, index))
-                throw PositionalException("\n", position = position, length = 1)
+                throw PositionalException("Expected new line after \\", position = position, length = 1)
             else index = moveAfterLineSeparator(source, index)
             consumeWhitespaceAndComments()
             position = Pair(0, position.second + 1)
@@ -202,7 +200,7 @@ class Lexer() {
             nextNumber()
         else if (isOperatorChar(source[index]))
             nextOperator()
-        else throw PositionalException("invalid character", position = position, length = 1)
+        else throw PositionalException("Invalid character", position = position, length = 1)
     }
 
     private fun consumeWhitespaceAndComments(): Boolean {
@@ -288,7 +286,7 @@ class Lexer() {
         //tokReg.symbol("parent")
 // TODO not working
         tokReg.prefixNud("false") { token: Token, parser: Parser ->
-            val a=  0
+            val a = 0
             TokenNumber("0", token.position)
         }
 
@@ -374,9 +372,9 @@ class Lexer() {
         // function use
         tokReg.infixLed("(", 120) { token: Token, parser: Parser, left: Token ->
             if (left.symbol != "(LINK)" && left.symbol != "(IDENT)" && left.symbol != "["
-                && left.symbol != "(" && left.symbol != "->" && left.symbol != "!"
+                && left.symbol != "(" && left.symbol != "!"
             )
-                throw  PositionalException("bad func call left operand `$left`", left)
+                throw  PositionalException("`$left` is not invokable", left)
             token.children.add(left)
             val t = parser.lexer.peek()
             if (t.symbol != ")") {
@@ -389,8 +387,6 @@ class Lexer() {
 
         // array indexing
         tokReg.infixLed("[", 110) { token: Token, parser: Parser, left: Token ->
-//            if (left.symbol != "." && left.symbol != "(IDENT)" && left.symbol != "[" && left.symbol != "(")
-//                throw  PositionalException("bad func call left operand $left", left)
             val res = Index(token)
             res.children.add(left)
             val t = parser.lexer.peek()
@@ -502,16 +498,20 @@ class Lexer() {
             if (parser.lexer.peek().value == "as") {
                 parser.advance("as")
                 res.children.add(parser.expression(0))
-                if (res.right !is Identifier)
-                    throw PositionalException("Expected identifier, not a link after `as` directive", res.right)
+                if(!checkIdentifierInImport(res.right))
+                    throw PositionalException("Expected non-link identifier after `as` directive", res.right)
             } else {
-                if (res.left !is Identifier)
+                if (!checkIdentifierInImport(res.left))
                     throw PositionalException(
                         "Imports containing folders in name should be declared like:\n" +
-                                "`import path as identifier` and used in code accordingly", res
+                                "`import path as identifier` and used in code with specified identifier", res
                     )
                 res.children.add(Token(res.left.symbol, res.left.value))
             }
+            if (res.left is Link)
+                checkImportedFolder(res.left as Link)
+            else if(!checkIdentifierInImport(res.left))
+                throw PositionalException("Expected non-link identifier after `as` directive", res.right)
             res
         }
 
@@ -613,7 +613,11 @@ class Lexer() {
             throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), token, token)
     }
 
-    private fun fictionalBlock() {
-
+    private fun checkImportedFolder(link: Link) {
+        for (ident in link.children)
+            if(!checkIdentifierInImport(ident))
+                throw PositionalException("Each folder should be represented as identifier", ident)
     }
+
+    private fun checkIdentifierInImport(token:Token):Boolean = token is Identifier || token.children.size == 0
 }

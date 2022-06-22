@@ -22,13 +22,13 @@ class Parser() {
     fun expression(rbp: Int): Token {
         var t = lexer.next()
         var left = t.nud?.let { it(t, this) } ?: throw PositionalException(
-            "expected variable or prefix operator",
+            "Expected variable or prefix operator",
             position = lexer.position, length = 1
         )
         while (rbp < lexer.peek().bindingPower) {
             t = lexer.next()
             left = t.led?.let { it(t, this, left) } ?: throw PositionalException(
-                "expected infix or suffix operator",
+                "Expected infix or suffix operator",
                 position = lexer.position, length = 1
             )
         }
@@ -48,7 +48,7 @@ class Parser() {
             token = lexer.next()
         if (token.symbol != symbol)
             throw PositionalException(
-                "expected ${if (symbol != "\n") symbol else "line break"}",
+                "Expected ${if (symbol != "\n") symbol else "line break"}",
                 position = lexer.position,
                 length = 1
             )
@@ -102,7 +102,7 @@ class Parser() {
             throw PositionalException("Expected a block start '{'", position = token.position)
         }
         return token.std?.let { it(token, this) } ?: throw PositionalException(
-            "expected statement",
+            "Expected statement",
             position = lexer.position
         )
     }

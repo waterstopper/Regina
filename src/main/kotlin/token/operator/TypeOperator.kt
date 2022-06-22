@@ -47,7 +47,7 @@ class TypeOperator(
                 )
                     return checked.inherits(type)
                 throw PositionalException(
-                    "expected class instance or primitive as left operator and class name as right operator",
+                    "Expected class instance or primitive as left operator and class name as right operator",
                     this
                 )
             }

@@ -1,10 +1,10 @@
 package lexer
 
+import evaluation.Evaluation.clear
 import properties.Function
 import properties.Variable
 import properties.primitive.*
 import table.FileTable
-import table.SymbolTable.Companion.clearTable
 import token.Identifier
 import token.Token
 import token.invocation.Invocation
@@ -13,19 +13,24 @@ import kotlin.reflect.KClass
 
 open class PositionalException(
     private val errorMessage: String,
-    private val token: Token = Token(),
-    private val position: Pair<Int, Int> = Pair(0, 0),
-    private val length: Int = 1,
+    protected val token: Token = Token(),
+    protected val position: Pair<Int, Int> = Pair(0, 0),
+    protected val length: Int = 1,
     private val file: String = ""
 ) : Exception() {
     init {
         // TODO why clear table? because it can interrupt evaluation. Cannot do it because try catch in FileTable.getFunctionOrNull
-        clearTable()
+        clear()
     }
+
     override val message: String
-        get() = if (token.value != "")
-            "`${token.value}` $errorMessage at ${token.position.second},${token.position.first}-${token.position.first + token.value.length - 1}"
-        else "$errorMessage at ${position.second},${position.first}-${position.first + length - 1}"
+        get() = "`${token.value}` $errorMessage at ${getPosition()}"
+
+    protected fun getPosition(): String {
+        return if (token.value != "")
+            "${token.position.second},${token.position.first}-${token.position.first + token.value.length - 1}"
+        else "${position.second},${position.first}-${position.first + length - 1}"
+    }
 }
 
 class NotFoundException(
@@ -37,7 +42,7 @@ class NotFoundException(
     PositionalException("", token, file = if (fileName == "") file.fileName else fileName) {
     override val message: String
         get() =
-            "Not found " + (variable?.toString() ?: "")
+            "Not found " + (variable?.toString() ?: token.value) + " at ${getPosition()}"
 }
 
 class ExpectedTypeException(

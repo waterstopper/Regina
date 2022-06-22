@@ -24,7 +24,7 @@ object FunctionFactory {
 
     fun createFunction(token: Token): Function {
         if (token.left.value != "(")
-            throw PositionalException("expected parentheses after function name", token.left)
+            throw PositionalException("Expected parentheses after function name", token.left)
         val withoutDefault = mutableListOf<Token>()
         val withDefault = mutableListOf<Assignment>()
         for (i in 1..token.left.children.lastIndex) {

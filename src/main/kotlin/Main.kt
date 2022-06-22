@@ -7,10 +7,20 @@ import utils.Utils.treeView
 import java.io.File
 import java.io.FileNotFoundException
 
+fun f(a: Int, b: Int, c:Int =2,d:Int= 2) {
+
+}
+
+fun f(a: Int, b: Int = 2, c: Int = 2) {
+
+}
+
 fun main() {
+    f(1,2)
     val other = Parser("log([1,2,3].has(1))").statements()
     println(other.treeView())
-    val statements = Parser("""
+    val statements = Parser(
+        """
         while(asew)
             doo()
 
@@ -25,7 +35,8 @@ fun main() {
         {
             doThat()
         }
-    """).statements()
+    """
+    ).statements()
     println(statements.treeView())
 //    println(Parser("A !is B").statements().treeView())
     // println(Parser("(v-a).b.c[1][2][3].s.r").statements().treeView())

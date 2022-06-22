@@ -193,5 +193,9 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             }
             globalTable.changeFile(initialFileTable)
         }
+
+        fun clearAnalyzer() {
+            declarations = mutableMapOf()
+        }
     }
 }

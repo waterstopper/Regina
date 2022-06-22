@@ -68,7 +68,7 @@ class FileTable(
         if (mains.isEmpty())
             throw PositionalException("main not found in `$fileName`")
         if (mains.size > 1)
-            throw PositionalException("found 2 or more main functions in `$fileName`")
+            throw PositionalException("Found 2 or more main functions in `$fileName`")
         return mains.first()
     }
 

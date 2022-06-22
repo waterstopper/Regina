@@ -1,4 +1,4 @@
-package evaluation
+package lexer
 
 import evaluation.Evaluation.eval
 import kotlin.test.Test
@@ -76,45 +76,5 @@ class SemanticTest {
         }
         println(thrown.message)
         assertTrue(thrown.message!!.contains("Only class, object or function can be top level declaration"))
-    }
-
-    @Test
-    fun testDefaultParamOrder() {
-        val thrown = assertFails {
-            eval(
-                """
-                fun main(a = 0, b) {}
-            """
-            )
-        }
-        println(thrown.message)
-        assertTrue(thrown.message!!.contains("Default params should be after other"))
-    }
-
-    @Test
-    fun testIncorrectArgsOrder() {
-        val thrown = assertFails {
-            eval(
-                """
-                fun someFunc(a, b) {}
-                fun main() {
-                    someFunc(b = 1, 2)
-                }
-            """
-            )
-        }
-        assertTrue(thrown.message!!.contains("Named args should be after other"))
-    }
-
-    @Test
-    fun testIncorrectParam() {
-        val thrown = assertFails {
-            eval(
-                """
-                fun main(a.b.c) {}
-            """
-            )
-        }
-        assertTrue(thrown.message!!.contains("Expected identifier as function parameter"))
     }
 }

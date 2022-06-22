@@ -1,6 +1,5 @@
 package properties
 
-import lexer.PositionalException
 import token.Token
 import token.invocation.Call
 import token.statement.Assignment
@@ -22,7 +21,8 @@ open class Function(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Function) return false
-        if (nonDefaultParams.size != other.nonDefaultParams.size) return false
+        if ((nonDefaultParams.size + defaultParams.size) != (other.nonDefaultParams.size + other.defaultParams.size))
+            return false
         if (name != other.name) return false
         return true
     }
@@ -62,7 +62,7 @@ open class Function(
                 } && candidate.nonDefaultParams.size - unnamedArgsRemoved <= call.unnamedArgs.size
             }
             return candidates.minByOrNull { it.defaultParams.size + it.nonDefaultParams.size }
-               // ?: throw PositionalException("Function `${call.name}` not found", call)
+            // ?: throw PositionalException("Function `${call.name}` not found", call)
         }
     }
 }
