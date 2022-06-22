@@ -18,7 +18,8 @@ class Registry {
     private val table = mutableMapOf<String, Token>()
 
     private fun register(
-        symbol: String, bp: Int,
+        symbol: String,
+        bp: Int,
         nud: ((token: Token, parser: Parser) -> Token)?,
         led: ((token: Token, parser: Parser, token2: Token) -> Token)?,
         std: ((token: Token, parser: Parser) -> Token)?,
@@ -138,5 +139,4 @@ class Registry {
         table[symbol]!!.led,
         table[symbol]!!.std
     )
-
 }

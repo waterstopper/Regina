@@ -77,7 +77,6 @@ open class Type(
 //            res.append("->$exported")
 //        res.append("{parent:${parent?.name ?: "-"}, ${properties.filter { it.key != "parent" }}, $assignments}")
         return res.toString()
-
     }
 
     fun inherits(other: Type): Boolean {

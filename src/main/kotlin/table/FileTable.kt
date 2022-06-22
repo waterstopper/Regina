@@ -19,7 +19,7 @@ class FileTable(
     private val functions: MutableSet<Function> = mutableSetOf()
 
     fun addType(token: Token) {
-        //assignName(assignType(assignExported(token.left), fileName))
+        // assignName(assignType(assignExported(token.left), fileName))
         val name = token.left.value
         val exported = if (token.children[2].value != "") token.children[2].value else null
 
@@ -55,7 +55,6 @@ class FileTable(
     fun getUncopiedType(token: Token): Type = types.find { it.name == token.value }
         ?: throw throw NotFoundException(token)
 
-
     fun getObjectOrNull(name: String) = objects.find { it.name == name }
 
     fun getFunction(token: Token): Function =
@@ -79,8 +78,7 @@ class FileTable(
             if (a is Assignment) {
                 res.add(a)
                 a.isProperty = true
-            }
-            else if (a.symbol == "fun")
+            } else if (a.symbol == "fun")
                 functions.add(
                     FunctionFactory.createFunction(a)
                 )

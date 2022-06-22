@@ -23,9 +23,11 @@ class ParserTest {
 
     @Test
     fun failTwoStatements() {
-        val thrownArr = mutableListOf(assertFails { Parser("fun main() {a = b b = c}").statements() },
+        val thrownArr = mutableListOf(
+            assertFails { Parser("fun main() {a = b b = c}").statements() },
             assertFails { Parser("a() b()").statements() },
-            assertFails { Parser("a = b b()").statements() })
+            assertFails { Parser("a = b b()").statements() }
+        )
         for (exception in thrownArr)
             assertTrue(exception.message!!.contains("Expected block end or line break"))
     }
@@ -38,24 +40,30 @@ class ParserTest {
 
     @Test
     fun failImportWithAs() {
-        val thrownArr = mutableListOf(assertFails { Parser("import a.b.c as a.b").statements() },
-            assertFails { Parser("import a.b.c as a+b").statements() })
+        val thrownArr = mutableListOf(
+            assertFails { Parser("import a.b.c as a.b").statements() },
+            assertFails { Parser("import a.b.c as a+b").statements() }
+        )
         for (exception in thrownArr)
             assertTrue(exception.message!!.contains("Expected non-link identifier after `as`"))
     }
 
     @Test
     fun importWithoutAs() {
-        val thrownArr = mutableListOf(assertFails { Parser("import a.b.c").statements() },
-            assertFails { Parser("import a+b").statements() })
+        val thrownArr = mutableListOf(
+            assertFails { Parser("import a.b.c").statements() },
+            assertFails { Parser("import a+b").statements() }
+        )
         for (exception in thrownArr)
             assertTrue(exception.message!!.contains("Imports containing folders in name should be declared"))
     }
 
     @Test
-    fun importIncorrectFolderPath () {
-        val thrownArr = mutableListOf(assertFails { Parser("import a.b.c").statements() },
-            assertFails { Parser("import a+b").statements() })
+    fun importIncorrectFolderPath() {
+        val thrownArr = mutableListOf(
+            assertFails { Parser("import a.b.c").statements() },
+            assertFails { Parser("import a+b").statements() }
+        )
         for (exception in thrownArr)
             assertTrue(exception.message!!.contains("Imports containing folders in name should be declared"))
     }

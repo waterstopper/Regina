@@ -50,7 +50,6 @@ class SemanticTest {
         assertTrue(thrown.message!!.contains("Two objects with same name"))
     }
 
-
     @Test
     fun testAssignmentTopLevel() {
         val thrown = assertFails {

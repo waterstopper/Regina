@@ -4,7 +4,11 @@ import lexer.ExpectedTypeException
 import lexer.Parser
 import lexer.PositionalException
 import properties.Type
-import properties.primitive.*
+import properties.primitive.Indexable
+import properties.primitive.PArray
+import properties.primitive.PDictionary
+import properties.primitive.PString
+import properties.primitive.Primitive
 import table.SymbolTable
 import token.Assignable
 import token.Linkable
@@ -24,10 +28,13 @@ class Index(
     position: Pair<Int, Int>,
     bindingPower: Int,
     nud: ((token: Token, parser: Parser) -> Token)?,
-    led: ((
-        token: Token, parser: Parser, token2: Token
-    ) -> Token)?,
-    std: ((token: Token, parser: Parser) -> Token)?, children: List<Token> = listOf()
+    led: (
+        (
+            token: Token, parser: Parser, token2: Token
+        ) -> Token
+    )?,
+    std: ((token: Token, parser: Parser) -> Token)?,
+    children: List<Token> = listOf()
 ) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable, Linkable {
     constructor(token: Token) : this(
         token.symbol,

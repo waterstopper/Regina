@@ -44,11 +44,9 @@ object FunctionFactory {
 
     fun getIdent(token: Token, name: String, args: SymbolTable) = args.getIdentifier(createIdent(token, name))
 
-
     fun initializeEmbedded(): MutableMap<String, Function> {
         val res = mutableMapOf<String, Function>()
-        res["log"] = EmbeddedFunction("log", listOf(Token(value = "x")))
-        { token, args -> println(getIdent(token, "x", args)) }
+        res["log"] = EmbeddedFunction("log", listOf(Token(value = "x"))) { token, args -> println(getIdent(token, "x", args)) }
         res["input"] = EmbeddedFunction("input", listOf()) { _, _ -> readLine() ?: "" }
         res["write"] = EmbeddedFunction(
             "write",
@@ -78,8 +76,7 @@ object FunctionFactory {
             rnd = Random(randomSeed)
             Unit
         }
-        res["str"] = EmbeddedFunction("str", listOf(Token(value = "x")))
-        { token, args -> getIdent(token, "x", args).toString() }
+        res["str"] = EmbeddedFunction("str", listOf(Token(value = "x"))) { token, args -> getIdent(token, "x", args).toString() }
         res["int"] = EmbeddedFunction("int", listOf(Token(value = "x"))) { token, args ->
             when (val argument = getIdent(token, "x", args)) {
                 is PDouble -> argument.getPValue().toInt()
@@ -104,7 +101,8 @@ object FunctionFactory {
                             mutableMapOf(
                                 "key" to it.key.toVariable(token),
                                 "value" to it.value.toVariable(token)
-                            ), null
+                            ),
+                            null
                         )
                     }
                 is PString -> argument.getPValue().map { it.toString() }

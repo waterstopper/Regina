@@ -1,7 +1,11 @@
 package lexer
 
 import Logger
-import token.*
+import token.Declaration
+import token.Identifier
+import token.Link
+import token.Linkable
+import token.Token
 import token.invocation.Invocation
 import token.operator.Index
 import token.operator.TokenTernary
@@ -107,9 +111,8 @@ class Lexer() {
             res.toString(),
             Pair(position.first - res.toString().length, position.second)
         )
-        //return tokReg.token("(IDENT)", res.toString(), Pair(position.first - res.toString().length, position.second))
+        // return tokReg.token("(IDENT)", res.toString(), Pair(position.first - res.toString().length, position.second))
     }
-
 
     private fun nextNumber(): Token {
         val res = StringBuilder(source[index].toString())
@@ -283,7 +286,7 @@ class Lexer() {
         tokReg.symbol("(NUMBER)")
         tokReg.symbol("(STRING)")
 
-        //tokReg.symbol("parent")
+        // tokReg.symbol("parent")
 // TODO not working
         tokReg.prefixNud("false") { token: Token, parser: Parser ->
             val a = 0
@@ -303,7 +306,7 @@ class Lexer() {
         tokReg.consumable("]")
         tokReg.consumable(",")
         tokReg.consumable("else")
-        //tokReg.consumable(":")
+        // tokReg.consumable(":")
         tokReg.consumable("export")
 
         tokReg.consumable("(EOF)")
@@ -327,13 +330,13 @@ class Lexer() {
         tokReg.infix("==", 30)
         tokReg.infix("!=", 30)
 
-        //tokReg.infix("export", 10)
-        //tokReg.prefix("import")
-        //tokReg.infix(":", 20)
+        // tokReg.infix("export", 10)
+        // tokReg.prefix("import")
+        // tokReg.infix(":", 20)
 
         tokReg.infix("is", 15)
         tokReg.infix("!is", 15)
-        //tokReg.infix("isnot", 15)
+        // tokReg.infix("isnot", 15)
 
         tokReg.prefix("-")
         tokReg.prefix("!")
@@ -371,10 +374,10 @@ class Lexer() {
 
         // function use
         tokReg.infixLed("(", 120) { token: Token, parser: Parser, left: Token ->
-            if (left.symbol != "(LINK)" && left.symbol != "(IDENT)" && left.symbol != "["
-                && left.symbol != "(" && left.symbol != "!"
+            if (left.symbol != "(LINK)" && left.symbol != "(IDENT)" && left.symbol != "[" &&
+                left.symbol != "(" && left.symbol != "!"
             )
-                throw  PositionalException("`$left` is not invokable", left)
+                throw PositionalException("`$left` is not invokable", left)
             token.children.add(left)
             val t = parser.lexer.peek()
             if (t.symbol != ")") {
@@ -498,19 +501,20 @@ class Lexer() {
             if (parser.lexer.peek().value == "as") {
                 parser.advance("as")
                 res.children.add(parser.expression(0))
-                if(!checkIdentifierInImport(res.right))
+                if (!checkIdentifierInImport(res.right))
                     throw PositionalException("Expected non-link identifier after `as` directive", res.right)
             } else {
                 if (!checkIdentifierInImport(res.left))
                     throw PositionalException(
                         "Imports containing folders in name should be declared like:\n" +
-                                "`import path as identifier` and used in code with specified identifier", res
+                            "`import path as identifier` and used in code with specified identifier",
+                        res
                     )
                 res.children.add(Token(res.left.symbol, res.left.value))
             }
             if (res.left is Link)
                 checkImportedFolder(res.left as Link)
-            else if(!checkIdentifierInImport(res.left))
+            else if (!checkIdentifierInImport(res.left))
                 throw PositionalException("Expected non-link identifier after `as` directive", res.right)
             res
         }
@@ -578,7 +582,7 @@ class Lexer() {
             val res = WordStatement(token)
             if (parser.lexer.peek().symbol != "}" && parser.lexer.peek().symbol != "\n")
                 res.children.add(parser.expression(0))
-            //parser.advance("\n")
+            // parser.advance("\n")
             res
         }
 
@@ -615,9 +619,9 @@ class Lexer() {
 
     private fun checkImportedFolder(link: Link) {
         for (ident in link.children)
-            if(!checkIdentifierInImport(ident))
+            if (!checkIdentifierInImport(ident))
                 throw PositionalException("Each folder should be represented as identifier", ident)
     }
 
-    private fun checkIdentifierInImport(token:Token):Boolean = token is Identifier || token.children.size == 0
+    private fun checkIdentifierInImport(token: Token): Boolean = token is Identifier || token.children.size == 0
 }

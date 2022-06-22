@@ -35,5 +35,3 @@ class ScopeTable {
         return res
     }
 }
-
-

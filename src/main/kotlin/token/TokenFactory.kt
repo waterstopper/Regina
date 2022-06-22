@@ -109,8 +109,8 @@ class TokenFactory {
         }
 
         fun changeInvocationOnSecondPositionInLink(symbolTable: SymbolTable, link: Link): Invocation {
-            if (symbolTable.getVariableOrNull(link.left.value) != null
-                || symbolTable.getObjectOrNull(link.left) != null
+            if (symbolTable.getVariableOrNull(link.left.value) != null ||
+                symbolTable.getObjectOrNull(link.left) != null
             ) {
                 link.children[1] = Call(link.right)
                 return link.children[1] as Call

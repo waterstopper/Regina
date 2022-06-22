@@ -32,10 +32,14 @@ import utils.Utils.toVariable
  * * n-th token is [Linkable]: [Identifier], [Invocation] or [Index]
  */
 open class Link(
-    symbol: String, value: String, position: Pair<Int, Int>, bindingPower: Int,
+    symbol: String,
+    value: String,
+    position: Pair<Int, Int>,
+    bindingPower: Int,
     nud: ((token: Token, parser: Parser) -> Token)?,
     led: ((token: Token, parser: Parser, token2: Token) -> Token)?,
-    std: ((token: Token, parser: Parser) -> Token)?, children: List<Token> = listOf()
+    std: ((token: Token, parser: Parser) -> Token)?,
+    children: List<Token> = listOf()
 ) : Token(symbol, value, position, bindingPower, nud, led, std), Assignable {
     constructor(token: Token) : this(
         token.symbol, token.value,
@@ -108,7 +112,7 @@ open class Link(
             }
             is Call -> resolveFunctionCall(table.getFunction(children[index]))
             is Constructor -> assignCurrentVariable(children[index].evaluate(initialTable).toVariable(children[index]))
-            is Invocation -> throw PositionalException("EOFKE", children[index])//resolveInvocation()
+            is Invocation -> throw PositionalException("EOFKE", children[index]) // resolveInvocation()
             // unary minus, (1+2).max(...)
             else -> {
                 if (!canBeFile)
@@ -151,7 +155,8 @@ open class Link(
             type = null
         val tableForEvaluation = SymbolTable(
             fileTable = if (type is Type) table.getFileFromType(type, children[index])
-            else table.getFileTable(), variableTable = table.getCurrentType()
+            else table.getFileTable(),
+            variableTable = table.getCurrentType()
         ) // table.changeScope(initialTable.getScope())
         (children[index] as Call).argumentsToParameters(function, initialTable, tableForEvaluation)
         val functionResult = (children[index] as Call).evaluateFunction(tableForEvaluation, function)
@@ -172,7 +177,8 @@ open class Link(
             parent ?: Type(
                 "@Fictive",
                 null, mutableListOf(), symbolTable.getImport(Token(value = "@global"))
-            ), symbolTable
+            ),
+            symbolTable
         )
         // if the last child in link is assigned
         if (index == children.lastIndex)

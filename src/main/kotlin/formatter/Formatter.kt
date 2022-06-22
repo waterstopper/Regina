@@ -42,7 +42,6 @@ class Formatter(filePath: String) {
         if (token.children.size > 1)
             for (child in token.children.subList(1, token.children.size))
                 traverse(child)
-
     }
 
     private fun write(token: Token) {

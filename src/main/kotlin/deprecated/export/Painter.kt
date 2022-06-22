@@ -1,11 +1,11 @@
 package deprecated.export
 //
-//import deprecated.OldContainer
-//import com.github.nwillc.ksvg.elements.Element
-//import com.github.nwillc.ksvg.elements.LINE
-//import com.github.nwillc.ksvg.elements.SVG
-//@Deprecated("")
-//class Painter(val root: OldContainer) {
+// import deprecated.OldContainer
+// import com.github.nwillc.ksvg.elements.Element
+// import com.github.nwillc.ksvg.elements.LINE
+// import com.github.nwillc.ksvg.elements.SVG
+// @Deprecated("")
+// class Painter(val root: OldContainer) {
 //    val svg = SVG.svg(true) {
 //    }
 //
@@ -75,4 +75,4 @@ package deprecated.export
 //
 //    }
 //
-//}
+// }

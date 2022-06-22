@@ -168,7 +168,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 is Identifier -> if (wasAssignment)
                     throw PositionalException("Default params should be after other", param)
                 else -> if (!areArgs) throw PositionalException("Expected identifier as function parameter", param)
-                else if (wasAssignment) throw  PositionalException("Named args should be after other", param)
+                else if (wasAssignment) throw PositionalException("Named args should be after other", param)
             }
     }
 

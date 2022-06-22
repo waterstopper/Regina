@@ -46,9 +46,9 @@ open class Function(
          */
         fun getFunctionOrNull(call: Call, functions: Iterable<Function>): Function? {
             var candidates = functions.filter {
-                it.name == call.name.value
-                        && it.nonDefaultParams.size <= call.allArgs.size
-                        && it.nonDefaultParams.size + it.defaultParams.size >= call.allArgs.size
+                it.name == call.name.value &&
+                    it.nonDefaultParams.size <= call.allArgs.size &&
+                    it.nonDefaultParams.size + it.defaultParams.size >= call.allArgs.size
             }
             var unnamedArgsRemoved = 0
             // filter functions by named arguments - if there is name argument

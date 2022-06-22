@@ -30,7 +30,7 @@ object Evaluation {
         clear()
     }
 
-    fun clear(){
+    fun clear() {
         clearTable()
         clearAnalyzer()
     }

@@ -2,7 +2,6 @@ package properties
 
 import properties.primitive.PInt
 
-
 /**
  * used only as a class property. In everything else is similar to Variable
  */

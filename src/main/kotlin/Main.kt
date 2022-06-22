@@ -7,16 +7,7 @@ import utils.Utils.treeView
 import java.io.File
 import java.io.FileNotFoundException
 
-fun f(a: Int, b: Int, c:Int =2,d:Int= 2) {
-
-}
-
-fun f(a: Int, b: Int = 2, c: Int = 2) {
-
-}
-
 fun main() {
-    f(1,2)
     val other = Parser("log([1,2,3].has(1))").statements()
     println(other.treeView())
     val statements = Parser(
@@ -66,7 +57,7 @@ fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {
 
 fun parseFilePath(path: String): String = path.split("/").last()
 
-//fun createJsonFromResources() {
+// fun createJsonFromResources() {
 //    File("src/main/resources/info.json").createNewFile()
 //    val res = File("src/main/resources/info.json").bufferedWriter()
 //    res.append('{')
@@ -79,4 +70,4 @@ fun parseFilePath(path: String): String = path.split("/").last()
 //    }
 //    res.append('}')
 //    res.flush()
-//}
+// }

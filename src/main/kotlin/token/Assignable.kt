@@ -1,6 +1,5 @@
 package token
 
-
 import properties.Type
 import table.SymbolTable
 import token.statement.Assignment

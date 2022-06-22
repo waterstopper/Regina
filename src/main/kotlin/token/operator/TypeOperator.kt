@@ -18,9 +18,11 @@ class TypeOperator(
     position: Pair<Int, Int>,
     bindingPower: Int,
     nud: ((token: Token, parser: Parser) -> Token)?,
-    led: ((
-        token: Token, parser: Parser, token2: Token
-    ) -> Token)?,
+    led: (
+        (
+            token: Token, parser: Parser, token2: Token
+        ) -> Token
+    )?,
     std: ((token: Token, parser: Parser) -> Token)?
 ) : Operator(symbol, value, position, bindingPower, nud, led, std) {
 
@@ -41,9 +43,9 @@ class TypeOperator(
             "Array" -> checked is PArray
             else -> {
                 val type = right.evaluate(symbolTable)
-                if (checked is Type && type is Type
-                    && checked.assignments.isEmpty()
-                    && type.getProperties().getPValue().isEmpty()
+                if (checked is Type && type is Type &&
+                    checked.assignments.isEmpty() &&
+                    type.getProperties().getPValue().isEmpty()
                 )
                     return checked.inherits(type)
                 throw PositionalException(
@@ -52,6 +54,5 @@ class TypeOperator(
                 )
             }
         }
-
     }
 }

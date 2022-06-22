@@ -1,6 +1,5 @@
 package token.statement
 
-
 import lexer.Parser
 import lexer.PositionalException
 import properties.Type
@@ -19,7 +18,7 @@ class Assignment(
     led: ((token: Token, parser: Parser, token2: Token) -> Token)? = null,
     std: ((token: Token, parser: Parser) -> Token)? = null,
     children: MutableList<Token> = mutableListOf()
-) : Operator(symbol, value, position, bindingPower, nud, led, std){
+) : Operator(symbol, value, position, bindingPower, nud, led, std) {
     init {
         this.children.clear()
         this.children.addAll(children)

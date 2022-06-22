@@ -1,6 +1,5 @@
 package token
 
-
 import lexer.NotFoundException
 import lexer.Parser
 import properties.Type
@@ -11,7 +10,10 @@ import utils.Utils.toProperty
 import utils.Utils.toVariable
 
 open class Identifier(
-    symbol: String, value: String, position: Pair<Int, Int>, bindingPower: Int,
+    symbol: String,
+    value: String,
+    position: Pair<Int, Int>,
+    bindingPower: Int,
     nud: ((token: Token, parser: Parser) -> Token)?,
     led: ((token: Token, parser: Parser, token2: Token) -> Token)?,
     std: ((token: Token, parser: Parser) -> Token)?
@@ -45,4 +47,3 @@ open class Identifier(
 
     override fun getPropertyName(): Token = this
 }
-

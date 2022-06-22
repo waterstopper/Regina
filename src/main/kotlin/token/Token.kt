@@ -119,7 +119,6 @@ open class Token(
         return res as Assignment?
     }
 
-
     override fun equals(other: Any?): Boolean {
         if (other !is Token)
             return false

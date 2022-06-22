@@ -17,7 +17,7 @@ class SymbolTable(
     companion object {
         private val imports = mutableMapOf<FileTable, MutableMap<String, FileTable>>()
 
-        //private val embedded: MutableMap<String, Function> = initializeEmbedded()
+        // private val embedded: MutableMap<String, Function> = initializeEmbedded()
         private val globalFile = initializeGlobal()
 
         private fun initializeGlobal(): FileTable {
@@ -104,15 +104,20 @@ class SymbolTable(
         SymbolTable(scopeTable = scopeTable?.copy(), variableTable = variableTable, fileTable = fileTable)
 
     fun changeFile(fileTable: FileTable): SymbolTable {
-        return SymbolTable(scopeTable?.copy(), variableTable, imports.keys.find { it == fileTable }
-            ?: throw PositionalException("File not found"))
+        return SymbolTable(
+            scopeTable?.copy(), variableTable,
+            imports.keys.find { it == fileTable }
+                ?: throw PositionalException("File not found")
+        )
     }
 
     fun changeFile(fileName: String): SymbolTable {
-        return SymbolTable(scopeTable?.copy(), variableTable, imports.keys.find { it.fileName == fileName }
-            ?: throw PositionalException("File not found"))
+        return SymbolTable(
+            scopeTable?.copy(), variableTable,
+            imports.keys.find { it.fileName == fileName }
+                ?: throw PositionalException("File not found")
+        )
     }
-
 
     fun changeVariable(type: Variable) =
         SymbolTable(scopeTable?.copy(), type, if (type is Type) changeFile(type.fileName).fileTable else fileTable)
@@ -132,7 +137,6 @@ class SymbolTable(
     fun addType(token: Token) = fileTable.addType(token)
     fun addFunction(function: Function) = fileTable.addFunction(function)
     fun addObject(token: Token) = fileTable.addObject(token)
-
 
     fun addVariable(name: String, value: Variable) = scopeTable!!.addVariable(name, value)
     fun getImportOrNull(importName: String) = imports[fileTable]!![importName]
@@ -216,7 +220,7 @@ class SymbolTable(
             if (imports[i]?.isNotEmpty() == true)
                 res.append(
                     "\n\timports: ${
-                        imports[i]!!.map { Pair(it.value, it.key) }.joinToString(separator = ",")
+                    imports[i]!!.map { Pair(it.value, it.key) }.joinToString(separator = ",")
                     }\n"
                 )
         }

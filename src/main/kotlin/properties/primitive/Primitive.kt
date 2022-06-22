@@ -2,18 +2,13 @@ package properties.primitive
 
 import lexer.NotFoundException
 import lexer.PositionalException
-import properties.*
+import properties.EmbeddedFunction
 import properties.Function
+import properties.Property
+import properties.Type
+import properties.Variable
 import token.Token
 import token.invocation.Call
-import kotlin.Any
-import kotlin.Boolean
-import kotlin.Double
-import kotlin.Exception
-import kotlin.Int
-import kotlin.Number
-import kotlin.String
-import kotlin.let
 
 /**
  * Stores Dictionary, Array, String, Int, Double values.
@@ -52,9 +47,11 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
         else -> properties[getIndex()][name]?.let { it(this) }
-            ?: (if (getIndex() in 2..3)
-                properties[1][name]?.let { it(this) } ?: properties[0][name]?.let { it(this) }
-            else properties[0][name]?.let { it(this) })
+            ?: (
+                if (getIndex() in 2..3)
+                    properties[1][name]?.let { it(this) } ?: properties[0][name]?.let { it(this) }
+                else properties[0][name]?.let { it(this) }
+                )
     }
 
     override fun getProperty(token: Token): Property = when (token.value) {
@@ -62,9 +59,11 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
         else -> properties[getIndex()][token.value]?.let { it(this) }
-            ?: (if (getIndex() in 2..3)
-                properties[1][token.value]?.let { it(this) } ?: properties[0][token.value]?.let { it(this) }
-            else properties[0][token.value]?.let { it(this) })
+            ?: (
+                if (getIndex() in 2..3)
+                    properties[1][token.value]?.let { it(this) } ?: properties[0][token.value]?.let { it(this) }
+                else properties[0][token.value]?.let { it(this) }
+                )
             ?: throw NotFoundException(token, variable = this)
     }
 
@@ -90,7 +89,8 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
 //            ?: throw PositionalException("Primitive does not contain `${token.value}` function", token)
 
     override fun getFunctionOrNull(token: Token): Function? = Function.getFunctionOrNull(
-        token as Call, if (getIndex() in 2..3)
+        token as Call,
+        if (getIndex() in 2..3)
             (functions[getIndex()] + functions[1]) + functions[0] else functions[getIndex()]
     )
 
