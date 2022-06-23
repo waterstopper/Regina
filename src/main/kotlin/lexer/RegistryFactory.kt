@@ -32,7 +32,7 @@ object RegistryFactory {
         /* separators are placed between statements. Separator values are:
          1. end of line
          2. comment
-         3. ;
+         3. semicolon
          4. end of file
         */
         registry.consumable("(SEP)")
