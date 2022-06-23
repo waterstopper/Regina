@@ -291,7 +291,6 @@ object RegistryFactory {
             val res = WordStatement(token)
             if (parser.lexer.peek().symbol != "}" && parser.lexer.peek().symbol != "(SEP)")
                 res.children.add(parser.expression(0))
-            // parser.advance("\n")
             res
         }
 
