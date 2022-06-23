@@ -6,6 +6,7 @@ import lexer.SemanticAnalyzer.Companion.clearAnalyzer
 import table.SymbolTable
 import table.SymbolTable.Companion.clearTable
 import token.Token
+import utils.Utils.treeView
 
 /**
  * Facade class for language execution
@@ -16,6 +17,7 @@ object Evaluation {
 
     fun eval(code: String) {
         val statements = SemanticAnalyzer("@NoFile", Parser(code).statements()).analyze()
+        println(statements.treeView())
         SemanticAnalyzer.initializeSuperTypes()
         val main = globalTable.getMain()
         main.body.evaluate(globalTable)

@@ -3,6 +3,22 @@ import svg
 import math
 import geometry2D as geom
 
+fun checkMultipleCalls(a)
+{
+    b = a + 0
+    if(a > 1) // TODO debug this
+    {
+        res = 1 + checkMultipleCalls(a - 1)
+    } else {
+        res = 1
+    }
+    test(a == b)
+    checkArray()
+    checkArray()
+    log("res: " +res + ", a: "+ a)
+    return res
+}
+
 class TestClass {
     // sb.add(attributes[i]["key"] + "=\"" + attributes[i]["value"] + "\"")
     c = b
@@ -163,21 +179,6 @@ fun primitiveTest() {
     test(2.345453.round(12) == 2.345453)
 }
 
-fun checkMultipleCalls(a)
-{
-    b = a + 0
-    if(a > 1) // TODO debug this
-    {
-        res = 1 + checkMultipleCalls(a - 1)
-    } else {
-        res = 1
-    }
-    test(a == b)
-    checkArray()
-    checkArray()
-    log("res: " +res + ", a: "+ a)
-    return res
-}
 
 fun checkWhile() {
 	arg = 0

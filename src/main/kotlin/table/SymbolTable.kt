@@ -200,9 +200,7 @@ class SymbolTable(
         return res
     }
 
-    fun getProperty(token: Token): Property {
-        return variableTable!!.getProperty(token)
-    }
+    fun getProperty(token: Token): Property = variableTable!!.getProperty(token)
 
     fun getPropertyOrNull(name: String): Property? {
         return variableTable?.getPropertyOrNull(name)
@@ -220,7 +218,7 @@ class SymbolTable(
             if (imports[i]?.isNotEmpty() == true)
                 res.append(
                     "\n\timports: ${
-                    imports[i]!!.map { Pair(it.value, it.key) }.joinToString(separator = ",")
+                        imports[i]!!.map { Pair(it.value, it.key) }.joinToString(separator = ",")
                     }\n"
                 )
         }

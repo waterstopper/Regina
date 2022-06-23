@@ -1,11 +1,7 @@
 package lexer
 
 import Logger
-import token.Declaration
-import token.Identifier
-import token.Link
-import token.Linkable
-import token.Token
+import token.*
 import token.invocation.Invocation
 import token.operator.Index
 import token.operator.TokenTernary
@@ -51,7 +47,7 @@ class Lexer() {
     fun next(): Token = tokens[++tokenIndex]
     fun prev(): Token = tokens[--tokenIndex]
 
-    fun isLineSeparator(text: String, index: Int): Boolean {
+    private fun isLineSeparator(text: String, index: Int): Boolean {
         if (index == text.lastIndex)
             return text[index] == '\r' || text[index] == '\n'
         if (text[index] == '\r' && text[index + 1] == '\n')
@@ -59,7 +55,7 @@ class Lexer() {
         return text[index] == '\r' || text[index] == '\n'
     }
 
-    fun moveAfterLineSeparator(text: String, index: Int): Int {
+    private fun moveAfterLineSeparator(text: String, index: Int): Int {
         if (index == text.lastIndex)
             return if (text[index] == '\r' || text[index] == '\n') index + 1 else index
         if (text[index] == '\r' && text[index + 1] == '\n')
@@ -134,6 +130,7 @@ class Lexer() {
     }
 
     private fun nextOperator(): Token {
+        // for !is
         if (index + 2 <= source.lastIndex && source.substring(index..index + 2) == "!is") {
             move()
             move()
@@ -144,17 +141,6 @@ class Lexer() {
                 Pair(position.first - 3, position.second)
             )
         }
-//        // for !is
-//        if (index + 1 < source.lastIndex && tokReg.defined(source.substring(index..index + 2))) {
-//            move()
-//            move()
-//            move()
-//            return tokReg.operator(
-//                source.substring(index - 3 until index),
-//                source.substring(index - 3 until index),
-//                Pair(position.first - 3, position.second)
-//            )
-//        }
         if (index < source.lastIndex && isOperatorChar(source[index + 1]) &&
             tokReg.defined(source[index].toString() + source[index + 1].toString())
         ) {
@@ -167,12 +153,12 @@ class Lexer() {
             )
         }
         if (isLineSeparator(source, index)) {
-            var currentPos = position
+            val currentPos = position
             while (index < source.length && isLineSeparator(source, index)) {
                 toNextLine()
                 consumeWhitespaceAndComments()
             }
-            return tokReg.operator("\n", "\n", Pair(currentPos.first, currentPos.second))
+            return tokReg.operator("(SEP)", "\n", Pair(currentPos.first, currentPos.second))
         } else if (tokReg.defined(source[index].toString())) move()
         else throw PositionalException("Invalid operator", position = position, length = 1)
         return tokReg.operator(
@@ -212,6 +198,8 @@ class Lexer() {
         while (whitespace || comments) {
             whitespace = consumeWhitespace()
             comments = consumeComments()
+            if(comments)
+                tokens.add(tokReg.token("(SEP)","//",position))
             iter++
         }
         return iter > 1
@@ -222,26 +210,26 @@ class Lexer() {
             while (!isLineSeparator(source, index)) {
                 move()
                 if (index == source.length)
-                    return false
+                    return true
             }
-//            toNextLine()
-//            tokens.add(
-//                tokReg.operator(
-//                    source[index - 1].toString(),
-//                    source[index - 1].toString(), Pair(position.first - 1, position.second)
-//                )
-//            )
             return true
-        } else if (index < source.length && source[index] == '/' && index < source.lastIndex && source[index + 1] == '*') {
+        } else if (index < source.length && source[index] == '/'
+            && index < source.lastIndex && source[index + 1] == '*'
+        ) {
+            move()
+            move()
+            if (index + 1 >= source.length)
+                throw PositionalException("Unterminated comment", position = position)
             while (!(source[index] == '*' && source[index + 1] == '/')) {
                 if (isLineSeparator(source, index))
                     toNextLine()
                 else move()
                 if (index + 1 >= source.length)
-                    return true
+                    throw PositionalException("Unterminated comment", position = position)
             }
             move()
             move()
+            return true
         }
         return false
     }
@@ -286,22 +274,25 @@ class Lexer() {
         tokReg.symbol("(NUMBER)")
         tokReg.symbol("(STRING)")
 
-        // tokReg.symbol("parent")
-// TODO not working
-        tokReg.prefixNud("false") { token: Token, parser: Parser ->
-            val a = 0
+        tokReg.prefixNud("false") { token: Token, _: Parser ->
             TokenNumber("0", token.position)
         }
 
-        tokReg.prefixNud("true") { token: Token, parser: Parser ->
-
+        tokReg.prefixNud("true") { token: Token, _: Parser ->
             TokenNumber("1", token.position)
         }
         tokReg.symbol("true")
         tokReg.symbol("false")
         // tokReg.symbol("none")
 
-        tokReg.consumable("\n")
+        //tokReg.consumable("\n")
+        /* separators are placed between statements. Separator values are:
+         1. end of line
+         2. comment
+         3. ;
+         4. end of file
+        */
+        tokReg.consumable("(SEP)")
         tokReg.consumable(")")
         tokReg.consumable("]")
         tokReg.consumable(",")
@@ -480,7 +471,7 @@ class Lexer() {
             res.children.add(parser.expression(0))
             res.children.add(parser.block(canBeSingleStatement = true))
             var next = parser.lexer.peek()
-            if (next.value == "\n" && parser.lexer.peek(2).value == "else") {
+            if (next.value == "(SEP)" && parser.lexer.peek(2).value == "else") {
                 parser.lexer.next()
                 next = parser.lexer.peek()
             }
@@ -507,7 +498,7 @@ class Lexer() {
                 if (!checkIdentifierInImport(res.left))
                     throw PositionalException(
                         "Imports containing folders in name should be declared like:\n" +
-                            "`import path as identifier` and used in code with specified identifier",
+                                "`import path as identifier` and used in code with specified identifier",
                         res
                     )
                 res.children.add(Token(res.left.symbol, res.left.value))
@@ -515,7 +506,7 @@ class Lexer() {
             if (res.left is Link)
                 checkImportedFolder(res.left as Link)
             else if (!checkIdentifierInImport(res.left))
-                throw PositionalException("Expected non-link identifier after `as` directive", res.right)
+                throw PositionalException("Expected link or identifier before `as` directive", res.right)
             res
         }
 
@@ -567,20 +558,20 @@ class Lexer() {
 
         tokReg.stmt("break") { token: Token, parser: Parser ->
             if (parser.lexer.peek().symbol != "}")
-                parser.advance("\n")
+                parser.advance("(SEP)")
             WordStatement(token)
         }
 
         // TODO advance comment
         tokReg.stmt("continue") { token: Token, parser: Parser ->
             if (parser.lexer.peek().symbol != "}")
-                parser.advance("\n")
+                parser.advance("(SEP)")
             WordStatement(token)
         }
 
         tokReg.stmt("return") { token: Token, parser: Parser ->
             val res = WordStatement(token)
-            if (parser.lexer.peek().symbol != "}" && parser.lexer.peek().symbol != "\n")
+            if (parser.lexer.peek().symbol != "}" && parser.lexer.peek().symbol != "(SEP)")
                 res.children.add(parser.expression(0))
             // parser.advance("\n")
             res

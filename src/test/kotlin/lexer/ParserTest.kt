@@ -29,7 +29,7 @@ class ParserTest {
             assertFails { Parser("a = b b()").statements() }
         )
         for (exception in thrownArr)
-            assertTrue(exception.message!!.contains("Expected block end or line break"))
+            assertTrue(exception.message!!.contains("Expected statement separator"))
     }
 
     @Test
@@ -59,23 +59,16 @@ class ParserTest {
     }
 
     @Test
-    fun importIncorrectFolderPath() {
-        val thrownArr = mutableListOf(
-            assertFails { Parser("import a.b.c").statements() },
-            assertFails { Parser("import a+b").statements() }
-        )
-        for (exception in thrownArr)
-            assertTrue(exception.message!!.contains("Imports containing folders in name should be declared"))
+    fun importWithIncorrectFolderPath() {
+        val thrown = assertFails { Parser("import a.b().c as t").statements() }
+        assertTrue(thrown.message!!.contains("Each folder should be represented as identifier"))
+
+        val nonLinkThrown = assertFails { Parser("import a+b as b").statements() }
+        assertTrue(nonLinkThrown.message!!.contains("Expected link or identifier before `as` directive"))
+
     }
 
-    @Test
     fun fail() {
-        val thrown = assertFails { Parser("").statements() }
-        assertTrue(thrown.message!!.contains(""))
-    }
-
-    @Test
-    fun failB() {
         val thrown = assertFails { Parser("").statements() }
         assertTrue(thrown.message!!.contains(""))
     }
@@ -84,5 +77,16 @@ class ParserTest {
     fun failLinkableToken() {
         val thrown = assertFails { Parser("fun main() {a = 1.[3]}").statements() }
         assertTrue(thrown.message!!.contains("Expected Identifier or Invocation or Index, but got TokenArray"))
+    }
+
+    @Test
+    fun commentOnLineWithStatement(){
+//        Parser("""a = b // comment
+//           t = q
+//        """).statements()
+        Parser("""a = b /* comment
+           comment continues */ statementStarts()
+           thirdOne()
+        """).statements()
     }
 }
