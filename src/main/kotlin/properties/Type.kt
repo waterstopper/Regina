@@ -98,7 +98,7 @@ open class Type(
             Type(
                 name = name,
                 parent = parent?.copy(),
-                assignments = assignments.map { TokenFactory().copy(it) as Assignment }.toMutableList(),
+                assignments = assignments.map { TokenFactory.copy(it) as Assignment }.toMutableList(),
                 fileName = fileName,
                 exported = exported,
                 exportArgs = exportArgs,

@@ -51,6 +51,7 @@ fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {
         throw PositionalException("no import `${file.name}` found", tokenPath)
     }
     val statements = Parser(text).statements()
+    statements.treeView()
     // println(statements.treeView())
     return SemanticAnalyzer(parseFilePath(path), statements).analyze()
 }

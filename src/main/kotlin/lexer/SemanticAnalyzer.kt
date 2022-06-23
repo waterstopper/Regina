@@ -9,8 +9,8 @@ import token.Declaration
 import token.Identifier
 import token.Link
 import token.Token
-import token.TokenFactory.Companion.changeInvocationOnSecondPositionInLink
-import token.TokenFactory.Companion.createSpecificIdentifierFromInvocation
+import token.TokenFactory.changeInvocationOnSecondPositionInLink
+import token.TokenFactory.createSpecificIdentifierFromInvocation
 import token.invocation.Call
 import token.invocation.Invocation
 import token.statement.Assignment

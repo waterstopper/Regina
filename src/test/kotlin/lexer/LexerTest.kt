@@ -39,4 +39,15 @@ class LexerTest {
         val thrown = assertFails { Lexer("a = `") }
         assertTrue(thrown.message!!.contains("Invalid character"))
     }
+
+    @Test
+    fun commentOnLineWithStatement(){
+        Parser("""a = b // comment
+           t = q
+        """).statements()
+        Parser("""a = b /* comment
+           comment continues */ statementStarts()
+           thirdOne()
+        """).statements()
+    }
 }

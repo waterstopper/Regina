@@ -43,6 +43,7 @@ open class Token(
         for (i in 0 until indentation)
             res.append(' ')
         res.append(this)
+        res.append(":${this.position}")
         if (children.size > 0)
             for (i in children)
                 res.append('\n' + i.toTreeString(indentation + 2))

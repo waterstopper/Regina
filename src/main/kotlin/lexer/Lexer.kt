@@ -47,41 +47,36 @@ class Lexer() {
     fun next(): Token = tokens[++tokenIndex]
     fun prev(): Token = tokens[--tokenIndex]
 
-    private fun isLineSeparator(text: String, index: Int): Boolean {
-        if (index == text.lastIndex)
-            return text[index] == '\r' || text[index] == '\n'
-        if (text[index] == '\r' && text[index + 1] == '\n')
+    private fun isLineSeparator(): Boolean {
+        if (index == source.lastIndex)
+            return source[index] == '\r' || source[index] == '\n'
+        if (source[index] == '\r' && source[index + 1] == '\n')
             return true
-        return text[index] == '\r' || text[index] == '\n'
+        return source[index] == '\r' || source[index] == '\n'
     }
 
-    private fun moveAfterLineSeparator(text: String, index: Int): Int {
-        if (index == text.lastIndex)
-            return if (text[index] == '\r' || text[index] == '\n') index + 1 else index
-        if (text[index] == '\r' && text[index + 1] == '\n')
+    private fun moveAfterLineSeparator(): Int {
+        if (index == source.lastIndex)
+            return if (source[index] == '\r' || source[index] == '\n') index + 1 else index
+        if (source[index] == '\r' && source[index + 1] == '\n')
             return index + 2
-        return if (text[index] == '\r' || text[index] == '\n') index + 1 else index
+        return if (source[index] == '\r' || source[index] == '\n') index + 1 else index
     }
 
     private fun nextString(): Token {
-        val res = StringBuilder(source[index].toString())
-        move()
+        val res = StringBuilder()
+        moveAndAppend(res)
         while (source[index] != '"') {
             // escaped symbols in string
             if (source[index] == '\\' && source.length > index + 1) {
                 move()
                 res.append(escapes[source[index]])
                 move()
-                continue
-            }
-            // TODO probably out of bounds if multiline string
-            if (isLineSeparator(source, index) || index == source.lastIndex)
+            } else if (isLineSeparator() || index == source.lastIndex)
                 throw Exception("Unterminated string at ${position.second}:${position.first}")
-            res.append(source[index])
-            move()
+            else moveAndAppend(res)
         }
-        res.append(source[index])
-        move()
+        moveAndAppend(res)
         return tokReg.string(
             "(STRING)",
             res.toString().substring(1, res.toString().length - 1),
@@ -91,80 +86,47 @@ class Lexer() {
 
     private fun nextIdent(): Token {
         val res = StringBuilder()
-        while (index < source.length && isIdentChar(source[index])) {
-            res.append(source[index])
-            move()
-        }
-        if (tokReg.defined(res.toString())) {
+        while (index < source.length && isIdentChar(source[index]))
+            moveAndAppend(res)
+        if (tokReg.defined(res.toString()))
             return tokReg.definedIdentifier(
-                res.toString(),
-                res.toString(),
+                res.toString(), res.toString(),
                 Pair(position.first - res.toString().length, position.second)
             )
-        }
         return tokReg.identifier(
             "(IDENT)",
             res.toString(),
             Pair(position.first - res.toString().length, position.second)
         )
-        // return tokReg.token("(IDENT)", res.toString(), Pair(position.first - res.toString().length, position.second))
     }
 
     private fun nextNumber(): Token {
-        val res = StringBuilder(source[index].toString())
-        move()
-        while (index < source.length && source[index].isDigit()) {
-            res.append(source[index])
-            move()
-        }
+        val res = StringBuilder()
+        moveAndAppend(res)
+        while (index < source.length && source[index].isDigit())
+            moveAndAppend(res)
         if (index + 1 < source.length && source[index] == '.' && source[index + 1].isDigit()) {
-            res.append(source[index])
-            move()
-            while (index < source.length && source[index].isDigit()) {
-                res.append(source[index])
-                move()
-            }
+            moveAndAppend(res)
+            while (index < source.length && source[index].isDigit())
+                moveAndAppend(res)
         }
         return TokenNumber(res.toString(), Pair(position.first - res.toString().length, position.second))
-        // return tokReg.token("(NUMBER)", res.toString(), Pair(position.first - res.toString().length, position.second))
     }
 
     private fun nextOperator(): Token {
-        // for !is
-        if (index + 2 <= source.lastIndex && source.substring(index..index + 2) == "!is") {
-            move()
-            move()
-            move()
-            return tokReg.operator(
-                source.substring(index - 3 until index),
-                source.substring(index - 3 until index),
-                Pair(position.first - 3, position.second)
-            )
-        }
-        if (index < source.lastIndex && isOperatorChar(source[index + 1]) &&
-            tokReg.defined(source[index].toString() + source[index + 1].toString())
-        ) {
-            move()
-            move()
-            return tokReg.operator(
-                source[index - 2].toString() + source[index - 1].toString(),
-                source[index - 2].toString() + source[index - 1].toString(),
-                Pair(position.first - 2, position.second)
-            )
-        }
-        if (isLineSeparator(source, index)) {
-            val currentPos = position
-            while (index < source.length && isLineSeparator(source, index)) {
-                toNextLine()
-                consumeWhitespaceAndComments()
+        for (ind in index + 2 downTo index) {
+            if (ind < source.length && tokReg.defined(source.substring(index..ind))) {
+                val value = source.substring(index..ind)
+                val operator = tokReg.operator(value, value, Pair(position.first - value.length, position.second))
+                if (operator.symbol == "(SEP)" && operator.value != ";") {
+                    toNextLine()
+                }
+                else for (i in index..ind)
+                    move()
+                return operator
             }
-            return tokReg.operator("(SEP)", "\n", Pair(currentPos.first, currentPos.second))
-        } else if (tokReg.defined(source[index].toString())) move()
-        else throw PositionalException("Invalid operator", position = position, length = 1)
-        return tokReg.operator(
-            source[index - 1].toString(),
-            source[index - 1].toString(), Pair(position.first - 1, position.second)
-        )
+        }
+        throw PositionalException("Invalid operator", position = position)
     }
 
     private fun createNextToken(): Token {
@@ -175,9 +137,9 @@ class Lexer() {
         if (source[index] == '\\') {
             index++
             consumeWhitespaceAndComments()
-            if (!isLineSeparator(source, index))
+            if (!isLineSeparator())
                 throw PositionalException("Expected new line after \\", position = position, length = 1)
-            else index = moveAfterLineSeparator(source, index)
+            else index = moveAfterLineSeparator()
             consumeWhitespaceAndComments()
             position = Pair(0, position.second + 1)
         }
@@ -198,8 +160,8 @@ class Lexer() {
         while (whitespace || comments) {
             whitespace = consumeWhitespace()
             comments = consumeComments()
-            if(comments)
-                tokens.add(tokReg.token("(SEP)","//",position))
+            if (comments)
+                tokens.add(tokReg.token("(SEP)", "//", position))
             iter++
         }
         return iter > 1
@@ -207,7 +169,7 @@ class Lexer() {
 
     private fun consumeComments(): Boolean {
         if (index < source.length && source[index] == '/' && index < source.lastIndex && source[index + 1] == '/') {
-            while (!isLineSeparator(source, index)) {
+            while (!isLineSeparator()) {
                 move()
                 if (index == source.length)
                     return true
@@ -216,19 +178,17 @@ class Lexer() {
         } else if (index < source.length && source[index] == '/'
             && index < source.lastIndex && source[index + 1] == '*'
         ) {
-            move()
-            move()
+            move(2)
             if (index + 1 >= source.length)
                 throw PositionalException("Unterminated comment", position = position)
             while (!(source[index] == '*' && source[index + 1] == '/')) {
-                if (isLineSeparator(source, index))
+                if (isLineSeparator())
                     toNextLine()
                 else move()
                 if (index + 1 >= source.length)
                     throw PositionalException("Unterminated comment", position = position)
             }
-            move()
-            move()
+            move(2)
             return true
         }
         return false
@@ -236,8 +196,8 @@ class Lexer() {
 
     private fun consumeWhitespace(): Boolean {
         // '\t', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
-        val res = index < source.length && !isLineSeparator(source, index) && source[index].isWhitespace()
-        while (index < source.length && !isLineSeparator(source, index) && source[index].isWhitespace())
+        val res = index < source.length && !isLineSeparator() && source[index].isWhitespace()
+        while (index < source.length && !isLineSeparator() && source[index].isWhitespace())
             move()
         return res
     }
@@ -249,13 +209,18 @@ class Lexer() {
     }
 
     private fun toNextLine() {
-        index = moveAfterLineSeparator(source, index)
+        index = moveAfterLineSeparator()
         position = Pair(0, position.second + 1)
     }
 
-    private fun move() {
-        index++
-        position = Pair(position.first + 1, position.second)
+    private fun move(step: Int = 1) {
+        index += step
+        position = Pair(position.first + step, position.second)
+    }
+
+    private fun moveAndAppend(sb: java.lang.StringBuilder) {
+        sb.append(source[index])
+        move()
     }
 
     private fun isFirstIdentChar(c: Char): Boolean = c.isLetter() || c == '_'
@@ -283,9 +248,7 @@ class Lexer() {
         }
         tokReg.symbol("true")
         tokReg.symbol("false")
-        // tokReg.symbol("none")
 
-        //tokReg.consumable("\n")
         /* separators are placed between statements. Separator values are:
          1. end of line
          2. comment
@@ -293,14 +256,19 @@ class Lexer() {
          4. end of file
         */
         tokReg.consumable("(SEP)")
+        tokReg.consumable("\n")
+        tokReg.consumable("\r")
+        tokReg.consumable("\r\n")
+        tokReg.consumable(";")
+        tokReg.consumable("(EOF)")
+
         tokReg.consumable(")")
         tokReg.consumable("]")
         tokReg.consumable(",")
         tokReg.consumable("else")
-        // tokReg.consumable(":")
+
         tokReg.consumable("export")
 
-        tokReg.consumable("(EOF)")
         tokReg.consumable("{")
         tokReg.consumable("}")
         tokReg.consumable("as")
@@ -321,13 +289,8 @@ class Lexer() {
         tokReg.infix("==", 30)
         tokReg.infix("!=", 30)
 
-        // tokReg.infix("export", 10)
-        // tokReg.prefix("import")
-        // tokReg.infix(":", 20)
-
         tokReg.infix("is", 15)
         tokReg.infix("!is", 15)
-        // tokReg.infix("isnot", 15)
 
         tokReg.prefix("-")
         tokReg.prefix("!")
@@ -337,17 +300,8 @@ class Lexer() {
         tokReg.infixRight("=", 10)
 
         // tokReg.infixRight(".", 105)
-//        tokReg.infixRight("+=", 10)
-//        tokReg.infixRight("-=", 10)
-
-//        tokReg.infixLed("?", 20) { token: Token, parser: Parser, left: Token ->
-//            val cond = parser.expression(0)
-//            token.children.add(cond)
-//            parser.advance(":")
-//            token.children.add(left)
-//            token.children.add(parser.expression(0))
-//            token
-//        }
+        // tokReg.infixRight("+=", 10)
+        // tokReg.infixRight("-=", 10)
 
         tokReg.infixLed(".", 105) { token: Token, parser: Parser, left: Token ->
             token.children.add(left)
@@ -392,44 +346,29 @@ class Lexer() {
             res
         }
 
-        // tuples
+        // arithmetic and redundant parentheses
         tokReg.prefixNud("(") { token: Token, parser: Parser ->
             var comma = false
-            if (parser.lexer.peek().symbol != ")") {
-                while (true) {
-                    if (parser.lexer.peek().symbol == ")")
-                        break
-                    token.children.add(parser.expression(0))
-                    if (parser.lexer.peek().symbol != ",")
-                        break
-                    comma = true
-                    parser.advance(",")
-                }
-            }
+            if (parser.lexer.peek().symbol != ")")
+                comma = sequence(token, parser)
             parser.advance(")")
-            if (token.children.size == 0 || comma) {
-                token.symbol = "()"
-                token.value = "TUPLE"
-                token
-            } else // TODO figure out why return child
+            if (comma)
+                throw PositionalException("Tuples are not implemented", token)
+            else if (token.children.size == 0)
+                throw  PositionalException("Empty parentheses", token)
+            /* Return first child when parentheses are redundant e.g. condition for `if` or `while`
+               or if parentheses are inside arithmetic expression. Then, this will return an expression inside them */
+            else
                 token.children[0]
         }
 
         tokReg.prefixNud("[") { token: Token, parser: Parser ->
             val res = TokenArray(token)
-            if (parser.lexer.peek().symbol != "]") {
-                while (true) {
-                    if (parser.lexer.peek().symbol == "]")
-                        break
-                    res.children.add(parser.expression(0))
-                    if (parser.lexer.peek().symbol != ",")
-                        break
-                    parser.advance(",")
-                }
-            }
+            if (parser.lexer.peek().symbol != "]")
+                sequence(res, parser)
             parser.advance("]")
             res.symbol = "[]"
-            res.value = "ARRAY"
+            res.value = "(ARRAY)"
             res
         }
 
@@ -449,7 +388,7 @@ class Lexer() {
             }
             parser.advance("}")
             res.symbol = "{}"
-            res.value = "DICTIONARY"
+            res.value = "(DICTIONARY)"
             res
         }
 
@@ -580,14 +519,14 @@ class Lexer() {
         return tokReg
     }
 
-    private fun sequence(token: Token, parser: Parser) {
+    private fun sequence(token: Token, parser: Parser): Boolean {
+        var comma = false
         while (true) {
-            val exp = parser.expression(0)
-            token.children.add(exp)
-            val tokenRes = parser.lexer.peek()
-            if (tokenRes.symbol != ",")
-                break
+            token.children.add(parser.expression(0))
+            if (parser.lexer.peek().symbol != ",")
+                return comma
             parser.advance(",")
+            comma = true
         }
     }
 

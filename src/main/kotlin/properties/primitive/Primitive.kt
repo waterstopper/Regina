@@ -2,11 +2,8 @@ package properties.primitive
 
 import lexer.NotFoundException
 import lexer.PositionalException
-import properties.EmbeddedFunction
+import properties.*
 import properties.Function
-import properties.Property
-import properties.Type
-import properties.Variable
 import token.Token
 import token.invocation.Call
 
@@ -48,10 +45,10 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         "properties" -> getProperties()
         else -> properties[getIndex()][name]?.let { it(this) }
             ?: (
-                if (getIndex() in 2..3)
-                    properties[1][name]?.let { it(this) } ?: properties[0][name]?.let { it(this) }
-                else properties[0][name]?.let { it(this) }
-                )
+                    if (getIndex() in 2..3)
+                        properties[1][name]?.let { it(this) } ?: properties[0][name]?.let { it(this) }
+                    else properties[0][name]?.let { it(this) }
+                    )
     }
 
     override fun getProperty(token: Token): Property = when (token.value) {
@@ -60,10 +57,10 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         "properties" -> getProperties()
         else -> properties[getIndex()][token.value]?.let { it(this) }
             ?: (
-                if (getIndex() in 2..3)
-                    properties[1][token.value]?.let { it(this) } ?: properties[0][token.value]?.let { it(this) }
-                else properties[0][token.value]?.let { it(this) }
-                )
+                    if (getIndex() in 2..3)
+                        properties[1][token.value]?.let { it(this) } ?: properties[0][token.value]?.let { it(this) }
+                    else properties[0][token.value]?.let { it(this) }
+                    )
             ?: throw NotFoundException(token, variable = this)
     }
 
@@ -78,15 +75,8 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         return PDictionary(res.mapValues { it.value(this) }.toMutableMap(), null)
     }
 
-    override fun getFunction(token: Token): Function =
-        getFunctionOrNull(token) ?: throw PositionalException(
-            "Primitive does not contain `${token.value}` function",
-            token
-        )
-//            ?: (if (getIndex() in 2..3)
-//                functions[1].find { it.name == token.value } ?: functions[0].find { it.name == token.value }
-//            else functions[0].find { it.name == token.value })
-//            ?: throw PositionalException("Primitive does not contain `${token.value}` function", token)
+    override fun getFunction(token: Token): Function = getFunctionOrNull(token)
+        ?: throw PositionalException("${formatClassName()} does not contain function", token)
 
     override fun getFunctionOrNull(token: Token): Function? = Function.getFunctionOrNull(
         token as Call,
@@ -94,15 +84,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
             (functions[getIndex()] + functions[1]) + functions[0] else functions[getIndex()]
     )
 
-//    private fun getPrimitiveIndex(): Int {
-//        return when (this) {
-//            is PArray -> 0
-//            is PDouble -> 1
-//            is PInt -> 2
-//            is PString -> 3
-//            else -> 4
-//        }
-//    }
+    private fun formatClassName() = this::class.toString().split('.').last().substring(1)
 
     companion object {
         fun setProperty(primitive: Primitive, name: String, property: (s: Primitive) -> Property) {

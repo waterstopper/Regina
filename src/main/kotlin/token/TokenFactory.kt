@@ -11,7 +11,7 @@ import token.operator.Operator
 import token.operator.TypeOperator
 import token.statement.Assignment
 
-class TokenFactory {
+object TokenFactory {
     private val nonArithmeticOperators = listOf("+", "==", "!=")
     private val arithmeticOperators = listOf("-", "*", "/", "%", ">=", "<=", ">", "<", "!", "&", "|")
     private val wordOperators = listOf("is")
@@ -46,7 +46,7 @@ class TokenFactory {
             res.isProperty = token.isProperty
             return res
         }
-        // TODO unused
+        // unused
         return token::class.constructors.toMutableList()[0].call(
             token.symbol,
             token.value,
@@ -73,6 +73,7 @@ class TokenFactory {
             "(" -> Invocation(symbol, value, position, bindingPower, nud, led, std)
             "." -> Link(("(LINK)"), value, position, bindingPower, nud, led, std)
             "=" -> Assignment("(ASSIGNMENT)", value, position, bindingPower, nud, led, std)
+            ";", "\n","\r\n","\r" -> Token("(SEP)", value, position, bindingPower, nud, led, std)
             // "[" -> TokenIndexing(symbol, value, position, bindingPower, nud, led, std)
             in nonArithmeticOperators -> Operator(symbol, value, position, bindingPower, nud, led, std)
             in arithmeticOperators -> ArithmeticOperator(symbol, value, position, bindingPower, nud, led, std)
@@ -80,7 +81,7 @@ class TokenFactory {
         }
     }
 
-    companion object {
+
         fun createSpecificIdentifierFromInvocation(
             tokenIdentifier: Token,
             symbolTable: SymbolTable,
@@ -123,5 +124,5 @@ class TokenFactory {
             else throw PositionalException("No class and function found in `${fileTable.fileName}`", link.right)
             return link.children[1] as Invocation
         }
-    }
+
 }

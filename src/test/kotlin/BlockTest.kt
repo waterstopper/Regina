@@ -8,7 +8,7 @@ class BlockTest {
     fun testPassingBlocks() {
         eval(
             """
-           fun main() {a = 0
+           fun main() {a = (1-1)*3
                 while(a < 5)
                     a = a + 1
                 test(a == 5)

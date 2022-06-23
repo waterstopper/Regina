@@ -76,4 +76,17 @@ class SemanticTest {
         println(thrown.message)
         assertTrue(thrown.message!!.contains("Only class, object or function can be top level declaration"))
     }
+
+    @Test
+    fun failFunctionAndClassNotFound() {
+       // TODO
+//        val thrownArr = listOf(
+//            assertFails { eval("fun main() { notFound() } ") },
+//            assertFails { eval("fun main() {a=1;a.notFound()}") }
+//        )
+//        for (exception in thrownArr) {
+//            println(exception.message!!)
+//            assertTrue(exception.message!!.contains("No class and function found"))
+//        }
+    }
 }

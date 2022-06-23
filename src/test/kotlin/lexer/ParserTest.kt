@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 class ParserTest {
     @Test
     fun failCallParsing() {
-        val thrown = assertFails { Parser("a = ()(a,b,c)").statements() }
+        val thrown = assertFails { Parser("a = [](a,b,c)").statements() }
         assertTrue(thrown.message!!.contains("is not invokable"))
 
         val thrown2 = assertFails { Parser("fun main() {a = +()}").statements() }
@@ -23,13 +23,21 @@ class ParserTest {
 
     @Test
     fun failTwoStatements() {
-        val thrownArr = mutableListOf(
+        val thrownArr = listOf(
             assertFails { Parser("fun main() {a = b b = c}").statements() },
             assertFails { Parser("a() b()").statements() },
             assertFails { Parser("a = b b()").statements() }
         )
         for (exception in thrownArr)
             assertTrue(exception.message!!.contains("Expected statement separator"))
+    }
+
+    @Test
+    fun parseStatementSeparators() {
+        Parser("""
+            a = b /* comment */ otherStatement(); other()
+            last()
+        """).statements()
     }
 
     @Test
@@ -40,7 +48,7 @@ class ParserTest {
 
     @Test
     fun failImportWithAs() {
-        val thrownArr = mutableListOf(
+        val thrownArr = listOf(
             assertFails { Parser("import a.b.c as a.b").statements() },
             assertFails { Parser("import a.b.c as a+b").statements() }
         )
@@ -50,7 +58,7 @@ class ParserTest {
 
     @Test
     fun importWithoutAs() {
-        val thrownArr = mutableListOf(
+        val thrownArr = listOf(
             assertFails { Parser("import a.b.c").statements() },
             assertFails { Parser("import a+b").statements() }
         )
@@ -77,16 +85,5 @@ class ParserTest {
     fun failLinkableToken() {
         val thrown = assertFails { Parser("fun main() {a = 1.[3]}").statements() }
         assertTrue(thrown.message!!.contains("Expected Identifier or Invocation or Index, but got TokenArray"))
-    }
-
-    @Test
-    fun commentOnLineWithStatement(){
-//        Parser("""a = b // comment
-//           t = q
-//        """).statements()
-        Parser("""a = b /* comment
-           comment continues */ statementStarts()
-           thirdOne()
-        """).statements()
     }
 }

@@ -53,7 +53,7 @@ class Registry {
     }
 
     fun operator(symbol: String, value: String, position: Pair<Int, Int>): Token {
-        return TokenFactory().createOperator(
+        return TokenFactory.createOperator(
             symbol,
             value,
             position,
@@ -121,7 +121,7 @@ class Registry {
     fun defined(symbol: String): Boolean = table[symbol] != null
 
     fun definedIdentifier(symbol: String, value: String, position: Pair<Int, Int>): Token {
-        return TokenFactory().createWordToken(
+        return TokenFactory.createWordToken(
             symbol, value, position,
             table[symbol]!!.bindingPower,
             table[symbol]!!.nud,
