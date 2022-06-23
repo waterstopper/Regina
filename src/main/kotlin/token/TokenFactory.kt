@@ -73,7 +73,7 @@ object TokenFactory {
             "(" -> Invocation(symbol, value, position, bindingPower, nud, led, std)
             "." -> Link(("(LINK)"), value, position, bindingPower, nud, led, std)
             "=" -> Assignment("(ASSIGNMENT)", value, position, bindingPower, nud, led, std)
-            ";", "\n","\r\n","\r" -> Token("(SEP)", value, position, bindingPower, nud, led, std)
+            ";", "\n", "\r\n", "\r" -> Token("(SEP)", value, position, bindingPower, nud, led, std)
             // "[" -> TokenIndexing(symbol, value, position, bindingPower, nud, led, std)
             in nonArithmeticOperators -> Operator(symbol, value, position, bindingPower, nud, led, std)
             in arithmeticOperators -> ArithmeticOperator(symbol, value, position, bindingPower, nud, led, std)
@@ -81,19 +81,18 @@ object TokenFactory {
         }
     }
 
-
-        fun createSpecificIdentifierFromInvocation(
-            tokenIdentifier: Token,
-            symbolTable: SymbolTable,
-            upperToken: Token,
-            index: Int
-        ): Invocation {
-            if (symbolTable.getFunctionOrNull(Call(tokenIdentifier)) != null)
-                upperToken.children[index] = Call(tokenIdentifier)
-            else if (symbolTable.getTypeOrNull(tokenIdentifier.left) != null)
-                upperToken.children[index] = Constructor(tokenIdentifier)
-            else throw PositionalException("No class and function found", tokenIdentifier.left)
-            return upperToken.children[index] as Invocation
+    fun createSpecificIdentifierFromInvocation(
+        tokenIdentifier: Token,
+        symbolTable: SymbolTable,
+        upperToken: Token,
+        index: Int
+    ): Invocation {
+        if (symbolTable.getFunctionOrNull(Call(tokenIdentifier)) != null)
+            upperToken.children[index] = Call(tokenIdentifier)
+        else if (symbolTable.getTypeOrNull(tokenIdentifier.left) != null)
+            upperToken.children[index] = Constructor(tokenIdentifier)
+        else throw PositionalException("No class and function found", tokenIdentifier.left)
+        return upperToken.children[index] as Invocation
 //            // TODO not checking that variable contains function
 //            // TODO not checking a[i].b where a[i] is object
 //            if (symbolTable.getFunctionOrNull(Call(tokenIdentifier)) != null
@@ -107,22 +106,22 @@ object TokenFactory {
 //            } else if (symbolTable.getTypeOrNull(tokenIdentifier.left) != null)
 //                return Constructor(tokenIdentifier)
 //            throw PositionalException("Unknown invocated identifier `${tokenIdentifier.left.value}`", tokenIdentifier)
-        }
+    }
 
-        fun changeInvocationOnSecondPositionInLink(symbolTable: SymbolTable, link: Link): Invocation {
-            if (symbolTable.getVariableOrNull(link.left.value) != null ||
-                symbolTable.getObjectOrNull(link.left) != null
-            ) {
-                link.children[1] = Call(link.right)
-                return link.children[1] as Call
-            }
-            val fileTable = symbolTable.getImport(link.left)
-            if (fileTable.getFunctionOrNull(Call(link.right)) != null)
-                link.children[1] = Call(link.right)
-            else if (fileTable.getTypeOrNull(link.right.left.value) != null)
-                link.children[1] = Constructor(link.right)
-            else throw PositionalException("No class and function found in `${fileTable.fileName}`", link.right)
-            return link.children[1] as Invocation
+    fun changeInvocationOnSecondPositionInLink(symbolTable: SymbolTable, link: Link): Invocation {
+        if (symbolTable.getVariableOrNull(link.left.value) != null ||
+            symbolTable.getObjectOrNull(link.left) != null
+        ) {
+            link.children[1] = Call(link.right)
+            return link.children[1] as Call
         }
+        val fileTable = symbolTable.getImport(link.left)
+        if (fileTable.getFunctionOrNull(Call(link.right)) != null)
+            link.children[1] = Call(link.right)
+        else if (fileTable.getTypeOrNull(link.right.left.value) != null)
+            link.children[1] = Constructor(link.right)
+        else throw PositionalException("No class and function found in `${fileTable.fileName}`", link.right)
+        return link.children[1] as Invocation
+    }
 
 }
