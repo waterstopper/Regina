@@ -8,13 +8,10 @@ import java.io.File
 import java.io.FileNotFoundException
 
 fun main() {
-    val other = Parser("log([1,2,3].has(1))").statements()
-    println(other.treeView())
+//    val other = Parser("a[1](a,b,c)[2]").statements()
+//    println(other.treeView())
     val statements = Parser(
         """
-        while(asew)
-            doo()
-
         if(cond)
         {
             doThis()
@@ -26,6 +23,8 @@ fun main() {
         {
             doThat()
         }
+        while(asew)
+            doo()
     """
     ).statements()
     println(statements.treeView())

@@ -10,7 +10,7 @@ import token.variable.TokenString
  * * [Statement][stmt] usually a token that can be on one line (assignment, declaration, block)
  * * [Infix][stmt] parses left and right expressions into its children. Examples: +, /, *, is, ==.
  * [Right infix][infixRight] is similar, but is right associative (like assignment).
- * * [Prefix][prefix] maked expression on the right its child. Examples: unary minus, logic not `!`
+ * * [Prefix][prefix] makes expression on the right its child. Examples: unary minus, logic not '!'
  *
  * @property table dictionary of registered token symbols mapped to created tokens
  */

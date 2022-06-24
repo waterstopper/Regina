@@ -1,5 +1,6 @@
 package lexer
 
+import evaluation.Evaluation.eval
 import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertTrue
@@ -85,5 +86,12 @@ class ParserTest {
     fun failLinkableToken() {
         val thrown = assertFails { Parser("fun main() {a = 1.[3]}").statements() }
         assertTrue(thrown.message!!.contains("Expected Identifier or Invocation or Index, but got TokenArray"))
+    }
+
+    @Test
+    fun ignoreSeparators() {
+        eval("""
+            fun /**/ main() {}
+        """)
     }
 }

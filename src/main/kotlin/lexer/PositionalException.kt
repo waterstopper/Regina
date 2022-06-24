@@ -3,12 +3,7 @@ package lexer
 import evaluation.Evaluation.clear
 import properties.Function
 import properties.Variable
-import properties.primitive.PArray
-import properties.primitive.PDictionary
-import properties.primitive.PDouble
-import properties.primitive.PInt
-import properties.primitive.PNumber
-import properties.primitive.PString
+import properties.primitive.*
 import table.FileTable
 import token.Identifier
 import token.Token

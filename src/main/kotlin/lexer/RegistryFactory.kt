@@ -190,7 +190,7 @@ object RegistryFactory {
             res.children.add(parser.expression(0))
             res.children.add(parser.block(canBeSingleStatement = true))
             var next = parser.lexer.peek()
-            if (next.value == "(SEP)" && parser.lexer.peek(2).value == "else") {
+            if (next.symbol == "(SEP)" && parser.lexer.peek(2).value == "else") {
                 parser.lexer.next()
                 next = parser.lexer.peek()
             }

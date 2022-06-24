@@ -10,7 +10,7 @@ import token.Identifier
 import token.Link
 import token.Token
 import token.TokenFactory.changeInvocationOnSecondPositionInLink
-import token.TokenFactory.createSpecificIdentifierFromInvocation
+import token.TokenFactory.createSpecificInvocation
 import token.invocation.Call
 import token.invocation.Invocation
 import token.statement.Assignment
@@ -26,7 +26,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
         println("Analyzing: `$fileName`")
         createAssociations()
         // TODO do the same for all imports
-        changeIdentTokens(fileName)
+        changeIdentTokens()
         return tokens
     }
 
@@ -58,7 +58,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             }
     }
 
-    private fun changeIdentTokens(fileName: String) {
+    private fun changeIdentTokens() {
         for (token in tokens) {
             var table = globalTable.copy()
             when (token.symbol) {
@@ -74,8 +74,9 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
         if (token is Link) {
             if (token.left is Invocation) {
                 checkParamsOrArgs(token.left.children.subList(1), true)
-                createSpecificIdentifierFromInvocation(token.left, symbolTable, token, 0)
+                createSpecificInvocation(token.left, symbolTable, token, 0)
             }
+            // the only case in Link when Invocation might be a Constructor
             if (token.right is Invocation) {
                 checkParamsOrArgs(token.right.children.subList(1), true)
                 if (token.left is Identifier) {
@@ -97,68 +98,16 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 if (child is Invocation) {
                     checkParamsOrArgs(child.children.subList(1), token.symbol != "fun")
                     if (token.symbol != "fun")
-                        createSpecificIdentifierFromInvocation(child, symbolTable, token, index)
+                        createSpecificInvocation(child, symbolTable, token, index)
                 }
 
-                // TODO there child might be alreay changed to other token, Invocation -> Call.
+                // TODO there child might be already changed to other token, Invocation -> Call.
                 // changeInvocationType(token.children[index], symbolTable)
             }
         }
         for (child in token.children)
             changeInvocationType(child, symbolTable)
     }
-
-//    // TODO make it customized for invocation changing
-//    private fun changeTokenType(
-//        token: Token,
-//        symbolTable: SymbolTable,
-//        isInsideLink: Boolean,
-//        inClass: Boolean = false
-//    ) {
-//        for ((index, child) in token.children.withIndex()) {
-//            when (child.symbol) {
-//                "(LINK)" -> {
-//                    if (child.left is Identifier) {
-//                    } else if (child.left is Invocation) {
-//
-//                    }
-//                }
-//                // ignoring assignments like: a.b = ...
-//                "(ASSIGNMENT)" -> {
-//                    symbolTable.addVariableOrNot(child.left)
-//                    if (inClass)
-//                        (child as Assignment).isProperty = true
-//                }
-//                "(" -> {
-//                    if (token.value != "fun" && token.symbol != "(LINK)") {
-//                        token.children[index] =
-//                            createSpecificIdentifierFromInvocation(
-//                                child,
-//                                symbolTable,
-//                                if (isInsideLink) index else 0,
-//                                token
-//                            )
-//                    }
-//                    // applicable for constructors in links too
-//                    checkParamsOrArgs(
-//                        token.children[index].children.subList(
-//                            1, token.children[index].children.size
-//                        ), areArgs = token.value != "fun"
-//                    )
-//                }
-//                "{" -> {
-//                    if (child.children.isEmpty())
-//                        Logger.addWarning(child, "Empty block")
-//                }
-//            }
-//            changeTokenType(
-//                token.children[index],
-//                if (token.children[index].symbol == "fun") symbolTable.changeScope() else symbolTable,
-//                token.children[index] is Link,
-//                if (token.value != "fun") inClass else false
-//            )
-//        }
-//    }
 
     private fun checkParamsOrArgs(params: List<Token>, areArgs: Boolean = false) {
         var wasAssignment = false

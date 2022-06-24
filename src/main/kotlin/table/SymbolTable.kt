@@ -35,7 +35,6 @@ class SymbolTable(
 //        }
 
         fun clearTable() {
-            println("imports cleared")
             globalTable = SymbolTable()
             imports.clear()
             imports[globalFile] = mutableMapOf()

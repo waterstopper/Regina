@@ -1,6 +1,7 @@
 package lexer
 
 import evaluation.Evaluation.eval
+import token.invocation.Invocation
 import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertTrue
@@ -79,14 +80,57 @@ class SemanticTest {
 
     @Test
     fun failFunctionAndClassNotFound() {
-       // TODO
-//        val thrownArr = listOf(
-//            assertFails { eval("fun main() { notFound() } ") },
-//            assertFails { eval("fun main() {a=1;a.notFound()}") }
-//        )
-//        for (exception in thrownArr) {
-//            println(exception.message!!)
-//            assertTrue(exception.message!!.contains("No class and function found"))
-//        }
+        val notFoundInFile = assertFails { eval("fun main() { notFound() } ") }
+        assertTrue(notFoundInFile.message!!.contains("No class and function found"))
+
+        val notFoundInPrimitive = assertFails { eval("fun main() {a=1;a.notFound()}") }
+        assertTrue(notFoundInPrimitive.message!!.contains("does not contain function"))
+
+        val notFoundInType = assertFails {
+            eval(
+                """
+           fun main() {
+                a = A()
+                a.f()
+           }
+            class A {
+                a = 1
+            }
+        """
+            )
+        }
+        assertTrue(notFoundInType.message!!.contains("Class `A` does not contain function"))
+
+        val notFoundInObject = assertFails {
+            eval(
+                """
+           fun main() {
+                A.f()
+           }
+            object A {
+                a = 1
+            }
+        """
+            )
+        }
+        assertTrue(notFoundInObject.message!!.contains("Object `A` does not contain function"))
+    }
+
+    @Test
+    fun testInvocationsRemoval() {
+        val tokens = Parser(
+            """
+           fun main() {
+                a = [1,2,3]
+                a[1].f()
+           } 
+        """
+        ).statements()
+        val withoutInvocation = SemanticAnalyzer("@NoFile", tokens).analyze()
+        withoutInvocation.forEach {
+            val res = it.traverseUntil { token -> if (token is Invocation) token else null }
+            if(res != null)
+                println(res::class)
+        }
     }
 }

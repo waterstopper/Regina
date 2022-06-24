@@ -1,5 +1,6 @@
 package properties
 
+import lexer.PositionalException
 import properties.primitive.PInt
 import table.FileTable
 import table.SymbolTable
@@ -32,4 +33,7 @@ class Object(name: String, assignments: MutableList<Assignment>, fileName: FileT
         }
         return PInt(0, null)
     }
+
+    override fun getFunction(token: Token) = getFunctionOrNull(token)
+        ?: throw PositionalException("Object `$name` does not contain function", token)
 }

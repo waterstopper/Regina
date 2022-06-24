@@ -6,7 +6,9 @@ import token.statement.Block
 /**
  * Parses created tokens into AST
  *
- * Changes: advance changed to ignore \n
+ * Changes with Go implementation:
+ * 1. [advance] changed
+ * 2. [block] supports one statement block without braces
  */
 class Parser() {
     lateinit var lexer: Lexer
@@ -21,8 +23,8 @@ class Parser() {
 
     fun expression(rbp: Int): Token {
         var t = lexer.next()
-        var left = t.nud?.let { it(t, this) } ?:
-        throw PositionalException(
+        var left = t.nud?.let { it(t, this) }
+            ?: throw PositionalException(
             "Expected variable or prefix operator", position = t.position, length = 1
         )
         while (rbp < lexer.peek().bindingPower) {
@@ -43,8 +45,14 @@ class Parser() {
             return token
         if (symbol == "(SEP)" && token.symbol == "(EOF)")
             return token
-        throw PositionalException("Expected ${if(symbol=="(SEP)") "statement separator" else symbol}",
-            position = token.position, length = 1)
+        throw PositionalException(
+            "Expected ${if (symbol == "(SEP)") "statement separator" else symbol}",
+            position = token.position, length = 1
+        )
+    }
+
+    fun advanceSeparator() {
+
     }
 
     fun statements(): List<Token> {
@@ -73,10 +81,6 @@ class Parser() {
         val peeked = lexer.peek()
         if (peeked.symbol != "}")
             advance("(SEP)")
-//        if (peeked.symbol == "\n" || peeked.symbol == "(EOF)")
-//            advance("\n")
-//        else if (peeked.symbol != "}")
-//            throw PositionalException("Expected block end or line break", peeked)
         return token
     }
 

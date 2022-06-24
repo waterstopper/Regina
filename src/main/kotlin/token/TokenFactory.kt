@@ -81,7 +81,7 @@ object TokenFactory {
         }
     }
 
-    fun createSpecificIdentifierFromInvocation(
+    fun createSpecificInvocation(
         tokenIdentifier: Token,
         symbolTable: SymbolTable,
         upperToken: Token,
@@ -93,19 +93,6 @@ object TokenFactory {
             upperToken.children[index] = Constructor(tokenIdentifier)
         else throw PositionalException("No class and function found", tokenIdentifier.left)
         return upperToken.children[index] as Invocation
-//            // TODO not checking that variable contains function
-//            // TODO not checking a[i].b where a[i] is object
-//            if (symbolTable.getFunctionOrNull(Call(tokenIdentifier)) != null
-//                || (upperToken is Link && (symbolTable.getVariableOrNull(upperToken.left.value) != null
-//                        || upperToken.left is TokenArray
-//                        || upperToken.left is TokenString
-//                        || upperToken.left is TokenNumber
-//                        || upperToken.left is Index))
-//            ) {
-//                return Call(tokenIdentifier)
-//            } else if (symbolTable.getTypeOrNull(tokenIdentifier.left) != null)
-//                return Constructor(tokenIdentifier)
-//            throw PositionalException("Unknown invocated identifier `${tokenIdentifier.left.value}`", tokenIdentifier)
     }
 
     fun changeInvocationOnSecondPositionInLink(symbolTable: SymbolTable, link: Link): Invocation {

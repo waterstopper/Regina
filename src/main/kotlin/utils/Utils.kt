@@ -4,13 +4,8 @@ import lexer.PositionalException
 import properties.Property
 import properties.Type
 import properties.Variable
-import properties.primitive.PArray
+import properties.primitive.*
 import properties.primitive.PDictionary.Companion.initializeDictionaryProperties
-import properties.primitive.PDouble
-import properties.primitive.PInt
-import properties.primitive.PNumber
-import properties.primitive.PString
-import properties.primitive.Primitive
 import token.Token
 
 object Utils {

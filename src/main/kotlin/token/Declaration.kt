@@ -11,8 +11,8 @@ class Declaration(
     nud: ((token: Token, parser: Parser) -> Token)?,
     led: (
         (
-            token: Token, parser: Parser, token2: Token
-        ) -> Token
+        token: Token, parser: Parser, token2: Token
+    ) -> Token
     )?,
     std: ((token: Token, parser: Parser) -> Token)?,
     children: List<Token>

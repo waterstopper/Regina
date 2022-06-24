@@ -2,7 +2,7 @@ package lexer
 
 import Logger
 import lexer.RegistryFactory.getRegistry
-import token.*
+import token.Token
 import token.variable.TokenNumber
 
 /**
@@ -29,8 +29,9 @@ class Lexer() {
     }
 
     private fun addTokens() {
+        tokens.add(createNextToken())
         while (index < source.length)
-            tokens.add(createNextToken())
+            addToken(createNextToken())
         if (tokens.last().symbol != "(EOF)")
             tokens.add(Token("(EOF)", "(EOF)", position))
         if (tokens.size >= 100000)
@@ -39,6 +40,11 @@ class Lexer() {
 
     fun next(): Token = tokens[++tokenIndex]
     fun prev(): Token = tokens[--tokenIndex]
+    fun moveAfterSeparator() {
+        tokenIndex++
+        if (tokens[tokenIndex].symbol != "(SEP)")
+            throw PositionalException("Expected separator", tokens[tokenIndex])
+    }
 
     fun peek(offset: Int = 1): Token {
         if (tokenIndex + offset >= tokens.size)
@@ -143,7 +149,7 @@ class Lexer() {
             whitespace = consumeWhitespace()
             comments = consumeComments()
             if (comments)
-                tokens.add(registry.token("(SEP)", "//", position))
+                addToken(registry.token("(SEP)", "//", position))
             iter++
         }
         return iter > 1
@@ -198,6 +204,17 @@ class Lexer() {
         if (source[index] == '\r' && source[index + 1] == '\n')
             return index + 2
         return if (source[index] == '\r' || source[index] == '\n') index + 1 else index
+    }
+
+    /**
+     * Add (SEP) token if last added token is not (SEP)
+     *
+     * (SEP) tokens' purpose is separating statements. Therefore, there is no need to have more than one (SEP) in a row.
+     * Additionally, if-else statement denotation function in [RegistryFactory] relies on one (SEP) in a row.
+     */
+    private fun addToken(newToken: Token) {
+        if (tokens.last().symbol != "(SEP)" || newToken.symbol != "(SEP)")
+            tokens.add(newToken)
     }
 
     private fun move(step: Int = 1) {
