@@ -38,19 +38,30 @@ class Lexer() {
             Logger.addWarning(tokens.last(), "File too large")
     }
 
-    fun next(): Token = tokens[++tokenIndex]
+    fun next(): Token {
+        while (tokens[++tokenIndex].symbol == "(SEP)") {
+        }
+        return tokens[tokenIndex]
+    }
+
     fun prev(): Token = tokens[--tokenIndex]
+
     fun moveAfterSeparator() {
         tokenIndex++
-        if (tokens[tokenIndex].symbol != "(SEP)")
+        if (tokens[tokenIndex].symbol != "(SEP)" && tokens[tokenIndex].symbol != "(EOF)")
             throw PositionalException("Expected separator", tokens[tokenIndex])
     }
 
-    fun peek(offset: Int = 1): Token {
-        if (tokenIndex + offset >= tokens.size)
+    fun peek(): Token {
+        var offset = 1
+        if (tokenIndex + offset > tokens.lastIndex)
             return tokens.last()
+        while (tokens[tokenIndex + offset].symbol == "(SEP)")
+            offset++
         return tokens[tokenIndex + offset]
     }
+
+    fun peekSeparator(): Boolean = tokens[tokenIndex + 1].symbol == "(SEP)"
 
     private fun createNextToken(): Token {
         consumeWhitespaceAndComments()
@@ -187,8 +198,6 @@ class Lexer() {
             move()
         return res
     }
-
-    fun hasCommentAhead(): Boolean = consumeWhitespaceAndComments()
 
     private fun isLineSeparator(): Boolean {
         if (index == source.lastIndex)

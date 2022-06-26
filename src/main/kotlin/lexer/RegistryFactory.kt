@@ -11,6 +11,9 @@ import token.variable.TokenDictionary
 import token.variable.TokenNumber
 
 object RegistryFactory {
+    /**
+     * Add parsing templates
+     */
     fun getRegistry(): Registry {
         val registry = Registry()
 
@@ -121,8 +124,7 @@ object RegistryFactory {
             if (t.symbol != "]") {
                 sequence(res, parser)
                 parser.advance("]")
-            } else
-                parser.advance("]")
+            } else throw PositionalException("Expected index", t)
             res
         }
 
@@ -156,8 +158,6 @@ object RegistryFactory {
             val res = TokenDictionary(token)
             if (parser.lexer.peek().symbol != "}") {
                 while (true) {
-                    if (parser.lexer.peek().symbol == "}")
-                        break
                     res.children.add(parser.expression(0))
                     if (res.children.last().symbol != ":")
                         throw PositionalException("Expected key and value", res.children.last())
@@ -190,10 +190,6 @@ object RegistryFactory {
             res.children.add(parser.expression(0))
             res.children.add(parser.block(canBeSingleStatement = true))
             var next = parser.lexer.peek()
-            if (next.symbol == "(SEP)" && parser.lexer.peek(2).value == "else") {
-                parser.lexer.next()
-                next = parser.lexer.peek()
-            }
             if (next.value == "else") {
                 parser.lexer.next()
                 next = parser.lexer.peek()
@@ -277,19 +273,19 @@ object RegistryFactory {
 
         registry.stmt("break") { token: Token, parser: Parser ->
             if (parser.lexer.peek().symbol != "}")
-                parser.advance("(SEP)")
+                parser.advanceSeparator()
             WordStatement(token)
         }
 
         registry.stmt("continue") { token: Token, parser: Parser ->
             if (parser.lexer.peek().symbol != "}")
-                parser.advance("(SEP)")
+                parser.advanceSeparator()
             WordStatement(token)
         }
 
         registry.stmt("return") { token: Token, parser: Parser ->
             val res = WordStatement(token)
-            if (parser.lexer.peek().symbol != "}" && parser.lexer.peek().symbol != "(SEP)")
+            if (parser.lexer.peek().symbol != "}" && !parser.lexer.peekSeparator())
                 res.children.add(parser.expression(0))
             res
         }
@@ -320,7 +316,7 @@ object RegistryFactory {
         while (index is Index)
             index = index.left
         if (index !is Linkable)
-            throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), token, token)
+            throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), index, index)
     }
 
     private fun checkImportedFolder(link: Link) {

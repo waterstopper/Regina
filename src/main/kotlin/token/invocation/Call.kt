@@ -101,6 +101,7 @@ class Call(
         val res = if (function is EmbeddedFunction)
             function.executeFunction(this, symbolTable)
         else function.body.evaluate(symbolTable)
+        // this is because Unit variables are not allowed and in Links variable is assigned
         return if (res is Unit) 0 else res
     }
 }

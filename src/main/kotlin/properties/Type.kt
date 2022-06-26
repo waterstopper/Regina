@@ -9,6 +9,7 @@ import token.Token
 import token.TokenFactory
 import token.invocation.Call
 import token.statement.Assignment
+import utils.Utils.toVariable
 
 /**
  * Is a class. In documentation might be referred as class or type interchangeably.
@@ -44,7 +45,7 @@ open class Type(
     override fun getFunction(token: Token) = getFunctionOrNull(token)
         ?: throw PositionalException("Class `$name` does not contain function", token)
 
-    override fun getProperties() = PDictionary(properties, this)
+    override fun getProperties() = PDictionary(properties.mapKeys { (key,_) ->key.toVariable() }.toMutableMap(), this)
 
     override fun getPropertyOrNull(name: String) = when (name) {
         "parent" -> getParentOrNull()
@@ -107,6 +108,33 @@ open class Type(
         copy.assignments.forEach { it.parent = copy }
         copy.functions.addAll(this.functions)
         return copy
+    }
+
+    // TODO recursive equals. Add reference field to type. That will be assigned in constructor.
+    override fun equals(other: Any?): Boolean {
+        if (this === other)
+            return true
+        if (other !is Type)
+            return false
+        if (!equalToType(other))
+            return false
+        if (assignments.isNotEmpty() || other.assignments.isNotEmpty())
+            return false
+        val otherProperties = other.getProperties().getPValue() - "this"
+        val thisProperties = properties - "this"
+        if (thisProperties.size != otherProperties.size)
+            return false
+        for ((key, value) in thisProperties) {
+            if (!otherProperties.contains(key))
+                return false
+            if (otherProperties[key] != value)
+                return false
+        }
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return 31 * name.hashCode() + 311 * fileName.fileName.hashCode() + properties.hashCode()
     }
 
     companion object {

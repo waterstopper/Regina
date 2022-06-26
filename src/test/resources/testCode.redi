@@ -13,8 +13,6 @@ fun checkMultipleCalls(a)
         res = 1
     }
     test(a == b)
-    checkArray()
-    checkArray()
     log("res: " +res + ", a: "+ a)
     return res
 }
@@ -87,8 +85,6 @@ fun main() {
     log(a)
     a = Something()
     log(a)
-    checkArray()
-    checkArray()
     assignmentTest()
 
 
@@ -99,8 +95,6 @@ fun main() {
     log(a)
     checkLink()
     checkType()
-    checkArray()
-    checkWhile()
     test(checkMultipleCalls(3) == 3)
     test(checkNestedReturn() == 1)
     primitiveTest()
@@ -179,22 +173,6 @@ fun primitiveTest() {
     test(2.345453.round(12) == 2.345453)
 }
 
-
-fun checkWhile() {
-	arg = 0
-	if(1 == 1){
-		while(arg < 10) {
-			if(arg > 5) {
-				break
-			}
-			test(arg <= 5)
-			arg = arg + 1
-			continue // leave before wrong test
-			test(1==2)
-		}
-	}
-}
-
 fun checkNestedReturn() {
     if(1 == 1) {
         while(1 == 1) {
@@ -214,22 +192,6 @@ fun checkType() {
 	log(B() is A)
 	test(B() is A) // TODO initialize supertypes
 	test(0 !is Array)
-}
-
-fun checkArray() {
-    a = []
-    a.add(a, 0)
-    a.add([1,2])
-    test(str(a)=="[this, [1, 2]]")
-    test(a[0][0][1]==[1,2])
-    a.removeAt(0)
-    test(a==[[1,2]])
-    a.remove([1,2])
-    test(a==[])
-    test(!a.has(0))
-    a.add(0)
-    test(a.has(0))
-    test([1,2,3].has(1))
 }
 
 class Something {

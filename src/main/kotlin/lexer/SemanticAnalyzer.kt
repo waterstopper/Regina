@@ -1,14 +1,10 @@
 package lexer
 
-import Logger
 import evaluation.Evaluation.globalTable
 import evaluation.FunctionFactory
 import readFile
 import table.SymbolTable
-import token.Declaration
-import token.Identifier
-import token.Link
-import token.Token
+import token.*
 import token.TokenFactory.changeInvocationOnSecondPositionInLink
 import token.TokenFactory.createSpecificInvocation
 import token.invocation.Call
@@ -44,14 +40,14 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 }
                 "object" -> globalTable.addObject(token)
                 "import" -> {
-                    if (globalTable.getImportOrNull(token.left.value) == null) {
+                    if (globalTable.getImportOrNullByFileName(token.left.value) == null) {
                         val isNewFile = globalTable.addFile(token.left.value)
                         globalTable.addImport(token.left, token.right)
                         if (isNewFile) {
                             readFile(token.left.value)
                             globalTable = globalTable.changeFile(fileName)
                         }
-                    } else Logger.addWarning(token.left, "Same import found above")
+                    } else throw PositionalException("Same import found above", token.left)
                 }
                 else ->
                     throw PositionalException("Only class, object or function can be top level declaration", token)
@@ -62,12 +58,23 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
         for (token in tokens) {
             var table = globalTable.copy()
             when (token.symbol) {
-                "fun" -> table = table.changeScope()
+                "fun" -> table = changeTableForFunctionAnalysis(token, table.changeScope())
                 "object" -> table = table.changeVariable(globalTable.getObjectOrNull((token as Declaration).name)!!)
                 "class" -> table = table.changeVariable(globalTable.getTypeOrNull((token as Declaration).name)!!)
             }
             changeInvocationType(token, table)
         }
+    }
+
+    private fun changeTableForFunctionAnalysis(functionToken: Token, table: SymbolTable): SymbolTable {
+        val args = functionToken.left.children.subList(1)
+        for (arg in args)
+            when (arg) {
+                is Assignment -> table.addVariableOrNot(arg.left)
+                is Identifier -> table.addVariableOrNot(arg)
+                // else -> throw PositionalException("Expected assignment or identifier", arg)
+            }
+        return table
     }
 
     private fun changeInvocationType(token: Token, symbolTable: SymbolTable) {
@@ -80,27 +87,29 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             if (token.right is Invocation) {
                 checkParamsOrArgs(token.right.children.subList(1), true)
                 if (token.left is Identifier) {
-                    symbolTable.addVariableOrNot(token.left)
+                    // symbolTable.addVariableOrNot(token.left)
                     changeInvocationOnSecondPositionInLink(symbolTable, token)
                 } else token.children[1] = Call(token.right)
             }
             for ((index, child) in token.children.subList(2).withIndex())
                 if (child is Invocation) {
                     checkParamsOrArgs(child.children.subList(1), true)
-                    token.children[index] = Call(child)
+                    token.children[index + 2] = Call(child)
                 }
 //            for (child in token.children)
 //                changeInvocationType(child, symbolTable)
         } else {
-            if (token is Assignment)
+            if (token is Assignment) {
+                if (token.left !is Assignable)
+                    throw PositionalException("Left operand is not assignable", token.left)
                 symbolTable.addVariableOrNot(token.left)
+            }
             for ((index, child) in token.children.withIndex()) {
                 if (child is Invocation) {
                     checkParamsOrArgs(child.children.subList(1), token.symbol != "fun")
                     if (token.symbol != "fun")
                         createSpecificInvocation(child, symbolTable, token, index)
                 }
-
                 // TODO there child might be already changed to other token, Invocation -> Call.
                 // changeInvocationType(token.children[index], symbolTable)
             }

@@ -23,8 +23,11 @@ class PString(value: String, parent: Type?) : Primitive(value, parent), Indexabl
         throw PositionalException("Set is not implemented for String", tokenValue)
     }
 
-    companion object {
+    override fun toString(): String {
+        return "\"$value\""
+    }
 
+    companion object {
         fun initializeStringProperties() {
             val s = PString("", null)
             setProperty(s, "size") { p: Primitive -> (p as PString).getPValue().length.toProperty() }

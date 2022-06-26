@@ -7,7 +7,7 @@ import token.statement.Assignment
 /**
  * Function's signature is:
  * 1. Name
- * 2. Overall number of parameters (with and without default)
+ * 2. Overall number of parameters (with and without default parameters)
  */
 open class Function(
     val name: String,
@@ -30,10 +30,6 @@ open class Function(
     fun hasParam(name: String): Boolean =
         nonDefaultParams.any { it.value == name } || defaultParams.any { it.name == name }
 
-    /**
-     * We should not consider default parameters, because calling functions
-     * `fun someFun` and `fun someFun(a=0)` can be achieved like: `someFun()` - and there is no way to distinct those
-     */
     override fun hashCode(): Int {
         var result = name.hashCode()
         result = 31 * result + (nonDefaultParams.size + defaultParams.size).hashCode()
@@ -52,17 +48,16 @@ open class Function(
             }
             var unnamedArgsRemoved = 0
             // filter functions by named arguments - if there is name argument
-            // that is absent in a function declaration [fitF], remove that candidate
-            candidates = candidates.filter { candidate ->
+            // that is absent in a function declaration [cand], remove that candidate
+            candidates = candidates.filter { cand ->
+                unnamedArgsRemoved = 0
                 call.namedArgs.all { arg ->
-                    unnamedArgsRemoved = 0
-                    if (candidate.nonDefaultParams.find { it.value == arg.value } != null)
+                    if (cand.nonDefaultParams.find { it.value == arg.name } != null)
                         unnamedArgsRemoved++
-                    candidate.hasParam(arg.name)
-                } && candidate.nonDefaultParams.size - unnamedArgsRemoved <= call.unnamedArgs.size
+                    cand.hasParam(arg.name)
+                } && cand.nonDefaultParams.size - unnamedArgsRemoved <= call.unnamedArgs.size
             }
             return candidates.minByOrNull { it.defaultParams.size + it.nonDefaultParams.size }
-            // ?: throw PositionalException("Function `${call.name}` not found", call)
         }
     }
 }

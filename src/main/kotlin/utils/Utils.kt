@@ -5,7 +5,6 @@ import properties.Property
 import properties.Type
 import properties.Variable
 import properties.primitive.*
-import properties.primitive.PDictionary.Companion.initializeDictionaryProperties
 import token.Token
 
 object Utils {
@@ -14,15 +13,17 @@ object Utils {
         PString.initializeEmbeddedStringFunctions()
         PNumber.initializeEmbeddedNumberFunctions()
         PDouble.initializeEmbeddedDoubleFunctions()
+        PDictionary.initializeDictionaryFunctions()
 
         PInt.initializeIntProperties()
         PDouble.initializeDoubleProperties()
         PArray.initializeArrayProperties()
         PString.initializeStringProperties()
-        initializeDictionaryProperties()
+        PDictionary.initializeDictionaryProperties()
     }
 
     fun Boolean.toInt(): Int = if (this) 1 else 0
+    fun Boolean.toNonZeroInt(): Int = if (this) 1 else -1
 
     fun Any.toBoolean(token: Token): Boolean {
         try {
@@ -32,7 +33,7 @@ object Utils {
         }
     }
 
-    fun Any.toVariable(token: Token): Variable =
+    fun Any.toVariable(token: Token = Token()): Variable =
         if (this is Variable) this else Primitive.createPrimitive(this, null, token)
 
     fun Any.toProperty(token: Token = Token(), parent: Type? = null): Property =
@@ -75,7 +76,17 @@ object Utils {
         else -this.toInt()
     }
 
-    fun <T> List<T>.subList(start: Int): List<T> {
-        return this.subList(start, this.size)
+    fun <T> List<T>.subList(start: Int): List<T> = this.subList(start, this.size)
+
+    fun castToArray(array: Any): PArray {
+        if (array !is PArray)
+            throw PositionalException("function in not applicable for this type")
+        return array
+    }
+
+    fun castToInt(int: Any): PInt {
+        if (int !is PInt)
+            throw PositionalException("function in not applicable for this type")
+        return int
     }
 }

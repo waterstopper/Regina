@@ -17,16 +17,12 @@ class Parser() {
         lexer = Lexer(text)
     }
 
-    constructor(lexer: Lexer) : this() {
-        this.lexer = lexer
-    }
-
     fun expression(rbp: Int): Token {
         var t = lexer.next()
         var left = t.nud?.let { it(t, this) }
             ?: throw PositionalException(
-            "Expected variable or prefix operator", position = t.position, length = 1
-        )
+                "Expected variable or prefix operator", position = t.position, length = 1
+            )
         while (rbp < lexer.peek().bindingPower) {
             t = lexer.next()
             left = t.led?.let { it(t, this, left) } ?: throw PositionalException(
@@ -38,21 +34,13 @@ class Parser() {
 
     fun advance(symbol: String): Token {
         var token = lexer.next()
-        // ignore separators
-        while (token.symbol == "(SEP)" && symbol != "(SEP)" && symbol != "(EOF)")
-            token = lexer.next()
         if (token.symbol == symbol)
             return token
-        if (symbol == "(SEP)" && token.symbol == "(EOF)")
-            return token
-        throw PositionalException(
-            "Expected ${if (symbol == "(SEP)") "statement separator" else symbol}",
-            position = token.position, length = 1
-        )
+        throw PositionalException("Expected $symbol", position = token.position, length = 1)
     }
 
     fun advanceSeparator() {
-
+        lexer.moveAfterSeparator()
     }
 
     fun statements(): List<Token> {
@@ -69,25 +57,18 @@ class Parser() {
         var token = lexer.peek()
         if (token.std != null) {
             token = lexer.next()
-            return token.std?.let { it(token, this) } ?: throw PositionalException(
-                "Expected statement", position = token.position, length = 1
-            )
-        }
-        if (token.symbol == "(SEP)") {
-            lexer.next()
-            return token
+            return token.std?.let { it(token, this) }
+                ?: throw PositionalException("Expected statement", position = token.position, length = 1)
         }
         token = expression(0)
         val peeked = lexer.peek()
         if (peeked.symbol != "}")
-            advance("(SEP)")
+            advanceSeparator()
         return token
     }
 
     fun block(canBeSingleStatement: Boolean = false): Token {
-        var token = lexer.next()
-        while (token.symbol == "(SEP)")
-            token = lexer.next()
+        val token = lexer.next()
         if (token.symbol != "{") {
             if (canBeSingleStatement) {
                 lexer.prev()
@@ -97,8 +78,7 @@ class Parser() {
             }
             throw PositionalException("Expected a block start '{'", position = token.position)
         }
-        return token.std?.let { it(token, this) } ?: throw PositionalException(
-            "Expected statement", position = token.position
-        )
+        return token.std?.let { it(token, this) }
+            ?: throw PositionalException("Expected statement", position = token.position)
     }
 }

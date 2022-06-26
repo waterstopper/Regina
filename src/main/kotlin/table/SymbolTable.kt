@@ -14,7 +14,8 @@ class SymbolTable(
     private var variableTable: Variable? = null,
     private var fileTable: FileTable = FileTable("")
 ) {
-    companion object {
+    companion object { // import a.b.c as imported
+        // imported.A() <- process
         private val imports = mutableMapOf<FileTable, MutableMap<String, FileTable>>()
 
         // private val embedded: MutableMap<String, Function> = initializeEmbedded()
@@ -139,6 +140,7 @@ class SymbolTable(
 
     fun addVariable(name: String, value: Variable) = scopeTable!!.addVariable(name, value)
     fun getImportOrNull(importName: String) = imports[fileTable]!![importName]
+    fun getImportOrNullByFileName(fileName: String) = imports[fileTable]!!.values.find { it.fileName == fileName }
     fun getFileFromType(type: Type, token: Token) = imports.keys.find { it == type.fileName }
         ?: throw PositionalException("File `${type.fileName.fileName}` not found", token)
 

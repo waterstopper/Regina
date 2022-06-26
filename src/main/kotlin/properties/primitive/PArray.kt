@@ -1,13 +1,18 @@
 package properties.primitive
 
+import evaluation.FunctionFactory.getArray
 import evaluation.FunctionFactory.getIdent
+import evaluation.FunctionFactory.getInt
+import evaluation.FunctionFactory.getString
 import lexer.Parser
 import lexer.PositionalException
 import properties.EmbeddedFunction
+import properties.Object
 import properties.Type
 import properties.Variable
 import token.Token
 import token.statement.Assignment
+import utils.Utils.castToArray
 import utils.Utils.toInt
 import utils.Utils.toProperty
 import utils.Utils.toVariable
@@ -17,7 +22,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
     override fun getPValue() = value as MutableList<Variable>
     override fun get(index: Any, token: Token): Any {
         if (index !is Int)
-            throw PositionalException("Expected integer", token)
+            throw PositionalException("Expected integer as index", token)
         if (index < 0 || index >= getPValue().size)
             throw PositionalException("Index out of bounds", token)
         return getPValue()[index]
@@ -60,15 +65,12 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                     listOf(Token(value = "element")),
                     listOf(Parser("index = this.size").statements().first() as Assignment)
                 ) { token, args ->
-                    val list = args.getPropertyOrNull("this")!!
-                    if (list is PArray) {
-                        val argument = getIdent(token, "element", args)
-                        val index = getIdent(token, "index", args)
-                        if (index !is PInt) throw PositionalException("expected integer as index", token.children[2])
-                        if (index.getPValue() < 0 || index.getPValue() > list.getPValue().size)
-                            throw PositionalException("Index out of bounds", token.children[1])
-                        list.getPValue().add(index.getPValue(), argument)
-                    } else throw PositionalException("add is not applicable for this type", token.children[1])
+                    val list = castToArray(args.getPropertyOrNull("this")!!)
+                    val argument = getIdent(token, "element", args)
+                    val index = getInt(token, "index", args)
+                    if (index.getPValue() < 0 || index.getPValue() > list.getPValue().size)
+                        throw PositionalException("Index out of bounds", token.children[1])
+                    list.getPValue().add(index.getPValue(), argument)
                 }
             )
             setFunction(
@@ -77,49 +79,43 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                     "remove",
                     listOf(Token(value = "element")),
                 ) { token, args ->
-                    val list = args.getPropertyOrNull("this")!!
-                    if (list is PArray) {
-                        val argument = getIdent(token, "element", args)
-                        if (argument is Primitive) {
-                            var removed = false
-                            for (e in list.getPValue()) {
-                                if (e is Primitive && e == argument) {
-                                    removed = true
-                                    list.getPValue().remove(e)
-                                    break
-                                }
+                    val list = castToArray(args.getPropertyOrNull("this")!!)
+                    val argument = getIdent(token, "element", args)
+                    if (argument is Primitive) {
+                        var removed = false
+                        for (e in list.getPValue()) {
+                            if (e is Primitive && e == argument) {
+                                removed = true
+                                list.getPValue().remove(e)
+                                break
                             }
-                            removed.toInt()
-                        } else list.getPValue().remove(argument).toInt()
-                    } else throw PositionalException("remove is not applicable for this type", token.children[1])
+                        }
+                        removed.toInt()
+                    } else list.getPValue().remove(argument).toInt()
                 }
             )
             setFunction(
                 p,
                 EmbeddedFunction("removeAt", listOf(Token(value = "index"))) { token, args ->
-                    val list = args.getPropertyOrNull("this")!!
-                    val index = getIdent(token, "index", args)
-                    if (list is PArray) {
-                        if (index is PInt)
-                            try {
-                                list.getPValue().removeAt(index.getPValue())
-                            } catch (e: IndexOutOfBoundsException) {
-                                throw PositionalException("index ${index.getPValue()} out of bounds for length ${list.getPValue().size}")
-                            }
-                        else throw PositionalException("expected integer as index", token.children[2])
-                    } else throw PositionalException("removeAt is not applicable for this type", token.children[1])
+                    val list = castToArray(args.getPropertyOrNull("this")!!)
+                    val index = getInt(token, "index", args)
+                    try {
+                        list.getPValue().removeAt(index.getPValue())
+                    } catch (e: IndexOutOfBoundsException) {
+                        throw PositionalException(
+                            "index ${index.getPValue()} out of bounds for length ${list.getPValue().size}"
+                        )
+                    }
                 }
             )
             setFunction(
                 p,
                 EmbeddedFunction("has", listOf(Token(value = "element"))) { token, args ->
-                    val list = args.getPropertyOrNull("this")!!
+                    val list = castToArray(args.getPropertyOrNull("this")!!)
                     val element = getIdent(token, "element", args)
-                    if (list is PArray) {
-                        if (element is Primitive)
-                            list.getPValue().any { (it is Primitive && it == element) }.toInt()
-                        else list.getPValue().any { it == element }.toInt()
-                    } else throw PositionalException("has is not applicable for this type", token.children[1])
+                    if (element is Primitive)
+                        list.getPValue().any { (it is Primitive && it == element) }.toInt()
+                    else list.getPValue().any { it == element }.toInt()
                 }
             )
             setFunction(
@@ -128,13 +124,19 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                     "joinToString", listOf(),
                     listOf(Parser("separator = \",\"").statements().first() as Assignment)
                 ) { token, args ->
-                    val array = getIdent(token, "this", args)
-                    val separator = getIdent(token, "separator", args)
-                    if (array !is PArray)
-                        throw PositionalException("joinToString is not applicable for this type", token.children[1])
-                    if (separator !is PString)
-                        throw PositionalException("joinToString should have String as separator", token.children[1])
+                    val array = getArray(token, "this", args)
+                    val separator = getString(token, "separator", args)
                     array.getPValue().joinToString(separator = separator.getPValue())
+                }
+            )
+            setFunction(
+                p,
+                EmbeddedFunction(
+                    "clear",
+                    listOf(),
+                ) { _, args ->
+                    val list = castToArray(args.getPropertyOrNull("this")!!)
+                    list.getPValue().clear()
                 }
             )
             setFunction(
@@ -143,12 +145,8 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                     "sort", listOf(),
                     listOf(Parser("desc = false").statements().first() as Assignment)
                 ) { token, args ->
-                    val array = getIdent(token, "this", args)
-                    val desc = getIdent(token, "desc", args)
-                    if (array !is PArray)
-                        throw PositionalException("sort is not applicable for this type", token.children[1])
-                    if (desc !is PInt)
-                        throw PositionalException("sort should have Int as desc value", token.children[1])
+                    val array = getArray(token, "this", args)
+                    val desc = getInt(token, "desc", args)
                     val comparator = Comparator<Variable> { a, b -> compareVariables(a, b) }
                     array.getPValue().sortWith(comparator)
                     if (desc.getPValue() != 0)
@@ -159,14 +157,10 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 p,
                 EmbeddedFunction(
                     "sorted", listOf(),
-                    listOf(Parser("desc = false").statements().first() as Assignment)
+                    listOf(Parser("reverse = false").statements().first() as Assignment)
                 ) { token, args ->
-                    val array = getIdent(token, "this", args)
-                    val desc = getIdent(token, "desc", args)
-                    if (array !is PArray)
-                        throw PositionalException("sort is not applicable for this type", token.children[1])
-                    if (desc !is PInt)
-                        throw PositionalException("sort should have Int as desc value", token.children[1])
+                    val array = getArray(token, "this", args)
+                    val desc = getInt(token, "reverse", args)
                     val comparator = Comparator<Variable> { a, b -> compareVariables(a, b) }
                     val res = array.getPValue().sortedWith(comparator)
                     if (desc.getPValue() != 0) res.reversed() else res
@@ -179,22 +173,27 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
         }
 
         private fun compareType(type: Type, variable: Variable): Int {
+            if (type is Object && variable is Object)
+                return compareValues(type.name, variable.name)
             return when (variable) {
-                is Type -> if (type.equalToType(variable)) 0 else (type.name > variable.name).toInt()
+                is Object -> -1
+                is Type -> if (type.equalToType(variable)) 0 else compareValues(type.name, variable.name)
                 else -> 1
             }
         }
 
-        // TODO compare by index
         private fun comparePrimitive(primitive: Primitive, variable: Variable): Int {
+            if (variable is Type)
+                return -1
+            if (primitive is PNumber && variable is PNumber)
+                return compareValues(primitive.getPValue().toDouble(), variable.getPValue().toDouble())
+            if (primitive.getIndex() != (variable as Primitive).getIndex())
+                return compareValues(primitive.getIndex(), variable.getIndex())
             return when (variable) {
-                is Type -> 0
-                is PArray, is PDictionary -> {
-                    if (primitive is PArray || primitive is PDictionary) {
-                        0
-                    } else 0
-                }
-                else -> 0
+                is PArray -> compareValues((primitive as PArray).getPValue().size, variable.getPValue().size)
+                is PDictionary -> compareValues((primitive as PDictionary).getPValue().size, variable.getPValue().size)
+                is PString -> compareValues((primitive as PString).getPValue(), variable.getPValue())
+                else -> throw PositionalException("Non-comparable primitive")
             }
         }
     }

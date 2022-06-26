@@ -74,7 +74,6 @@ object TokenFactory {
             "." -> Link(("(LINK)"), value, position, bindingPower, nud, led, std)
             "=" -> Assignment("(ASSIGNMENT)", value, position, bindingPower, nud, led, std)
             ";", "\n", "\r\n", "\r" -> Token("(SEP)", value, position, bindingPower, nud, led, std)
-            // "[" -> TokenIndexing(symbol, value, position, bindingPower, nud, led, std)
             in nonArithmeticOperators -> Operator(symbol, value, position, bindingPower, nud, led, std)
             in arithmeticOperators -> ArithmeticOperator(symbol, value, position, bindingPower, nud, led, std)
             else -> Token(symbol, value, position, bindingPower, nud, led, std)
@@ -110,5 +109,4 @@ object TokenFactory {
         else throw PositionalException("No class and function found in `${fileTable.fileName}`", link.right)
         return link.children[1] as Invocation
     }
-
 }

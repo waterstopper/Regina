@@ -20,6 +20,16 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
         Primitive.functions[2].add(embeddedFunction)
     }
 
+    override fun equals(other: Any?): Boolean {
+        if(other !is PNumber)
+            return false
+        return getPValue().toDouble() == other.getPValue().toDouble()
+    }
+
+    override fun hashCode(): Int {
+        return getPValue().toDouble().hashCode()
+    }
+
     companion object {
         fun initializeEmbeddedNumberFunctions() {
             val n = PNumber(0, null)

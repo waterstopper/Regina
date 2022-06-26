@@ -14,7 +14,7 @@ class Block(token: Token) :
             "{" -> evaluateBlock(symbolTable)
             "if" -> evaluateConditional(symbolTable)
             "while" -> evaluateCycle(symbolTable)
-            else -> throw PositionalException("not a block", this)
+            else -> throw PositionalException("Not a block", this)
         }
     }
 
@@ -49,6 +49,8 @@ class Block(token: Token) :
     private fun evaluateBlock(symbolTable: SymbolTable): Any {
         for (token in children) {
             if (token is Block) {
+                if (token.value == "{")
+                    throw PositionalException("Block within a block. Maybe `if`, `else` or `while` was omitted?", token)
                 val res = token.evaluate(symbolTable)
                 if (res !is Unit)
                     return res

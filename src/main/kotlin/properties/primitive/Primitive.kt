@@ -34,9 +34,9 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
     }
 
     override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + value.hashCode()
-        return result
+       // var result = super.hashCode()
+     //   result = 31 * result + value.hashCode()
+        return value.hashCode()
     }
 
     override fun getPropertyOrNull(name: String) = when (name) {
@@ -44,11 +44,9 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
         else -> properties[getIndex()][name]?.let { it(this) }
-            ?: (
-                    if (getIndex() in 2..3)
-                        properties[1][name]?.let { it(this) } ?: properties[0][name]?.let { it(this) }
-                    else properties[0][name]?.let { it(this) }
-                    )
+            ?: (if (getIndex() in 2..3)
+                properties[1][name]?.let { it(this) } ?: properties[0][name]?.let { it(this) }
+            else properties[0][name]?.let { it(this) })
     }
 
     override fun getProperty(token: Token): Property = when (token.value) {
@@ -56,11 +54,9 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
         else -> properties[getIndex()][token.value]?.let { it(this) }
-            ?: (
-                    if (getIndex() in 2..3)
-                        properties[1][token.value]?.let { it(this) } ?: properties[0][token.value]?.let { it(this) }
-                    else properties[0][token.value]?.let { it(this) }
-                    )
+            ?: (if (getIndex() in 2..3)
+                properties[1][token.value]?.let { it(this) } ?: properties[0][token.value]?.let { it(this) }
+            else properties[0][token.value]?.let { it(this) })
             ?: throw NotFoundException(token, variable = this)
     }
 
@@ -68,6 +64,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
      * Does not include "this"
      */
     override fun getProperties(): PDictionary {
+        // TODO make primitive wrap
         val res = properties[0]
         if (getIndex() in 2..3)
             res.putAll(properties[1])
@@ -105,7 +102,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
                 is Double -> PDouble(value, parent)
                 is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent)
                 else -> throw PositionalException(
-                    "cannot create variable of type `${value::class}`", token
+                    "Cannot create variable of type `${value::class}`", token
                 )
             }
         }

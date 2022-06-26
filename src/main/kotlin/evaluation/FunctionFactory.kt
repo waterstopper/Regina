@@ -4,10 +4,7 @@ import lexer.ExpectedTypeException
 import lexer.PositionalException
 import properties.EmbeddedFunction
 import properties.Function
-import properties.primitive.PDictionary
-import properties.primitive.PDouble
-import properties.primitive.PInt
-import properties.primitive.PString
+import properties.primitive.*
 import table.SymbolTable
 import token.Token
 import token.statement.Assignment
@@ -40,14 +37,41 @@ object FunctionFactory {
         )
     }
 
-    fun createIdent(token: Token, name: String) = Token(value = name, symbol = name, position = token.position)
+    private fun createIdent(token: Token, name: String) = Token(value = name, symbol = name, position = token.position)
 
     fun getIdent(token: Token, name: String, args: SymbolTable) = args.getIdentifier(createIdent(token, name))
+    fun getDictionary(token: Token, name: String, args: SymbolTable): PDictionary {
+        val dictionary = getIdent(token, name, args)
+        if (dictionary !is PDictionary)
+            throw PositionalException("Expected array as $name", token)
+        return dictionary
+    }
+
+    fun getArray(token: Token, name: String, args: SymbolTable): PArray {
+        val array = getIdent(token, name, args)
+        if (array !is PArray)
+            throw PositionalException("Expected array as $name", token)
+        return array
+    }
+
+    fun getString(token: Token, name: String, args: SymbolTable): PString {
+        val str = getIdent(token, name, args)
+        if (str !is PString)
+            throw PositionalException("Expected string as $name", token)
+        return str
+    }
+
+    fun getInt(token: Token, name: String, args: SymbolTable): PInt {
+        val int = getIdent(token, name, args)
+        if (int !is PInt)
+            throw PositionalException("Expected integer as $name", token)
+        return int
+    }
 
     fun initializeEmbedded(): MutableMap<String, Function> {
         val res = mutableMapOf<String, Function>()
-        res["log"] =
-            EmbeddedFunction("log", listOf(Token(value = "x"))) { token, args -> println(getIdent(token, "x", args)) }
+        res["log"] = EmbeddedFunction("log", listOf(Token(value = "x")))
+        { token, args -> println(getIdent(token, "x", args)) }
         res["input"] = EmbeddedFunction("input", listOf()) { _, _ -> readLine() ?: "" }
         res["write"] = EmbeddedFunction(
             "write",

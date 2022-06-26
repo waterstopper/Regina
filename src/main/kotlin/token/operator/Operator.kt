@@ -2,6 +2,7 @@ package token.operator
 
 import lexer.Parser
 import lexer.PositionalException
+import properties.primitive.PNumber
 import table.SymbolTable
 import token.Token
 import utils.Utils.toInt
@@ -51,16 +52,25 @@ open class Operator(
     }
 
     private fun Any.eq(other: Any): Boolean {
-        if (this is Number && other is Number)
-            return this.toDouble() == other.toDouble()
+        if (this is PNumber && other is PNumber)
+            return this.getPValue().toDouble() == other.getPValue().toDouble()
         if (this is MutableList<*> && other is MutableList<*>) {
             if (this.size != other.size)
                 return false
             var res = true
             this.forEachIndexed { index, _ ->
-                if (!this[index]!!.eq(other[index]!!)) {
+                if (!this[index]!!.eq(other[index]!!))
                     res = false
-                }
+            }
+            return res
+        }
+        if (this is MutableMap<*, *> && other is MutableMap<*, *>) {
+            if (this.size != other.size)
+                return false
+            var res = true
+            this.forEach { key, value ->
+                if (!other.contains(key)) res = false
+                else if (!value!!.eq(other[key]!!)) res = false
             }
             return res
         }

@@ -16,6 +16,12 @@ class ParserTest {
     }
 
     @Test
+    fun failNoIndexInIndexing(){
+        val thrown = assertFails { Parser("a[]").statements() }
+        assertTrue(thrown.message!!.contains("Expected index"))
+    }
+
+    @Test
     fun failInfixOperator() {
 //        val thrown = assertFails { Parser("a true").statements() }
 //        print(thrown.message)
@@ -30,7 +36,7 @@ class ParserTest {
             assertFails { Parser("a = b b()").statements() }
         )
         for (exception in thrownArr)
-            assertTrue(exception.message!!.contains("Expected statement separator"))
+            assertTrue(exception.message!!.contains("Expected separator"))
     }
 
     @Test
@@ -77,21 +83,41 @@ class ParserTest {
 
     }
 
-    fun fail() {
-        val thrown = assertFails { Parser("").statements() }
-        assertTrue(thrown.message!!.contains(""))
-    }
-
     @Test
     fun failLinkableToken() {
         val thrown = assertFails { Parser("fun main() {a = 1.[3]}").statements() }
         assertTrue(thrown.message!!.contains("Expected Identifier or Invocation or Index, but got TokenArray"))
+
+        val thrown2 =  assertFails { Parser("fun main() {a = 1.[1,2][3]}").statements() }
+        assertTrue(thrown2.message!!.contains("Expected Identifier or Invocation or Index, but got TokenArray"))
+    }
+
+    @Test
+    fun failParenthesesParsing() {
+        val thrownEmptyParentheses = assertFails { Parser("a= ()").statements() }
+        assertTrue(thrownEmptyParentheses.message!!.contains("Empty parentheses"))
+
+        val thrownTuple = assertFails { Parser("a= (1,2)").statements() }
+        assertTrue(thrownTuple.message!!.contains("Tuples are not implemented"))
     }
 
     @Test
     fun ignoreSeparators() {
         eval("""
-            fun /**/ main() {}
+            fun /**/ main/**/() {
+                a = 0; a = 0;
+                if(a) {} /**/ else {}; if(a) {} else {}
+            }
+        """)
+    }
+
+    @Test
+    fun controversialSeparatorsTest() {
+        eval("""
+           fun main;(;); {
+            if(a()) b = 0; else {}
+            test(b == 0)
+           }; fun a() {return 1} 
         """)
     }
 }

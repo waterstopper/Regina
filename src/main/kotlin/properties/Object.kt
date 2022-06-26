@@ -36,4 +36,6 @@ class Object(name: String, assignments: MutableList<Assignment>, fileName: FileT
 
     override fun getFunction(token: Token) = getFunctionOrNull(token)
         ?: throw PositionalException("Object `$name` does not contain function", token)
+
+    override fun equals(other: Any?) = this === other
 }

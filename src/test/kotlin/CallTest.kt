@@ -9,14 +9,14 @@ class CallTest {
         eval(
             """
            fun main() {
-                test(s() == 0)
-                test(s(1) == 1)
-                test(s(a=0) == 1)
-                test(s(0, b=0) == 2)
+                test(f() == 0)
+                test(f(1) == 1)
+                test(f(a=0) == 1)
+                test(f(0, b=0) == 2)
            }
-           fun s() {return 0}
-           fun s(a=0){return 1}
-           fun s(a,b=0){return 2}
+           fun f() {return 0}
+           fun f(a=0){return 1}
+           fun f(a,b=0){return 2}
         """
         )
     }
@@ -28,7 +28,7 @@ class CallTest {
                 """
             fun main() {}
             fun same(a=0,b=0) {}
-            fun same(a,b) {}
+            fun same(y,z) {}
         """
             )
         }
@@ -39,7 +39,7 @@ class CallTest {
                 """
             fun main() {}
             fun same(a=0,b=0) {}
-            fun same(a,b=0) {}
+            fun same(y,z=0) {}
         """
             )
         }
@@ -48,13 +48,7 @@ class CallTest {
 
     @Test
     fun testDefaultParamOrder() {
-        val thrown = assertFails {
-            eval(
-                """
-                fun main(a = 0, b) {}
-            """
-            )
-        }
+        val thrown = assertFails { eval("fun main(a = 0, b) {}") }
         assertTrue(thrown.message!!.contains("Default params should be after other"))
     }
 
@@ -95,7 +89,17 @@ class CallTest {
             """
             )
         }
-        println(thrown.message)
         assertTrue(thrown.message!!.contains("Found 2 or more main functions"))
+    }
+
+    @Test
+    fun alreadyAssignedParam() {
+        val thrownArr = listOf(assertFails { eval("fun main(){f(a=1,a=1)}; fun f(a,b){}") },
+            assertFails { eval("fun main(){f(1,a=1)}; fun f(a,b){}") },
+            assertFails { eval("fun main(){f(b=1,b=1)}; fun f(a,b){}") })
+        for (exception in thrownArr) {
+            println(exception.message)
+            assertTrue(exception.message!!.contains("Argument already assigned"))
+        }
     }
 }

@@ -91,9 +91,7 @@ class FileTable(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is FileTable) return false
-
         if (fileName != other.fileName) return false
-
         return true
     }
 

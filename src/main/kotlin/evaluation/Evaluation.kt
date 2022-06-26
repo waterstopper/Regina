@@ -6,13 +6,11 @@ import lexer.SemanticAnalyzer.Companion.clearAnalyzer
 import table.SymbolTable
 import table.SymbolTable.Companion.clearTable
 import token.Token
-import utils.Utils.treeView
 
 /**
  * Facade class for language execution
  */
 object Evaluation {
-
     var globalTable = SymbolTable()
 
     fun eval(code: String) {
@@ -26,7 +24,6 @@ object Evaluation {
     }
 
     fun evaluate(tokens: List<Token>, fileName: String) {
-        println(tokens.treeView())
         val main = globalTable.getMain()
         main.body.evaluate(globalTable)
         clear()
