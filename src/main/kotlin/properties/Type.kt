@@ -3,6 +3,7 @@ package properties
 import lexer.PositionalException
 import properties.primitive.PDictionary
 import properties.primitive.PInt
+import properties.primitive.PString
 import table.FileTable
 import table.SymbolTable
 import token.Token
@@ -45,7 +46,7 @@ open class Type(
     override fun getFunction(token: Token) = getFunctionOrNull(token)
         ?: throw PositionalException("Class `$name` does not contain function", token)
 
-    override fun getProperties() = PDictionary(properties.mapKeys { (key,_) ->key.toVariable() }.toMutableMap(), this)
+    override fun getProperties() = PDictionary(properties.mapKeys { (key, _) -> key.toVariable() }.toMutableMap(), this)
 
     override fun getPropertyOrNull(name: String) = when (name) {
         "parent" -> getParentOrNull()
@@ -120,8 +121,8 @@ open class Type(
             return false
         if (assignments.isNotEmpty() || other.assignments.isNotEmpty())
             return false
-        val otherProperties = other.getProperties().getPValue() - "this"
-        val thisProperties = properties - "this"
+        val otherProperties = other.getProperties().getPValue() - PString("this")
+        val thisProperties = getProperties().getPValue() - PString("this")
         if (thisProperties.size != otherProperties.size)
             return false
         for ((key, value) in thisProperties) {

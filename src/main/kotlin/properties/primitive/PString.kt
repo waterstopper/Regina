@@ -8,7 +8,7 @@ import token.Token
 import token.statement.Assignment
 import utils.Utils.toProperty
 
-class PString(value: String, parent: Type?) : Primitive(value, parent), Indexable {
+class PString(value: String, parent: Type?=null) : Primitive(value, parent), Indexable {
     override fun getIndex() = 4
     override fun getPValue() = value as String
     override fun get(index: Any, token: Token): Any {

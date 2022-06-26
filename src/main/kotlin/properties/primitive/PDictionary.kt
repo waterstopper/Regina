@@ -38,9 +38,7 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?) : Pri
             setFunction(p, EmbeddedFunction("remove", listOf(Token(value = "key"))) { token, args ->
                 val dict = getDictionary(token, "this", args)
                 val key = getIdent(token, "key", args)
-                if (key is Primitive)
-                    dict.getPValue().remove(key.getPValue())?.toVariable(token) ?: PInt(0, null)
-                else dict.getPValue().remove(key)?.toVariable(token) ?: PInt(0, null)
+                dict.getPValue().remove(key)?.toVariable(token) ?: PInt(0, null)
             })
         }
     }

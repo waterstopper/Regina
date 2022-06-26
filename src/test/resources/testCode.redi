@@ -48,6 +48,8 @@ class DoubleSegment {
 }
 
 fun main() {
+    s = Segment()
+    attributes = array(s.exportArgs["attributes"])
     log([1,2,3].has(1))
     testing = 1
     if(1) {

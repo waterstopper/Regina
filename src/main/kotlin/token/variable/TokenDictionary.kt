@@ -22,7 +22,7 @@ class TokenDictionary(token: Token) : Token(
     override fun evaluate(symbolTable: SymbolTable): Any {
         return children.associate {
             Pair(
-                it.left.evaluate(symbolTable),
+                it.left.evaluate(symbolTable).toVariable(it.left),
                 it.right.evaluate(symbolTable).toVariable(it.right)
             )
         }.toMutableMap()
