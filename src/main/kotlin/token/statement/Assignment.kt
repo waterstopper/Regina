@@ -38,7 +38,7 @@ class Assignment(
     }
 
     fun getAssignable(): Assignable = left as Assignable
-    fun getFirstUnassigned(symbolTable: SymbolTable, parent: Type): Assignment? {
+    fun getFirstUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type,Assignment?> {
         // traverse only rValue
         // TODO
         // although if lValue is Link, it should be traversed too
@@ -48,10 +48,10 @@ class Assignment(
         // TODO ternary should be resolved from condition to correct path. In incorrect path can be unresolved
         if (left is Link) {
             val leftUnassigned = (left as Link).getFirstUnassigned(parent)
-            if (leftUnassigned != null)
+            if (leftUnassigned.second != null)
                 return leftUnassigned
         }
-        return right.traverseUnresolved(symbolTable, parent)
+        return Pair(parent, right.traverseUnresolved(symbolTable, parent))
     }
 
     fun assign(parent: Type, symbolTable: SymbolTable) {

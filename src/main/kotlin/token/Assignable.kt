@@ -23,6 +23,6 @@ interface Assignable {
      * `a.b.c.d` - here instance `a` can have property b of type [Type],
      * which does not have property `c` yet.)
      */
-    fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable = SymbolTable()): Assignment?
+    fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable = SymbolTable()): Pair<Type, Assignment?>
     fun getPropertyName(): Token
 }

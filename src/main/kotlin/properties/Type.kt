@@ -147,23 +147,24 @@ open class Type(
             resolving = true
             do {
                 val (current, parent) = bfs(root) ?: break
-                val stack = mutableListOf<Assignment>()
-                stack.add(current)
+                val stack = mutableListOf<Pair<Type,Assignment>>()
+                stack.add(Pair(parent,current))
                 processAssignment(parent, symbolTable.changeVariable(parent), stack)
             } while (true)
             resolving = false
             return root
         }
 
-        fun processAssignment(parent: Type, symbolTable: SymbolTable, stack: MutableList<Assignment>) {
+        fun processAssignment(parent: Type, symbolTable: SymbolTable, stack: MutableList<Pair<Type,Assignment>>) {
+            // here type should be part of stack
             while (stack.isNotEmpty()) {
                 val unresolved = stack.removeLast()
-                val top = unresolved.getFirstUnassigned(symbolTable, parent)
-                if (top != null) {
+                val top = unresolved.second.getFirstUnassigned(symbolTable, parent)
+                if (top.second != null) {
                //     if (trainingWheels && (stack + unresolved).contains(top))
                 //        throw PositionalException("Assignment encountered recursively during initialization of $parent", top)
-                    stack.add(top)
-                } else unresolved.assign(parent, symbolTable.changeVariable(parent))
+                    stack.add(top as Pair<Type, Assignment>)
+                } else unresolved.second.assign(parent, symbolTable.changeVariable(parent))
             }
         }
 
