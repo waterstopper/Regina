@@ -75,7 +75,7 @@ object RegistryFactory {
         registry.infix("is", 15)
         registry.infix("!is", 15)
 
-        registry.prefix("-")
+        registry.unaryMinus("-")
         registry.prefix("!")
 
         registry.infixRight("&", 25)

@@ -61,11 +61,25 @@ object FunctionFactory {
         return str
     }
 
+    fun getNumber(token: Token, name: String, args: SymbolTable): PNumber {
+        val num = getIdent(token, name, args)
+        if (num !is PNumber)
+            throw PositionalException("Expected integer as $name", token)
+        return num
+    }
+
     fun getInt(token: Token, name: String, args: SymbolTable): PInt {
         val int = getIdent(token, name, args)
         if (int !is PInt)
             throw PositionalException("Expected integer as $name", token)
         return int
+    }
+
+    fun getDouble(token: Token, name: String, args: SymbolTable): PDouble {
+        val double = getIdent(token, name, args)
+        if (double !is PDouble)
+            throw PositionalException("Expected integer as $name", token)
+        return double
     }
 
     fun initializeEmbedded(): MutableMap<String, Function> {
@@ -131,7 +145,7 @@ object FunctionFactory {
                             null
                         )
                     }
-                is PString -> argument.getPValue().map { it.toString() }
+                is PString -> argument.getPValue().map { it.toString().toVariable() }
                 else -> throw PositionalException("cannot cast type to array", token)
             }
         }

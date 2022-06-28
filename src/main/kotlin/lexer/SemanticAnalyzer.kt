@@ -10,6 +10,7 @@ import token.TokenFactory.createSpecificInvocation
 import token.invocation.Call
 import token.invocation.Invocation
 import token.statement.Assignment
+import token.variable.TokenNumber
 import utils.Utils.subList
 
 /**
@@ -78,40 +79,44 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
     }
 
     private fun changeInvocationType(token: Token, symbolTable: SymbolTable) {
-        if (token is Link) {
-            if (token.left is Invocation) {
-                checkParamsOrArgs(token.left.children.subList(1), true)
-                createSpecificInvocation(token.left, symbolTable, token, 0)
-            }
-            // the only case in Link when Invocation might be a Constructor
-            if (token.right is Invocation) {
-                checkParamsOrArgs(token.right.children.subList(1), true)
-                if (token.left is Identifier) {
-                    // symbolTable.addVariableOrNot(token.left)
-                    changeInvocationOnSecondPositionInLink(symbolTable, token)
-                } else token.children[1] = Call(token.right)
-            }
-            for ((index, child) in token.children.subList(2).withIndex())
-                if (child is Invocation) {
-                    checkParamsOrArgs(child.children.subList(1), true)
-                    token.children[index + 2] = Call(child)
+        when (token) {
+            is TokenNumber -> checkNumberBounds(token)
+            is Link -> {
+                if (token.left is Invocation) {
+                    checkParamsOrArgs(token.left.children.subList(1), true)
+                    createSpecificInvocation(token.left, symbolTable, token, 0)
                 }
-//            for (child in token.children)
-//                changeInvocationType(child, symbolTable)
-        } else {
-            if (token is Assignment) {
-                if (token.left !is Assignable)
-                    throw PositionalException("Left operand is not assignable", token.left)
-                symbolTable.addVariableOrNot(token.left)
-            }
-            for ((index, child) in token.children.withIndex()) {
-                if (child is Invocation) {
-                    checkParamsOrArgs(child.children.subList(1), token.symbol != "fun")
-                    if (token.symbol != "fun")
-                        createSpecificInvocation(child, symbolTable, token, index)
+                // the only case in Link when Invocation might be a Constructor
+                if (token.right is Invocation) {
+                    checkParamsOrArgs(token.right.children.subList(1), true)
+                    if (token.left is Identifier) {
+                        // symbolTable.addVariableOrNot(token.left)
+                        changeInvocationOnSecondPositionInLink(symbolTable, token)
+                    } else token.children[1] = Call(token.right)
                 }
-                // TODO there child might be already changed to other token, Invocation -> Call.
-                // changeInvocationType(token.children[index], symbolTable)
+                for ((index, child) in token.children.subList(2).withIndex())
+                    if (child is Invocation) {
+                        checkParamsOrArgs(child.children.subList(1), true)
+                        token.children[index + 2] = Call(child)
+                    }
+                //            for (child in token.children)
+                //                changeInvocationType(child, symbolTable)
+            }
+            else -> {
+                if (token is Assignment) {
+                    if (token.left !is Assignable)
+                        throw PositionalException("Left operand is not assignable", token.left)
+                    symbolTable.addVariableOrNot(token.left)
+                }
+                for ((index, child) in token.children.withIndex()) {
+                    if (child is Invocation) {
+                        checkParamsOrArgs(child.children.subList(1), token.symbol != "fun")
+                        if (token.symbol != "fun")
+                            createSpecificInvocation(child, symbolTable, token, index)
+                    }
+                    // TODO there child might be already changed to other token, Invocation -> Call.
+                    // changeInvocationType(token.children[index], symbolTable)
+                }
             }
         }
         for (child in token.children)
@@ -129,6 +134,17 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                 else if (wasAssignment) throw PositionalException("Named args should be after other", param)
             }
     }
+
+    private fun checkNumberBounds(number: TokenNumber) {
+        if (isInt(number)) {
+            val parsedDouble = number.value.toDouble()
+            if (parsedDouble < Int.MIN_VALUE || parsedDouble > Int.MAX_VALUE)
+                throw PositionalException("Integer can be in range [${Int.MIN_VALUE}, ${Int.MAX_VALUE}]", number)
+            number.number = number.value.toInt()
+        } else number.number = number.value.toDouble()
+    }
+
+    private fun isInt(number: TokenNumber) = !number.value.contains(".")
 
     companion object {
         private var declarations: MutableMap<String, MutableList<Declaration>> = mutableMapOf()

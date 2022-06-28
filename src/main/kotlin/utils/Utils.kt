@@ -1,11 +1,13 @@
 package utils
 
+import lexer.Parser
 import lexer.PositionalException
 import properties.Property
 import properties.Type
 import properties.Variable
 import properties.primitive.*
 import token.Token
+import token.statement.Assignment
 
 object Utils {
     init {
@@ -38,6 +40,8 @@ object Utils {
 
     fun Any.toProperty(token: Token = Token(), parent: Type? = null): Property =
         if (this is Property) this else Primitive.createPrimitive(this, parent, token)
+
+    fun parseAssignment(assignment: String) = Parser(assignment).statements().first() as Assignment
 
     /**
      * Prints AST with indentation to  show children.
@@ -84,9 +88,21 @@ object Utils {
         return array
     }
 
+    fun castToString(str: Any): PString {
+        if (str !is PString)
+            throw PositionalException("function in not applicable for this type")
+        return str
+    }
+
     fun castToInt(int: Any): PInt {
         if (int !is PInt)
             throw PositionalException("function in not applicable for this type")
         return int
+    }
+
+    fun castToNumber(num: Any): PNumber {
+        if (num !is PNumber)
+            throw PositionalException("Expected number")
+        return num
     }
 }

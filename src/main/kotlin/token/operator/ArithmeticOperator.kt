@@ -97,6 +97,6 @@ class ArithmeticOperator(
         val res = left.evaluate(symbolTable)
         if (res is Number)
             return (res == 0).toInt()
-        throw PositionalException("! operator applicable to numeric", this)
+        throw PositionalException("! operator applicable to numbers", this)
     }
 }

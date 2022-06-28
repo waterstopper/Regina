@@ -1,5 +1,6 @@
 package properties
 
+import evaluation.Evaluation.trainingWheels
 import lexer.PositionalException
 import properties.primitive.PDictionary
 import properties.primitive.PInt
@@ -158,9 +159,11 @@ open class Type(
             while (stack.isNotEmpty()) {
                 val unresolved = stack.removeLast()
                 val top = unresolved.getFirstUnassigned(symbolTable, parent)
-                if (top != null)
+                if (top != null) {
+               //     if (trainingWheels && (stack + unresolved).contains(top))
+                //        throw PositionalException("Assignment encountered recursively during initialization of $parent", top)
                     stack.add(top)
-                else unresolved.assign(parent, symbolTable.changeVariable(parent))
+                } else unresolved.assign(parent, symbolTable.changeVariable(parent))
             }
         }
 

@@ -11,6 +11,10 @@ import token.Token
  * Facade class for language execution
  */
 object Evaluation {
+    /**
+     * Enabling training wheels will run code slower but will give meaningful feedback if something is wrong.
+     */
+    var trainingWheels = true
     var globalTable = SymbolTable()
 
     fun eval(code: String) {

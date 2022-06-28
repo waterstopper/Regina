@@ -3,6 +3,7 @@ package lexer
 import token.Identifier
 import token.Token
 import token.TokenFactory
+import token.variable.TokenNumber
 import token.variable.TokenString
 
 /**
@@ -41,6 +42,20 @@ class Registry {
         register(symbol, 0, { t: Token, p: Parser ->
             t.children.add(p.expression(100))
             t
+        }, null, null)
+    }
+
+    /**
+     * This function exists solely because abs(Int.MAX_VALUE) < abs(Int.MIN_VALUE).
+     * Therefore, standard evaluation won't work (it will produce NumberFormatException)
+     */
+    fun unaryMinus(symbol: String) {
+        register(symbol, 0, { t: Token, p: Parser ->
+            t.children.add(p.expression(100))
+            if (t.left is TokenNumber) {
+                t.left.value = "-${t.left.value}"
+                t.left
+            } else t
         }, null, null)
     }
 

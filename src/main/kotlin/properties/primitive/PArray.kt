@@ -13,6 +13,7 @@ import properties.Variable
 import token.Token
 import token.statement.Assignment
 import utils.Utils.castToArray
+import utils.Utils.parseAssignment
 import utils.Utils.toInt
 import utils.Utils.toProperty
 import utils.Utils.toVariable
@@ -63,7 +64,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 EmbeddedFunction(
                     "add",
                     listOf(Token(value = "element")),
-                    listOf(Parser("index = this.size").statements().first() as Assignment)
+                    listOf(parseAssignment("index = this.size"))
                 ) { token, args ->
                     val list = castToArray(args.getPropertyOrNull("this")!!)
                     val argument = getIdent(token, "element", args)

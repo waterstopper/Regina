@@ -17,7 +17,6 @@ open class Function(
 ) {
     override fun toString(): String = "$name(${nonDefaultParams.joinToString(separator = ",")})"
 
-    // TODO wtf is this equals
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Function) return false

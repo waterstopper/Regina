@@ -52,6 +52,8 @@ open class Operator(
     }
 
     private fun Any.eq(other: Any): Boolean {
+        if (this is Number && other is Number)
+            return this.toDouble() == other.toDouble()
         if (this is PNumber && other is PNumber)
             return this.getPValue().toDouble() == other.getPValue().toDouble()
         if (this is MutableList<*> && other is MutableList<*>) {

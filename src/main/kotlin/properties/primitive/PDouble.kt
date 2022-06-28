@@ -1,13 +1,13 @@
 package properties.primitive
 
-import evaluation.FunctionFactory.getIdent
-import lexer.ExpectedTypeException
-import lexer.Parser
+import evaluation.FunctionFactory.getDouble
+import evaluation.FunctionFactory.getInt
 import properties.EmbeddedFunction
 import properties.Type
-import token.statement.Assignment
+import utils.Utils.parseAssignment
 import utils.Utils.toProperty
 import kotlin.math.pow
+import kotlin.math.roundToInt
 
 class PDouble(value: Double, parent: Type?) : PNumber(value, parent) {
     override fun getIndex() = 3
@@ -27,17 +27,13 @@ class PDouble(value: Double, parent: Type?) : PNumber(value, parent) {
                 EmbeddedFunction(
                     "round",
                     listOf(),
-                    listOf(Parser("digits = 0").statements().first() as Assignment)
+                    listOf(parseAssignment("digits = 0"))
                 ) { token, args ->
-                    val number = getIdent(token, "this", args)
-                    if (number !is PDouble)
-                        throw ExpectedTypeException(listOf(PDouble::class), token, number)
-                    val digits = getIdent(token, "digits", args)
-                    if (digits !is PInt)
-                        throw ExpectedTypeException(listOf(PInt::class), token, digits)
+                    val number = getDouble(token, "this", args)
+                    val digits = getInt(token, "digits", args)
                     if (digits.getPValue() < 0) {
                         val divisor = 10.0.pow(-digits.getPValue())
-                        (number.getPValue() / divisor).toInt() * divisor
+                        (number.getPValue() / divisor).roundToInt() * divisor
                     } else String.format("%.${digits}f", number.getPValue()).replace(',', '.').toDouble()
                 }
             )

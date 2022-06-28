@@ -34,8 +34,8 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
     }
 
     override fun hashCode(): Int {
-       // var result = super.hashCode()
-     //   result = 31 * result + value.hashCode()
+        // var result = super.hashCode()
+        //   result = 31 * result + value.hashCode()
         return value.hashCode()
     }
 

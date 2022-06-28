@@ -31,7 +31,7 @@ class Object(name: String, assignments: MutableList<Assignment>, fileName: FileT
             processAssignment(this, SymbolTable(fileTable = fileName), mutableListOf(assignment))
             return properties[name]!!
         }
-        return PInt(0, null)
+        return null
     }
 
     override fun getFunction(token: Token) = getFunctionOrNull(token)

@@ -1,13 +1,12 @@
 package properties.primitive
 
 import evaluation.FunctionFactory.getIdent
-import lexer.ExpectedTypeException
-import lexer.PositionalException
+import evaluation.FunctionFactory.getNumber
 import properties.EmbeddedFunction
 import properties.Type
 import token.Token
+import utils.Utils.castToNumber
 import utils.Utils.unaryMinus
-import utils.Utils.unifyNumbers
 import utils.Utils.unifyPNumbers
 import kotlin.math.pow
 
@@ -15,13 +14,8 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
     override fun getIndex() = 1
     override fun getPValue() = value as Number
 
-    fun setFunction(embeddedFunction: EmbeddedFunction) {
-        Primitive.functions[1].add(embeddedFunction)
-        Primitive.functions[2].add(embeddedFunction)
-    }
-
     override fun equals(other: Any?): Boolean {
-        if(other !is PNumber)
+        if (other !is PNumber)
             return false
         return getPValue().toDouble() == other.getPValue().toDouble()
     }
@@ -36,16 +30,14 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
             setFunction(
                 n,
                 EmbeddedFunction("abs", listOf()) { token, args ->
-                    val number = args.getPropertyOrNull("this")!!
-                    if (number is PNumber)
-                        if (number.getPValue().toDouble() >= 0) number.getPValue() else -number.getPValue()
-                    else throw PositionalException("Expected number", token)
+                    val number = castToNumber(args.getPropertyOrNull("this")!!)
+                    if (number.getPValue().toDouble() >= 0) number.getPValue() else -number.getPValue()
                 }
             )
             setFunction(
                 n,
                 EmbeddedFunction("min", listOf(Token(value = "other"))) { token, args ->
-                    val (number, other) = unifyNumbers(
+                    val (number, other) = unifyPNumbers(
                         args.getPropertyOrNull("this")!!,
                         getIdent(token, "other", args),
                         token
@@ -71,15 +63,9 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
             setFunction(
                 n,
                 EmbeddedFunction("pow", listOf(Token(value = "deg"))) { token, args ->
-                    val number = args.getPropertyOrNull("this")!!
-                    val deg = getIdent(token, "deg", args)
-                    if (deg !is PNumber)
-                        throw ExpectedTypeException(listOf(PNumber::class), token, deg)
-                    when (number) {
-                        is PInt -> number.getPValue().toDouble().pow(deg.getPValue().toDouble()).toInt()
-                        is PDouble -> number.getPValue().pow(deg.getPValue().toDouble())
-                        else -> throw ExpectedTypeException(listOf(PNumber::class), token, number)
-                    }
+                    val number = castToNumber(args.getPropertyOrNull("this")!!)
+                    val deg = getNumber(token, "deg", args)
+                    number.getPValue().toDouble().pow(deg.getPValue().toDouble())
                 }
             )
         }
