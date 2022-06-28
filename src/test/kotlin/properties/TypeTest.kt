@@ -4,7 +4,7 @@ import evaluation.Evaluation.eval
 import kotlin.test.Test
 
 class TypeTest {
-    //Test
+    @Test
     fun testBidirectionalPropertyResolving() {
         eval("""
            fun main() {
@@ -14,7 +14,7 @@ class TypeTest {
            class A {
                 iter = if(parent == 0) 0 else parent.iter + 1
                 next = if(iter < 2) A() else 0
-              //  fromNext = if(iter == 10) -1 else next.fromNext - 1
+                // fromNext = if(iter == 10) -1 else next.fromNext - 1
               
               fun str() {
               log(iter)

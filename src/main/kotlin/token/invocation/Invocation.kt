@@ -24,7 +24,9 @@ open class Invocation(
         get() = left
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        throw PositionalException("FDIEFJ ${this.left.value}", this, file = symbolTable.getFileTable().fileName)
-        // return left.evaluate(symbolTable)
+        throw PositionalException(
+            "Invocations should be replaced with Calls or Constructors",
+            this, file = symbolTable.getFileTable().fileName
+        )
     }
 }

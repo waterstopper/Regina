@@ -23,6 +23,7 @@ class ObjectTest {
             fun initCalledOnce() {
                 test(beforeObj.isInit == 1)
                 beforeObj.isInit = 2
+                test(beforeObj.isInit == 2)
                 return 1
             }
         """)
