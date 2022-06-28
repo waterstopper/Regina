@@ -87,15 +87,15 @@ class Index(
         property.set(index, right.evaluate(symbolTable).toVariable(right), left, right)
     }
 
-    override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Assignment? {
+    override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Pair<Type, Assignment?> {
         val fromAnother = (left as Assignable).getFirstUnassigned(parent)
-        if (fromAnother != null) return fromAnother
+        if (fromAnother.second != null) return fromAnother
         val indexUnassigned =
-            right.traverseUntil { if (it is Assignable && it.getFirstUnassigned(parent) != null) it else null }
+            right.traverseUntil { if (it is Assignable && it.getFirstUnassigned(parent).second != null) it else null }
         if (indexUnassigned != null) return (indexUnassigned as Assignable).getFirstUnassigned(parent)
         if (parent.getAssignment(this) != null)
-            return parent.getAssignment(this)
-        return null
+            return Pair(parent,parent.getAssignment(this))
+        return Pair(parent,null)
     }
 
     override fun getPropertyName(): Token = (left as Assignable).getPropertyName()

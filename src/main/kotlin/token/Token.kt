@@ -4,6 +4,7 @@
  */
 package token
 
+import Optional
 import lexer.Parser
 import lexer.PositionalException
 import properties.Type
@@ -102,6 +103,23 @@ open class Token(
         return condition(this)
     }
 
+    private fun traverseUntilOptional(condition: (token: Token) -> Optional): Optional {
+        val forThis = condition(this)
+        if (forThis.value != null && (if (forThis.value is Token) forThis.value.symbol != "(LEAVE)" else true))
+            return forThis
+        if (!forThis.isGood)
+            for (i in children) {
+                val childRes = i.traverseUntilOptional(condition)
+                if (childRes.value != null && (if (childRes.value is Token) childRes.value.symbol != "(LEAVE)" else true))
+                    return childRes
+            }
+        return condition(this)
+    }
+
+//    fun traverseUnresolvedOptional() :Pair<Type, Assignment?>{
+//
+//    }
+
     fun traverseUnresolved(symbolTable: SymbolTable, parent: Type): Assignment? {
         val res = traverseUntil {
             when (it) {
@@ -111,7 +129,7 @@ open class Token(
                             it.right.traverseUnresolved(symbolTable, parent) ?: Token("(LEAVE)")
                         else it.children[2].traverseUnresolved(symbolTable, parent) ?: Token("(LEAVE)")
                 }
-                is Assignable -> it.getFirstUnassigned(parent, symbolTable) ?: Token("(LEAVE)")
+                is Assignable -> it.getFirstUnassigned(parent, symbolTable).second ?: Token("(LEAVE)")
                 else -> null
             }
         }

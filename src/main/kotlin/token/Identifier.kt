@@ -41,8 +41,8 @@ open class Identifier(
         symbolTable.addVariable(this.value, value.toVariable(this))
     }
 
-    override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Assignment? {
-        return parent.getAssignment(this)
+    override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Pair<Type, Assignment?> {
+        return Pair(parent, parent.getAssignment(this))
     }
 
     override fun getPropertyName(): Token = this

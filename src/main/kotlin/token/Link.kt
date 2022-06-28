@@ -202,6 +202,8 @@ open class Link(
     }
 
     private fun safeEvaluate(parent: Type, symbolTable: SymbolTable): Tuple4<Variable?, Variable?, Assignment?, Int> {
+        if (left.value == "math")
+            println()
         var currentParent: Variable? = null
         var table = symbolTable.copy()
         val initialTable = symbolTable.changeVariable(parent)
@@ -223,8 +225,8 @@ open class Link(
             if (res.isGood && res.value is Assignment)
                 return Tuple4(currentVariable, currentParent, res.value, index)
             if (res.value !is Variable)
-                return Tuple4(currentVariable,currentParent,null,index)
-                //throw PositionalException("Expected variable", children[index])
+                return Tuple4(currentVariable, currentParent, null, index)
+            //throw PositionalException("Expected variable", children[index])
             currentParent = currentVariable
             table = table.changeVariable(res.value)
             currentVariable = res.value
@@ -233,8 +235,13 @@ open class Link(
         return Tuple4(currentVariable, currentParent, null, index)
     }
 
-    override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Assignment? {
-        return safeEvaluate(parent, symbolTable).third
+    override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Pair<Type, Assignment?> {
+        var (currentVariable, currentParent, assignment, index) = safeEvaluate(parent, symbolTable)
+        if (index == children.size && currentParent != null) // TODO look closely to this reassingment. It seems wrong
+            currentVariable = currentParent
+        if (currentVariable !is Type)
+            throw PositionalException("Expected type", children[index])
+        return Pair(currentVariable, assignment)
     }
 
     override fun getPropertyName(): Token = (children.last() as Assignable).getPropertyName()
