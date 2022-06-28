@@ -202,14 +202,12 @@ open class Link(
     }
 
     private fun safeEvaluate(parent: Type, symbolTable: SymbolTable): Tuple4<Variable?, Variable?, Assignment?, Int> {
-        if (left.value == "math")
-            println()
         var currentParent: Variable? = null
         var table = symbolTable.copy()
         val initialTable = symbolTable.changeVariable(parent)
-        val unassignedInFirst = left.traverseUnresolved(symbolTable, parent)
-        if (unassignedInFirst != null)
-            return Tuple4(null, null, unassignedInFirst, 0)
+//        val unassignedInFirst = left.traverseUnresolvedOptional(symbolTable, parent)
+//        if (unassignedInFirst.second != null)
+//            return Tuple4(unassignedInFirst.first, null, unassignedInFirst.second, 0)
         var (index, currentVariable) = checkFirstVariable(0, table, initialTable)
         if (currentVariable == null)
             return Tuple4(

@@ -17,7 +17,7 @@ class Object(name: String, assignments: MutableList<Assignment>, fileName: FileT
             return properties[token.value]!!
         val assignment = assignments.find { it.left.value == token.value }
         if (assignment != null) {
-            processAssignment(this, SymbolTable(fileTable = fileName), mutableListOf(Pair(this,assignment)))
+            processAssignment(SymbolTable(fileTable = fileName), mutableListOf(Pair(this,assignment)))
             return properties[token.value]!!
         }
         return PInt(0, null)
@@ -28,7 +28,7 @@ class Object(name: String, assignments: MutableList<Assignment>, fileName: FileT
             return properties[name]!!
         val assignment = assignments.find { it.left.value == name }
         if (assignment != null) {
-            processAssignment(this, SymbolTable(fileTable = fileName), mutableListOf(Pair(this,assignment)))
+            processAssignment(SymbolTable(fileTable = fileName), mutableListOf(Pair(this,assignment)))
             return properties[name]!!
         }
         return null

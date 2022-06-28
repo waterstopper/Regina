@@ -51,7 +51,7 @@ class Assignment(
             if (leftUnassigned.second != null)
                 return leftUnassigned
         }
-        return Pair(parent, right.traverseUnresolved(symbolTable, parent))
+        return right.traverseUnresolvedOptional(symbolTable, parent)
     }
 
     fun assign(parent: Type, symbolTable: SymbolTable) {

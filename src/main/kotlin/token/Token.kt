@@ -116,9 +116,40 @@ open class Token(
         return condition(this)
     }
 
-//    fun traverseUnresolvedOptional() :Pair<Type, Assignment?>{
-//
-//    }
+    fun traverseUnresolvedOptional(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment?> {
+        val res = traverseUntilOptional {
+            when (it) {
+                is TokenTernary -> {
+                    val condition = it.left.traverseUnresolvedOptional(symbolTable, parent)
+                    if (condition.second == null) {
+                        if (it.evaluateCondition(symbolTable.changeVariable(parent)) != 0) {
+                            val result = it.right.traverseUnresolvedOptional(symbolTable, parent)
+                            if (result.second == null)
+                                Optional(Token("(LEAVE)"))
+                            else Optional(result)
+                        } else {
+                            val result = it.children[2].traverseUnresolvedOptional(symbolTable, parent)
+                            if (result.second == null)
+                                Optional(Token("(LEAVE)"))
+                            else Optional(result)
+                        }
+                    } else Optional(condition)
+                }
+                is Assignable -> {
+                    val result = it.getFirstUnassigned(parent, symbolTable.changeVariable(parent))
+                    if (result.second == null)
+                        Optional(Token("(LEAVE)"))
+                    else Optional(result)
+                }
+                else -> Optional()
+            }
+        }
+        if (res.value is Token && res.value.symbol == "(LEAVE)")
+            return Pair(parent, null)
+        if (res.value == null)
+            return Pair(parent, null)
+        return res.value as Pair<Type, Assignment?>
+    }
 
     fun traverseUnresolved(symbolTable: SymbolTable, parent: Type): Assignment? {
         val res = traverseUntil {
