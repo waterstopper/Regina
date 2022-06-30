@@ -38,8 +38,10 @@ class PArrayTest {
                a = Obj
                arr = [3, 2, 1]
                log([Obj,Cls(),[],1,"2",{1:2}, ZObj,[1,2], {}, 0.1, Zcls()].sorted())
-               test([Obj,Cls(),[],1,"2",{1:2}, ZObj,[1,2], {}, 0.1, Zcls()].sorted() \
-                    == [0.1, 1, "2",[], [1, 2], {}, {1:2}, Cls(), Zcls(), Obj, ZObj])
+               log(str([Obj,Cls(),[],1,"2",{1:2}, ZObj,[1,2], {}, 0.1, Zcls()].sorted()))
+               log("[0.1, 1, \"2\", [], [1, 2], {}, {1=2}, Cls, Zcls, Obj, ZObj]")
+               test(str([Obj,Cls(),[],1,"2",{1:2}, ZObj,[1,2], {}, 0.1, Zcls()].sorted()) \
+                    == "[0.1, 1, \"2\", [], [1, 2], {}, {1=2}, Cls, Zcls, Obj, ZObj]")
                test(arr.sorted() == [1,2,3])
            }
          object Obj {}

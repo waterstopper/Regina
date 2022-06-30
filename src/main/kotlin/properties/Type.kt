@@ -128,29 +128,28 @@ open class Type(
 
     // TODO recursive equals. Add reference field to type. That will be assigned in constructor.
     override fun equals(other: Any?): Boolean {
-        if (this === other)
-            return true
-        if (other !is Type)
-            return false
-        if (!equalToType(other))
-            return false
-        if (assignments.isNotEmpty() || other.assignments.isNotEmpty())
-            return false
-        val otherProperties = other.getProperties().getPValue() - PString("this")
-        val thisProperties = getProperties().getPValue() - PString("this")
-        if (thisProperties.size != otherProperties.size)
-            return false
-        for ((key, value) in thisProperties) {
-            if (!otherProperties.contains(key))
-                return false
-            if (otherProperties[key] != value)
-                return false
-        }
-        return true
+        return this === other
+//        if (other !is Type)
+//            return false
+//        if (!equalToType(other))
+//            return false
+//        if (assignments.isNotEmpty() || other.assignments.isNotEmpty())
+//            return false
+//        val otherProperties = other.getProperties().getPValue() - PString("this")
+//        val thisProperties = getProperties().getPValue() - PString("this")
+//        if (thisProperties.size != otherProperties.size)
+//            return false
+//        for ((key, value) in thisProperties) {
+//            if (!otherProperties.contains(key))
+//                return false
+//            if (otherProperties[key] != value)
+//                return false
+//        }
+//        return true
     }
 
     override fun hashCode(): Int {
-        return 31 * name.hashCode() + 311 * fileName.fileName.hashCode() + properties.hashCode()
+        return super.hashCode()
     }
 
     companion object {

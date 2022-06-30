@@ -49,6 +49,23 @@ class TypeTest {
     }
 
     @Test
+    fun testEquals() {
+        eval("""
+            fun main() {
+                first = A()
+                second = A()
+                log(first == second)
+                first.s = 1
+                log(first == second)
+            }
+            class A {
+                a = 0
+                b = 1
+            }
+        """)
+    }
+
+    @Test
     fun checkInheritance() {
         eval("""
            class A {
