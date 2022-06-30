@@ -64,7 +64,6 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
      * Does not include "this"
      */
     override fun getProperties(): PDictionary {
-        // TODO make primitive wrap
         val res = properties[0]
         if (getIndex() in 2..3)
             res.putAll(properties[1])

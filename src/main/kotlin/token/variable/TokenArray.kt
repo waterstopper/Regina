@@ -4,7 +4,6 @@ import table.SymbolTable
 import token.Token
 import utils.Utils.toVariable
 
-// TODO why derived from Identifier
 class TokenArray(token: Token) : Token(
     token.symbol,
     token.value,

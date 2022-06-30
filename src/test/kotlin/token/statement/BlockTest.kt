@@ -8,7 +8,7 @@ class BlockTest {
     @Test
     fun failBlockWithinBlock(){
         val thrown = assertFails { eval("""
-            fun main(){
+            fun main() {
              {}
             }
         """) }

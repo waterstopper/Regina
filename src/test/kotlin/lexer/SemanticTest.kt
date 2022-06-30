@@ -1,5 +1,6 @@
 package lexer
 
+import Optional
 import evaluation.Evaluation.eval
 import token.invocation.Invocation
 import kotlin.test.Test
@@ -158,8 +159,8 @@ class SemanticTest {
         ).statements()
         val withoutInvocation = SemanticAnalyzer("@NoFile", tokens).analyze()
         withoutInvocation.forEach {
-            val res = it.traverseUntil { token -> if (token is Invocation) token else null }
-            if (res != null)
+            val res = it.traverseUntilOptional { token -> if (token is Invocation) Optional(token) else Optional() }
+            if (res.isGood)
                 println(res::class)
         }
     }

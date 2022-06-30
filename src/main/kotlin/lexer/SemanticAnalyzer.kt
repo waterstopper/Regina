@@ -22,7 +22,6 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
         // println(tokens.treeView())
         println("Analyzing: `$fileName`")
         createAssociations()
-        // TODO do the same for all imports
         changeIdentTokens()
         return tokens
     }
@@ -114,8 +113,6 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
                         if (token.symbol != "fun")
                             createSpecificInvocation(child, symbolTable, token, index)
                     }
-                    // TODO there child might be already changed to other token, Invocation -> Call.
-                    // changeInvocationType(token.children[index], symbolTable)
                 }
             }
         }

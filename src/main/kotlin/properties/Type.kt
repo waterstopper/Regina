@@ -126,7 +126,6 @@ open class Type(
         return copy
     }
 
-    // TODO recursive equals. Add reference field to type. That will be assigned in constructor.
     override fun equals(other: Any?): Boolean {
         return this === other
 //        if (other !is Type)

@@ -38,14 +38,13 @@ class Assignment(
     }
 
     fun getAssignable(): Assignable = left as Assignable
-    fun getFirstUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type,Assignment?> {
-        // traverse only rValue
-        // TODO
-        // although if lValue is Link, it should be traversed too
 
-        // PROBLEM: go to iter in parent.iter and cycle
-        // we should get out as soon as Assignable found. Otherwise, we will traverse inside link
-        // TODO ternary should be resolved from condition to correct path. In incorrect path can be unresolved
+    /**
+     * Find first unassigned property.
+     * Lvalue of assignment is [Link], check that all link properties (except last one) are assigned
+     * TODO check link in class. Should not work because all props are required
+     */
+    fun getFirstUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type,Assignment?> {
         if (left is Link) {
             val leftUnassigned = (left as Link).getFirstUnassigned(parent)
             if (leftUnassigned.second != null)

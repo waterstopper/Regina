@@ -6,7 +6,6 @@ import token.Token
 import token.operator.Operator
 import java.io.File
 
-// TODO:
 // 1. add spaces in arrays and calls after commas
 // 2. add space before {
 class Formatter(filePath: String) {

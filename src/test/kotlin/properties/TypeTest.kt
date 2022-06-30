@@ -53,14 +53,27 @@ class TypeTest {
         eval("""
             fun main() {
                 first = A()
+                firstOtherLink = first
                 second = A()
-                log(first == second)
+                test(first != second)
+                test(first == firstOtherLink)
                 first.s = 1
-                log(first == second)
+                test(first == firstOtherLink)
+                test(firstOtherLink.s == 1)
+                firstOtherLink.a = "a"
+                test(first.a == "a")
+                
+                firstSecondOther = changeB(first)
+                test(firstOtherLink.b == "b")
+                test(firstSecondOther == first)
+                test(firstSecondOther == firstOtherLink)
             }
             class A {
                 a = 0
                 b = 1
+            }
+            fun changeB(aInstance) {aInstance.b = "b"
+                return aInstance
             }
         """)
     }

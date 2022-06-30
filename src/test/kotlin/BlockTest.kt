@@ -22,7 +22,6 @@ class BlockTest {
 
     @Test
     fun testOneLineBlocks() {
-        // TODO make sure that there is one main in file - that way we know which one is executed at start
         eval(
             """
            fun main() {test(0==0)}
@@ -60,14 +59,4 @@ class BlockTest {
         val thrown = assertFails { eval("object A") }
         assertTrue(thrown.message!!.contains("Expected a block start"))
     }
-    // TODO
-//    @Test
-//    fun testBlockInsideBlock() {
-//        val thrown = assertFails { eval("""
-//            fun main() {
-//             {}
-//            }
-//        """) }
-//        assertTrue(thrown.message!!.contains("Expected a block start"))
-//    }
 }

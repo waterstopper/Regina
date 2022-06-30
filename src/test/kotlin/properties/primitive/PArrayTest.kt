@@ -1,6 +1,7 @@
 package properties.primitive
 
 import evaluation.Evaluation
+import evaluation.Evaluation.eval
 import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertTrue
@@ -8,7 +9,7 @@ import kotlin.test.assertTrue
 class PArrayTest {
     @Test
     fun testArray() {
-        Evaluation.eval(
+       eval(
             """
         fun main() {
             a = []
@@ -25,14 +26,35 @@ class PArrayTest {
             test(a.has(0))
             test(a.size == 1)
             test([1,2,3].has(1))
+            
+            a.clear()
+            test(a == [])
         }
         """
         )
     }
 
     @Test
-    fun testArraySort(){ // TODO test joinToString
-        Evaluation.eval(
+    fun testArrayEquals() {
+        eval("""
+            fun main() {
+            aInst = A()
+           a = [aInst]
+           b = [aInst]
+           test(a == b)
+           a[0].s = 1
+           test(b[0].s == 1)
+           test(a == b)
+           }
+           class A{
+            a = 0
+           }
+        """)
+    }
+
+    @Test
+    fun testArraySort(){
+        eval(
             """
            fun main() {
                a = Obj
@@ -53,9 +75,21 @@ class PArrayTest {
     }
 
     @Test
+    fun testJoinToString() {
+        eval("""
+            fun main() {
+                a = [1,2,3]
+                test(a.joinToString() == "1, 2, 3")
+                test(a.joinToString(separator="\n") == "1\n2\n3")
+                test(a.joinToString(separator="\"") == "1\"2\"3")
+            }
+        """)
+    }
+
+    @Test
     fun indexArrayNotInteger() {
         val thrown = assertFails {
-            Evaluation.eval(
+            eval(
                 """
             fun main() {
                 a=[1,2,3]
@@ -70,7 +104,7 @@ class PArrayTest {
     @Test
     fun indexOutOfBounds() {
         val thrownNegative = assertFails {
-            Evaluation.eval(
+            eval(
                 """
             fun main() {
                 a=[1,2,3]
@@ -82,7 +116,7 @@ class PArrayTest {
         assertTrue(thrownNegative.message!!.contains("Index out of bounds"))
 
         val thrownBigger = assertFails {
-            Evaluation.eval(
+            eval(
                 """
             fun main() {
                 a=[1,2,3]

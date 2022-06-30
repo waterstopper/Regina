@@ -86,24 +86,9 @@ open class Token(
     }
 
     /**
-     * BFS all tokens. If  returned Token(LEAVE) - do not visit children
      *
-     * TODO replace returned value with [Optional]
      */
-    fun traverseUntil(condition: (token: Token) -> Token?): Token? {
-        val forThis = condition(this)
-        if (forThis != null && forThis.symbol != "(LEAVE)")
-            return forThis
-        if (forThis == null)
-            for (i in children) {
-                val childRes = i.traverseUntil(condition)
-                if (childRes != null && childRes.symbol != "(LEAVE)")
-                    return childRes
-            }
-        return condition(this)
-    }
-
-    private fun traverseUntilOptional(condition: (token: Token) -> Optional): Optional {
+    fun traverseUntilOptional(condition: (token: Token) -> Optional): Optional {
         val forThis = condition(this)
         if (forThis.value != null && (if (forThis.value is Token) forThis.value.symbol != "(LEAVE)" else true))
             return forThis
@@ -116,9 +101,14 @@ open class Token(
         return condition(this)
     }
 
+    /**
+     * Find unresolved property and return class instance with this property and corresponding assignment
+     */
     fun traverseUnresolvedOptional(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment?> {
         val res = traverseUntilOptional {
             when (it) {
+                // Second part of ternary might be unresolved. Say, `if(parent == 0) 0 else parent.someProperty`.
+                // If parent == 0, then someProperty is unresolved, but it is fine
                 is TokenTernary -> {
                     val condition = it.left.traverseUnresolvedOptional(symbolTable, parent)
                     if (condition.second == null) {
@@ -149,24 +139,6 @@ open class Token(
         if (res.value == null)
             return Pair(parent, null)
         return res.value as Pair<Type, Assignment?>
-    }
-
-    fun traverseUnresolved(symbolTable: SymbolTable, parent: Type): Assignment? {
-        val res = traverseUntil {
-            when (it) {
-                is TokenTernary -> {
-                    it.left.traverseUnresolved(symbolTable, parent)
-                        ?: if (it.evaluateCondition(symbolTable) != 0)
-                            it.right.traverseUnresolved(symbolTable, parent) ?: Token("(LEAVE)")
-                        else it.children[2].traverseUnresolved(symbolTable, parent) ?: Token("(LEAVE)")
-                }
-                is Assignable -> it.getFirstUnassigned(parent, symbolTable).second ?: Token("(LEAVE)")
-                else -> null
-            }
-        }
-        if (res is Token && res.symbol == "(LEAVE)")
-            return null
-        return res as Assignment?
     }
 
     override fun equals(other: Any?): Boolean {

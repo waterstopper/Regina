@@ -1,5 +1,6 @@
 package token.operator
 
+import Optional
 import lexer.ExpectedTypeException
 import lexer.Parser
 import lexer.PositionalException
@@ -91,8 +92,9 @@ class Index(
         val fromAnother = (left as Assignable).getFirstUnassigned(parent)
         if (fromAnother.second != null) return fromAnother
         val indexUnassigned =
-            right.traverseUntil { if (it is Assignable && it.getFirstUnassigned(parent).second != null) it else null }
-        if (indexUnassigned != null) return (indexUnassigned as Assignable).getFirstUnassigned(parent)
+            right.traverseUntilOptional { if (it is Assignable
+                && it.getFirstUnassigned(parent).second != null) Optional(it) else Optional() }
+        if (indexUnassigned.value != null) return (indexUnassigned.value as Assignable).getFirstUnassigned(parent)
         if (parent.getAssignment(this) != null)
             return Pair(parent,parent.getAssignment(this))
         return Pair(parent,null)

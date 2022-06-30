@@ -6,7 +6,7 @@ import geometry2D as geom
 fun checkMultipleCalls(a)
 {
     b = a + 0
-    if(a > 1) // TODO debug this
+    if(a > 1)
     {
         res = 1 + checkMultipleCalls(a - 1)
     } else {
@@ -191,7 +191,7 @@ fun checkType() {
 	test([] is Array)
 	test(A() is A)
 	log(B() is A)
-	test(B() is A) // TODO initialize supertypes
+	test(B() is A)
 	test(0 !is Array)
 }
 

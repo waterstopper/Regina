@@ -123,7 +123,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 p,
                 EmbeddedFunction(
                     "joinToString", listOf(),
-                    listOf(Parser("separator = \",\"").statements().first() as Assignment)
+                    listOf(Parser("separator = \", \"").statements().first() as Assignment)
                 ) { token, args ->
                     val array = getArray(token, "this", args)
                     val separator = getString(token, "separator", args)
