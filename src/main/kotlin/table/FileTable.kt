@@ -71,12 +71,13 @@ class FileTable(
         return mains.first()
     }
 
-    private fun createAssignmentsAndFunctions(token: Token): Pair<MutableList<Assignment>, List<Function>> {
-        val res = mutableListOf<Assignment>()
+    private fun createAssignmentsAndFunctions(token: Token): Pair<MutableSet<Assignment>, List<Function>> {
+        val res = mutableSetOf<Assignment>()
         val functions = mutableListOf<Function>()
         for (a in token.children) {
             if (a is Assignment) {
-                res.add(a)
+                if(!res.add(a))
+                    throw PositionalException("Same property found above", a)
                 a.isProperty = true
             } else if (a.symbol == "fun")
                 functions.add(

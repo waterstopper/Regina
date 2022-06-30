@@ -21,7 +21,7 @@ import utils.Utils.toVariable
 /**
  * Format: `a.b.c.d` - `a`, `b`, `c` and `d` are children of link
  *
- * Represents tokens separated by dots. These tokens are link children. In Regina, links have many purposes:
+ * Represents tokens separated by dots. These tokens are link children. In Regina, links have the following purposes:
  * 1. A property of class, object or a primitive: `Point.x` or `Segment.parent.iter`
  * 2. A function of class, object or a primitive: `Double.round()`
  * 3. Reference to a class, object or a function from another file: `importedFile.className`
@@ -190,7 +190,7 @@ open class Link(
         var (currentVariable, currentParent, _, index) = safeEvaluate(
             parent ?: Type(
                 "@Fictive",
-                null, mutableListOf(), symbolTable.getImport(Token(value = "@global"))
+                null, mutableSetOf(), symbolTable.getImport(Token(value = "@global"))
             ),
             symbolTable
         )

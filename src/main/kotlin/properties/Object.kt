@@ -10,7 +10,7 @@ import token.statement.Assignment
 /**
  * Object is a [singleton][https://en.wikipedia.org/wiki/Singleton_pattern] Type
  */
-class Object(name: String, assignments: MutableList<Assignment>, fileName: FileTable) :
+class Object(name: String, assignments: MutableSet<Assignment>, fileName: FileTable) :
     Type(name, null, assignments, fileName) {
     override fun getProperty(token: Token): Property {
         if (properties[token.value] != null)

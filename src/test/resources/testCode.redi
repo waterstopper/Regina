@@ -236,7 +236,7 @@ class Colors {
 	INDIGO = "253092"
 	PURPLE = "820D7C"
 	CHERRY = "FD5FF0"
-	CHERRY = "69122D"
+	// CHERRY = "69122D"
 }
 
 class Root {

@@ -1,6 +1,5 @@
 package properties
 
-import evaluation.Evaluation.trainingWheels
 import lexer.PositionalException
 import properties.primitive.PDictionary
 import properties.primitive.PInt
@@ -21,7 +20,7 @@ import utils.Utils.toVariable
 open class Type(
     val name: String,
     parent: Type?,
-    val assignments: MutableList<Assignment>,
+    val assignments: MutableSet<Assignment>,
     val fileName: FileTable,
     private val exported: Any? = null,
     private val exportArgs: Any? = null,
@@ -29,7 +28,7 @@ open class Type(
 ) :
     Property(parent) {
     protected val properties = mutableMapOf<String, Property>()
-    val functions = mutableListOf<Function>()
+    val functions = mutableSetOf<Function>()
 
     fun getAssignment(token: Token): Assignment? = assignments.find { it.left == token }
     fun removeAssignment(assignment: Assignment) = assignments.remove(assignment)
@@ -42,12 +41,26 @@ open class Type(
         return null
     }
 
-    override fun getFunctionOrNull(token: Token): Function? = Function.getFunctionOrNull(token as Call, functions)
+    private fun getInheritedFunctions(): Set<Function> {
+        if (supertype != null)
+            return supertype!!.functions + supertype!!.getInheritedFunctions()
+        return setOf()
+    }
+
+    private fun getInheritedAssignments(): Set<Assignment> {
+        if (supertype != null)
+            return supertype!!.assignments + supertype!!.getInheritedAssignments()
+        return setOf()
+    }
+
+    override fun getFunctionOrNull(token: Token): Function? =
+        Function.getFunctionOrNull(token as Call, functions + getInheritedFunctions())
 
     override fun getFunction(token: Token) = getFunctionOrNull(token)
         ?: throw PositionalException("Class `$name` does not contain function", token)
 
-    override fun getProperties() = PDictionary(properties.mapKeys { (key, _) -> key.toVariable() }.toMutableMap(), this)
+    override fun getProperties() =
+        PDictionary(properties.mapKeys { (key, _) -> key.toVariable() }.toMutableMap(), this)
 
     override fun getPropertyOrNull(name: String) = when (name) {
         "parent" -> getParentOrNull()
@@ -101,7 +114,8 @@ open class Type(
             Type(
                 name = name,
                 parent = parent?.copy(),
-                assignments = assignments.map { TokenFactory.copy(it) as Assignment }.toMutableList(),
+                assignments = (assignments + getInheritedAssignments()).map { TokenFactory.copy(it) as Assignment }
+                    .toMutableSet(),
                 fileName = fileName,
                 exported = exported,
                 exportArgs = exportArgs,
@@ -147,22 +161,22 @@ open class Type(
             resolving = true
             do {
                 val (current, parent) = bfs(root) ?: break
-                val stack = mutableListOf<Pair<Type,Assignment>>()
-                stack.add(Pair(parent,current))
+                val stack = mutableListOf<Pair<Type, Assignment>>()
+                stack.add(Pair(parent, current))
                 processAssignment(symbolTable.changeVariable(parent), stack)
             } while (true)
             resolving = false
             return root
         }
 
-        fun processAssignment(symbolTable: SymbolTable, stack: MutableList<Pair<Type,Assignment>>) {
+        fun processAssignment(symbolTable: SymbolTable, stack: MutableList<Pair<Type, Assignment>>) {
             // here type should be part of stack
             while (stack.isNotEmpty()) {
                 val unresolved = stack.removeLast()
                 val top = unresolved.second.getFirstUnassigned(symbolTable, unresolved.first)
                 if (top.second != null) {
-               //     if (trainingWheels && (stack + unresolved).contains(top))
-                //        throw PositionalException("Assignment encountered recursively during initialization of $parent", top)
+                    //     if (trainingWheels && (stack + unresolved).contains(top))
+                    //        throw PositionalException("Assignment encountered recursively during initialization of $parent", top)
                     stack.add(top as Pair<Type, Assignment>)
                 } else unresolved.second.assign(unresolved.first, symbolTable.changeVariable(unresolved.first))
             }
