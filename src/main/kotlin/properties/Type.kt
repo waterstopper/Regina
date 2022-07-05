@@ -6,6 +6,7 @@ import properties.primitive.PInt
 import properties.primitive.PString
 import table.FileTable
 import table.SymbolTable
+import token.Link
 import token.Token
 import token.TokenFactory
 import token.invocation.Call
@@ -171,6 +172,8 @@ open class Type(
             // here type should be part of stack
             while (stack.isNotEmpty()) {
                 val unresolved = stack.removeLast()
+                if(unresolved.second.left is Link && unresolved.second.right is Link)
+                    println()
                 val top = unresolved.second.getFirstUnassigned(symbolTable, unresolved.first)
                 if (top.second != null) {
                     //     if (trainingWheels && (stack + unresolved).contains(top))

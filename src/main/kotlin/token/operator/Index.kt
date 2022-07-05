@@ -89,12 +89,12 @@ class Index(
     }
 
     override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Pair<Type, Assignment?> {
-        val fromAnother = (left as Assignable).getFirstUnassigned(parent)
+        val fromAnother = (left as Assignable).getFirstUnassigned(parent, symbolTable)
         if (fromAnother.second != null) return fromAnother
         val indexUnassigned =
             right.traverseUntilOptional { if (it is Assignable
-                && it.getFirstUnassigned(parent).second != null) Optional(it) else Optional() }
-        if (indexUnassigned.value != null) return (indexUnassigned.value as Assignable).getFirstUnassigned(parent)
+                && it.getFirstUnassigned(parent, symbolTable).second != null) Optional(it) else Optional() }
+        if (indexUnassigned.value != null) return (indexUnassigned.value as Assignable).getFirstUnassigned(parent, symbolTable)
         if (parent.getAssignment(this) != null)
             return Pair(parent,parent.getAssignment(this))
         return Pair(parent,null)

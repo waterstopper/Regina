@@ -1,6 +1,6 @@
 package evaluation
 
-import evaluation.Evaluation.evaluate
+import evaluation.Evaluation.oldEvaluate
 import lexer.SemanticAnalyzer
 import org.junit.Test
 import readFile
@@ -13,6 +13,6 @@ internal class EvaluationTest {
         val s = readFile("src/test/resources/testCode.redi")
         // println(s.treeView())
         SemanticAnalyzer.initializeSuperTypes()
-        evaluate(s, "testCode.redi")
+        oldEvaluate(s, "testCode.redi")
     }
 }

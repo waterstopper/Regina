@@ -46,9 +46,12 @@ class Assignment(
      */
     fun getFirstUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type,Assignment?> {
         if (left is Link) {
-            val leftUnassigned = (left as Link).getFirstUnassigned(parent)
-            if (leftUnassigned.second != null)
-                return leftUnassigned
+            val leftUnassigned = (left as Link).getFirstUnassignedOrNull(parent, symbolTable)
+            if (leftUnassigned.second != null) {
+                if (leftUnassigned.first == null)
+                    return Pair(parent, leftUnassigned.second)
+                return leftUnassigned as Pair<Type, Assignment?>
+            }
         }
         return right.traverseUnresolvedOptional(symbolTable, parent)
     }

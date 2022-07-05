@@ -27,7 +27,10 @@ object Evaluation {
         clear()
     }
 
-    fun evaluate(tokens: List<Token>, fileName: String) {
+    fun evaluate(fileName: String) {}
+
+    @Deprecated("bad signature with tokens")
+    fun oldEvaluate(tokens: List<Token>, fileName: String) {
         val main = globalTable.getMain()
         main.body.evaluate(globalTable)
         clear()

@@ -12,7 +12,8 @@ class A {
 class TypeTest {
     @Test
     fun testBidirectionalPropertyResolving() {
-        eval("""
+        eval(
+            """
            fun main() {
                 a = A()
                 log("Built")
@@ -33,30 +34,87 @@ class TypeTest {
                 }
               }
            }
-        """)
+        """
+        )
     }
 
     @Test
     fun sameProperty() {
-        val thrown = assertFails {  eval("""
+        val thrown = assertFails {
+            eval(
+                """
             fun main(){}
             class A {
                 a = 0
                 a = 1
             }
-        """)}
+        """
+            )
+        }
         assertTrue(thrown.message!!.contains("Same property found above"))
+    }
+
+   // @Test
+    fun testLinkProperty() {
+        eval(
+            """
+            class Root {
+                a = A()
+                a.root = this
+                iter = 0
+            }
+            class A {
+                iter = parent.iter + 1
+                a = if(iter < 1) A() else Leaf()
+                a.root2 = a.root
+                a.root = this
+            }
+            class Leaf {}
+            fun main() {
+                r = Root()
+                log(r)
+            }
+        """
+        )
+    }
+
+    @Test
+    fun findPropertyInMiddleClass() {
+        eval(
+            """
+           class Start {
+                mid = Middle()
+           }
+           class Middle {
+                end = End()
+                property = 2
+                laterInitFromEnd = 1
+           }
+           class End {
+                start = parent.parent
+                a = start.mid.property
+                start.mid.laterInitFromEnd = 3
+           }
+           fun main() {
+                start = Start()
+                test(start.mid.laterInitFromEnd == 3)
+                test(start.mid.end.a == 2)
+           }
+        """
+        )
     }
 
     @Test
     fun testEquals() {
-        eval("""
+        eval(
+            """
             fun main() {
                 first = A()
                 firstOtherLink = first
                 second = A()
                 test(first != second)
                 test(first == firstOtherLink)
+                first.s = 2
                 first.s = 1
                 test(first == firstOtherLink)
                 test(firstOtherLink.s == 1)
@@ -75,12 +133,14 @@ class TypeTest {
             fun changeB(aInstance) {aInstance.b = "b"
                 return aInstance
             }
-        """)
+        """
+        )
     }
 
     @Test
     fun checkInheritance() {
-        eval("""
+        eval(
+            """
            class A {
                 a = 2
                 fun a() {return "a"}
@@ -95,6 +155,7 @@ class TypeTest {
             log(b.properties)
             log(b.a())
            }
-        """)
+        """
+        )
     }
 }

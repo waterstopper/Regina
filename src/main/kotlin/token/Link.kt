@@ -94,8 +94,8 @@ open class Link(
             )
             is Identifier -> {
                 val property = variable.getPropertyOrNull(children[index].value)
-                    ?: if (variable is Type) (return Optional(variable.getAssignment(children[index])))
-                    else throw NotFoundException(children[index])
+                    ?: if (variable is Type) (return Optional(variable.getAssignment(children[index]))) else Optional()
+                //          else throw NotFoundException(children[index])
                 return Optional(property)
             }
             is Index -> {
@@ -125,9 +125,10 @@ open class Link(
                 val identifier = table.getIdentifierOrNull(children[index])
                 return if (identifier == null) {
                     if (canBeFile) {
+                        val nextTable = addFile(table) ?: return Pair(0, null)
                         checkFirstVariable(
                             index + 1,
-                            table = addFile(table),
+                            table = nextTable,
                             initialTable = initialTable,
                             canBeFile = false
                         )
@@ -154,9 +155,9 @@ open class Link(
     /**
      * Update fileTable
      */
-    private fun addFile(table: SymbolTable): SymbolTable {
-        val fileTable = table.getImportOrNull(left.value)
-            ?: throw PositionalException("Expected variable, object or package name", left)
+    private fun addFile(table: SymbolTable): SymbolTable? {
+        val fileTable = table.getImportOrNull(left.value) ?: return null
+        //  ?: throw PositionalException("Expected variable, object or package name", left)
         return table.changeFile(fileTable)
     }
 
@@ -195,19 +196,19 @@ open class Link(
             symbolTable
         )
         // if the last child in link is assigned
-        if (index == children.size)
-            currentVariable = currentParent
-        if (currentVariable is Type)
-            currentVariable.setProperty(children[children.lastIndex].value, value.toProperty(assignment.right))
+        // if (index == children.size)
+        //    currentVariable = currentParent
+        if (currentParent !is Type || index < children.lastIndex)
+            throw PositionalException("Link not resolved")
+        currentParent.setProperty(children[children.lastIndex].value, value.toProperty(assignment.right))
+        //if (currentVariable is Type)
+        //   currentVariable.setProperty(children[children.lastIndex].value, value.toProperty(assignment.right))
     }
 
     private fun safeEvaluate(parent: Type, symbolTable: SymbolTable): Tuple4<Variable?, Variable?, Assignment?, Int> {
         var currentParent: Variable? = null
         var table = symbolTable.copy()
         val initialTable = symbolTable.changeVariable(parent)
-//        val unassignedInFirst = left.traverseUnresolvedOptional(symbolTable, parent)
-//        if (unassignedInFirst.second != null)
-//            return Tuple4(unassignedInFirst.first, null, unassignedInFirst.second, 0)
         var (index, currentVariable) = checkFirstVariable(0, table, initialTable)
         if (currentVariable == null)
             return Tuple4(
@@ -218,28 +219,48 @@ open class Link(
             )
         table = table.changeVariable(currentVariable)
         index++
-        while (index < children.size) {
-            val res = checkNextVariable(index = index, table = table, initialTable = initialTable, currentVariable!!)
-            if (res.isGood && res.value is Assignment)
-                return Tuple4(currentVariable, currentParent, res.value, index)
-            if (res.value !is Variable)
-                return Tuple4(currentVariable, currentParent, null, index)
-            //throw PositionalException("Expected variable", children[index])
+        if (index < children.size)
+            while (index < children.size) {
+                val res = checkNextVariable(
+                    index = index,
+                    table = table, initialTable = initialTable, currentVariable!!
+                )
+                if (res.isGood && res.value is Assignment)
+                    return Tuple4(null, currentVariable, res.value, index)
+                if (res.value !is Variable)
+                    return Tuple4(null, currentVariable, null, index)
+                //throw PositionalException("Expected variable", children[index])
+                currentParent = currentVariable
+                table = table.changeVariable(res.value)
+                currentVariable = res.value
+                index++
+            }
+        else {
             currentParent = currentVariable
-            table = table.changeVariable(res.value)
-            currentVariable = res.value
-            index++
+            currentVariable = null
         }
         return Tuple4(currentVariable, currentParent, null, index)
     }
 
     override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Pair<Type, Assignment?> {
-        var (currentVariable, currentParent, assignment, index) = safeEvaluate(parent, symbolTable)
-        if (index == children.size && currentParent != null) // TODO look closely to this reassingment. It seems wrong
-            currentVariable = currentParent
-        if (currentVariable !is Type)
+        val (type, assignment) = getFirstUnassignedOrNull(parent, symbolTable)
+        if (type == null)
+            throw PositionalException("Expected type")
+        return Pair(type, assignment)
+    }
+
+    fun getFirstUnassignedOrNull(parent: Type, symbolTable: SymbolTable): Pair<Type?, Assignment?> {
+        val (currentVariable, currentParent, assignment, index) = safeEvaluate(parent, symbolTable)
+        if (currentParent == null && currentVariable != null)
+            throw PositionalException("BAD")
+        if (currentParent != null && currentParent !is Type)
             throw PositionalException("Expected type", children[index])
-        return Pair(currentVariable, assignment)
+        // nor assignment, nor property is found
+        if (assignment == null && index < children.size) {
+            if(parent.getAssignment(this) != null)
+                return Pair(parent,parent.getAssignment(this))
+        }
+        return Pair(currentParent as Type?, assignment)
     }
 
     override fun getPropertyName(): Token = (children.last() as Assignable).getPropertyName()

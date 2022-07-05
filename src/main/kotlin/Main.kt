@@ -1,4 +1,4 @@
-import evaluation.Evaluation.evaluate
+import evaluation.Evaluation.oldEvaluate
 import lexer.Parser
 import lexer.PositionalException
 import lexer.SemanticAnalyzer
@@ -38,7 +38,7 @@ fun main() {
     val s = readFile("src/test/resources/testCode.redi")
     SemanticAnalyzer.initializeSuperTypes()
     // println(Evaluation.globalTable)
-    evaluate(s, "testCode.redi")
+    oldEvaluate(s, "testCode.redi")
 }
 
 fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {
