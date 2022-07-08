@@ -165,9 +165,8 @@ open class Type(
             // here type should be part of stack
             while (stack.isNotEmpty()) {
                 val unresolved = stack.removeLast()
-                if (unresolved.second.left is Link && unresolved.second.right is Link)
-                    println()
-                val top = unresolved.second.getFirstUnassigned(symbolTable, unresolved.first)
+                val top = unresolved.second.getFirstUnassigned(
+                    symbolTable.changeVariable(unresolved.first), unresolved.first)
                 if (top.second != null) {
                     //     if (trainingWheels && (stack + unresolved).contains(top))
                     //        throw PositionalException("Assignment encountered recursively during initialization of $parent", top)

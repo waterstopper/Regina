@@ -6,6 +6,7 @@ import lexer.NotFoundException
 import lexer.Parser
 import lexer.PositionalException
 import properties.Function
+import properties.Object
 import properties.Type
 import properties.Variable
 import properties.primitive.Primitive
@@ -66,7 +67,7 @@ open class Link(
         while (index < children.size) {
             val isResolved =
                 checkNextVariable(index = index, table = table, initialTable = symbolTable, currentVariable!!)
-            if (!isResolved.isGood)
+            if (isResolved.value !is Variable)
                 throw PositionalException("Link not resolved", children[index])
             currentVariable = isResolved.value as Variable
             table = table.changeVariable(currentVariable)
@@ -93,6 +94,15 @@ open class Link(
                 ).first
             )
             is Identifier -> {
+                if (variable is Type && variable!is Object) {
+                    val a = variable.getLinkedAssignment(
+                        this,
+                        index
+                    )
+                    if (a != null)
+                        return Optional(a)
+                    else Optional(variable.getPropertyOrNull(children[index].value))
+                } // TODO clean this
                 val property = variable.getPropertyOrNull(children[index].value)
                     ?: if (variable is Type) (return Optional(
                         variable.getLinkedAssignment(
@@ -216,7 +226,8 @@ open class Link(
         if (currentVariable == null)
             return Tuple4(
                 null, parent,
-                parent.getAssignment(left) ?: throw PositionalException("Assignment not found", left),
+                parent.getAssignment(left)
+                    ?: throw PositionalException("Assignment not found", left),
                 index
             )
         table = table.changeVariable(currentVariable)

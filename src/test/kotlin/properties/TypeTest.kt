@@ -79,6 +79,30 @@ class TypeTest {
     }
 
     @Test
+    fun testNontrivialTwoStepLink() {
+        eval("""
+            class B {
+                nontrivial = c.d.e
+                c = C()
+            }
+            class C {
+                d = D()
+                d.e = E()
+            }
+            class D {}
+            class E {}
+            fun main() {
+                b = B()
+                test(b.c.d.e is E)
+                test(b.c.d is D)
+                test(b.c.d !is E)
+                test(b.nontrivial is E)
+                test(b is B); test(b.c is C)
+            }
+        """)
+    }
+
+    @Test
     fun findPropertyInMiddleClass() {
         eval(
             """
