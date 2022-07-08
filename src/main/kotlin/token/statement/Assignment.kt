@@ -44,14 +44,11 @@ class Assignment(
      * Lvalue of assignment is [Link], check that all link properties (except last one) are assigned
      * TODO check link in class. Should not work because all props are required
      */
-    fun getFirstUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type,Assignment?> {
+    fun getFirstUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment?> {
         if (left is Link) {
-            val leftUnassigned = (left as Link).getFirstUnassignedOrNull(parent, symbolTable)
-            if (leftUnassigned.second != null) {
-                if (leftUnassigned.first == null)
-                    return Pair(parent, leftUnassigned.second)
+            val leftUnassigned = (left as Link).getFirstUnassignedOrNull(parent, symbolTable, forLValue = true)
+            if (leftUnassigned.second != null)
                 return leftUnassigned as Pair<Type, Assignment?>
-            }
         }
         return right.traverseUnresolvedOptional(symbolTable, parent)
     }

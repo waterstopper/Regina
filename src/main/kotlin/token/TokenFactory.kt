@@ -31,7 +31,8 @@ object TokenFactory {
         }
     }
 
-    fun copy(token: Token): Token {
+    fun copy(token: Token, childrenStart: Int = 0, childrenNumber: Int = token.children.size): Token {
+        // TODO check that children of token shouldn't be copied
         if (token is Assignment) {
             val res = Assignment(
                 token.symbol,
@@ -46,8 +47,8 @@ object TokenFactory {
             res.isProperty = token.isProperty
             return res
         }
-        // unused
-        return token::class.constructors.toMutableList()[0].call(
+        // used for Link
+        return token::class.constructors.toMutableList()[1].call(
             token.symbol,
             token.value,
             token.position,
@@ -55,7 +56,7 @@ object TokenFactory {
             token.nud,
             token.led,
             token.std,
-            token.children
+            token.children.subList(childrenStart, childrenStart + childrenNumber)
         )
     }
 

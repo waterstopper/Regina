@@ -3,7 +3,6 @@ package properties
 import lexer.PositionalException
 import properties.primitive.PDictionary
 import properties.primitive.PInt
-import properties.primitive.PString
 import table.FileTable
 import table.SymbolTable
 import token.Link
@@ -32,6 +31,19 @@ open class Type(
     val functions = mutableSetOf<Function>()
 
     fun getAssignment(token: Token): Assignment? = assignments.find { it.left == token }
+    fun getLinkedAssignment(link: Link, index: Int): Assignment? {
+        val identProperty = getAssignment(link.children[index])
+        if (identProperty != null)
+            return identProperty
+        for (childrenNumber in 2..link.children.size - index) {
+            val searched = TokenFactory.copy(link, index, childrenNumber)
+            val found = getAssignment(searched)
+            if (found != null)
+                return found
+        }
+        return null
+    }
+
     fun removeAssignment(assignment: Assignment) = assignments.remove(assignment)
     fun removeAssignment(token: Token): Assignment? {
         for (a in assignments)
@@ -127,26 +139,7 @@ open class Type(
         return copy
     }
 
-    override fun equals(other: Any?): Boolean {
-        return this === other
-//        if (other !is Type)
-//            return false
-//        if (!equalToType(other))
-//            return false
-//        if (assignments.isNotEmpty() || other.assignments.isNotEmpty())
-//            return false
-//        val otherProperties = other.getProperties().getPValue() - PString("this")
-//        val thisProperties = getProperties().getPValue() - PString("this")
-//        if (thisProperties.size != otherProperties.size)
-//            return false
-//        for ((key, value) in thisProperties) {
-//            if (!otherProperties.contains(key))
-//                return false
-//            if (otherProperties[key] != value)
-//                return false
-//        }
-//        return true
-    }
+    override fun equals(other: Any?): Boolean = this === other
 
     override fun hashCode(): Int {
         return super.hashCode()
@@ -172,7 +165,7 @@ open class Type(
             // here type should be part of stack
             while (stack.isNotEmpty()) {
                 val unresolved = stack.removeLast()
-                if(unresolved.second.left is Link && unresolved.second.right is Link)
+                if (unresolved.second.left is Link && unresolved.second.right is Link)
                     println()
                 val top = unresolved.second.getFirstUnassigned(symbolTable, unresolved.first)
                 if (top.second != null) {

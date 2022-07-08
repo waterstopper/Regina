@@ -25,7 +25,7 @@ class TypeTest {
                 fromNext = if(next == 0) -1 else next.fromNext - 1
               
               fun str() {
-                  return "\n"+iter + " " + fromNext + (if(next == 0) "" else next.str()) 
+                  return "\n" + iter + " " + fromNext + (if(next == 0) "" else next.str()) 
               }
               
               fun withCycle() {
@@ -54,7 +54,7 @@ class TypeTest {
         assertTrue(thrown.message!!.contains("Same property found above"))
     }
 
-   // @Test
+    @Test
     fun testLinkProperty() {
         eval(
             """
