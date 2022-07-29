@@ -7,6 +7,7 @@ import lexer.PositionalException
 import properties.Function
 import properties.Object
 import properties.Type
+import token.Identifier
 import token.Token
 import token.invocation.Call
 import token.statement.Assignment
@@ -34,6 +35,8 @@ class FileTable(
     }
 
     fun addObject(token: Token) {
+        if(token.left !is Identifier)
+            throw PositionalException("Object cannot be inherited", token)
         val name = token.left.value
         val (assignments, functions) = createAssignmentsAndFunctions(token.right)
         if (objects.find { it.name == name } != null)

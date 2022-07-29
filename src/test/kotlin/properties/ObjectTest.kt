@@ -2,6 +2,8 @@ package properties
 
 import evaluation.Evaluation.eval
 import kotlin.test.Test
+import kotlin.test.assertFails
+import kotlin.test.assertTrue
 
 
 class ObjectTest {
@@ -29,19 +31,14 @@ class ObjectTest {
         """)
     }
 
-    // @Test
-    fun testDynamicProperties() {
-        eval("""
-           fun main() {
-                log(O.a)
-           }
-           object O {
-                a = a
-                b = a
-           }
-           object P {
-               b = O.a
-           }
-        """)
+    @Test
+    fun failInheritance() {
+        val thrown= assertFails {   eval("""
+           class C {}
+           object Ok {}
+           object O: C {}
+           fun main() {}
+        """)}
+     assertTrue(thrown.message!!.contains("Object cannot be inherited"))
     }
 }

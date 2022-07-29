@@ -3,18 +3,49 @@ fun rotate(point, angle, pivot) {
 }
 
 // solve equation of type a_0 + a_1x + ... + a_{n-1}x^{n-1} = 0
+// args is an array [a_{n-1},..., a_1, a_0]
 fun solve(args) {
-    if (args.size == 0) {
-        log("Expected more args")
-        test(1==0)
-    }
-    if(args.size == 1) {
-        
-    }
+    args = removeFirstZeros(args)
+    if (args.size <= 1 || args.size >= 6)
+        except("Expected from 2 to 5 elements in input array, not counting preceding zeros")
+    // a = 0
+    if(args.size == 1)
+        return [if(args[0] == 0) [1, 2, 3, 4, 5] else []]
+    array = firstToOne(array)
+    if(args.size == 2)
+        // x + a = 0
+        return [-args[1]]
+    if(args.size == 3)
+        return solveSquare(args[1], args[2])
+    if(args.size == 4)
+        return solveCubic(args[1], args[2], args[3])
+    if(args.size == 5)
+        return solveQuadratic(args[1], args[2], args[3], args[4])
 }
+
+// remove all zeros from start of the array
+fun removeFirstZeros(array) {
+    if (array.size > 0 && array[0] == 0) {
+        array.removeAt(0)
+        return removeFirstZeros(array)
+    }
+    return array
+}
+
+fun firstToOne(array) {
+    i = 0
+    coeff = array[0]
+    while(i < array.size) {
+        array[i] = array[i] / coeff
+        i = i + 1
+    }
+    return array
+}
+
+
 // http://prografix.narod.ru/rus_alg_ur4.html
 // x^4 + ax^3 + bx^2 + cx + d = 0
-fun solve4(a, b, c, d) {
+fun solveQuadratic(a, b, c, d) {
     
 }
 
@@ -32,20 +63,16 @@ fun newton(a, b) {
         s = s * 2.0
     }
     x = 1.5
-    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
-    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
-    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
-    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
-    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
-    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
-    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
-    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
-    x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
+    i = 0
+    while (i < 9) {
+        x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
+        i = i + 1
+    }
     return x * s
 }
 
 // x^3 + ax^2 + bx + c = 0
-fun solve3(a, b, c) {
+fun solveCubic(a, b, c) {
     if (c == 0) {
         solution = 0.0
     } else {
@@ -67,10 +94,10 @@ fun solve3(a, b, c) {
         a = a + solution
         b = b + solution * a
     }
-    return solution + solve2(a, b)
+    return solution + solveSquare(a, b)
 }
 // x^2 + ax + b = 0
-fun solve2 (a, b) {
+fun solveSquare(a, b) {
     if ( b == 0 )
         return if(a == 0) [0.0] else [0.0, -double(a)]
     solution = []
@@ -85,6 +112,13 @@ fun solve2 (a, b) {
 //    solution.add(double(if(a > 0) a + d else a - d))
 //    solution.add(b / solution[0])
 //    return solution
+}
+
+// x + a = 0
+fun solve1(a) {
+    if (a == 0)
+        return if (b == 0) [1, 2] else []
+    return [-b / a]
 }
 
 // Return array of doubles as a solution of ax^2 + bx + c = 0

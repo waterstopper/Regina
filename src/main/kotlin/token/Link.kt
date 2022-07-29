@@ -94,23 +94,12 @@ open class Link(
                 ).first
             )
             is Identifier -> {
-                if (variable is Type && variable!is Object) {
-                    val a = variable.getLinkedAssignment(
-                        this,
-                        index
-                    )
-                    if (a != null)
-                        return Optional(a)
-                    else Optional(variable.getPropertyOrNull(children[index].value))
-                } // TODO clean this
-                val property = variable.getPropertyOrNull(children[index].value)
-                    ?: if (variable is Type) (return Optional(
-                        variable.getLinkedAssignment(
-                            this,
-                            index
-                        )
-                    )) else Optional()
-                //          else throw NotFoundException(children[index])
+                if (variable is Type && variable !is Object) {
+                    val assignment = variable.getLinkedAssignment(this, index)
+                    if (assignment != null)
+                        return Optional(assignment)
+                }
+                val property = variable.getPropertyOrNull(children[index].value) ?: Optional()
                 return Optional(property)
             }
             is Index -> {

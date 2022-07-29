@@ -78,8 +78,8 @@ object RegistryFactory {
         registry.unaryMinus("-")
         registry.prefix("!")
 
-        registry.infixRight("&", 25)
-        registry.infixRight("|", 25)
+        registry.infixRight("&&", 25)
+        registry.infixRight("||", 25)
         registry.infixRight("=", 10)
 
         // tokReg.infixRight(".", 105)

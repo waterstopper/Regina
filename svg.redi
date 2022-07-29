@@ -52,7 +52,7 @@ fun add(node, sb) {
         i = 0
         while(i < propertiesArray.size) {
             if(propertiesArray[i]["value"].exportArgs["type"] == "node" \
-                & propertiesArray[i]["value"].exportArgs["inParent"]) {
+                && propertiesArray[i]["value"].exportArgs["inParent"]) {
                 add(propertiesArray[i]["value"], sb)
                 propertiesArray.removeAt(i)
                 i = i - 1
@@ -63,9 +63,10 @@ fun add(node, sb) {
     }
     i = 0
     while(i < propertiesArray.size) {
-        if((propertiesArray[i]["value"].properties["exportArgs"] != 0) & propertiesArray[i]["value"].exportArgs["type"] == "node" \
-            & (!propertiesArray[i]["value"].exportArgs["inParent"] & !containers.has(added))) {
-            if(propertiesArray[i]["key"]!="parent" & propertiesArray[i]["key"] != "this") {
+        if((propertiesArray[i]["value"].properties["exportArgs"] != 0) \
+            && propertiesArray[i]["value"].exportArgs["type"] == "node" \
+            && (!propertiesArray[i]["value"].exportArgs["inParent"] && !containers.has(added))) {
+            if(propertiesArray[i]["key"]!="parent" && propertiesArray[i]["key"] != "this") {
                 add(propertiesArray[i]["value"], sb)
                }
             propertiesArray.removeAt(i)

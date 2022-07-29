@@ -13,7 +13,7 @@ import token.statement.Assignment
 
 object TokenFactory {
     private val nonArithmeticOperators = listOf("+", "==", "!=")
-    private val arithmeticOperators = listOf("-", "*", "/", "%", ">=", "<=", ">", "<", "!", "&", "|")
+    private val arithmeticOperators = listOf("-", "*", "/", "%", ">=", "<=", ">", "<", "!", "&&", "||")
     private val wordOperators = listOf("is")
 
     fun createWordToken(

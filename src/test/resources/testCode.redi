@@ -136,7 +136,7 @@ fun main() {
 }
 
 fun testMath() {
-    log(solve2(2,1))
+    log(solveSquare(2,1))
 }
 
 fun checkLink() {
@@ -163,7 +163,7 @@ fun checkLink() {
 
 fun assignmentTest() {
     a = b = c = 2
-    test(a == 2 & b == 2 & c == 2)
+    test(a == 2 && b == 2 && c == 2)
     a = A()
     a.s = 2
     a.s = 3

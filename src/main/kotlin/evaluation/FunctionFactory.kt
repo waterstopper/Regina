@@ -86,6 +86,12 @@ object FunctionFactory {
         val res = mutableMapOf<String, Function>()
         res["log"] = EmbeddedFunction("log", listOf(Token(value = "x")))
         { token, args -> println(getIdent(token, "x", args)) }
+        res["except"] = EmbeddedFunction("except", listOf(Token(value = "x")))
+        { token, args ->
+            {// TODO check that instances work properly
+                throw PositionalException(getIdent(token, "x", args).toString(), token)
+            }
+        }
         res["input"] = EmbeddedFunction("input", listOf()) { _, _ -> readLine() ?: "" }
         res["write"] = EmbeddedFunction(
             "write",
