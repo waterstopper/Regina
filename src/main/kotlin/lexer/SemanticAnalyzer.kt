@@ -2,6 +2,7 @@ package lexer
 
 import evaluation.Evaluation.globalTable
 import evaluation.FunctionFactory
+import properties.primitive.PString
 import readFile
 import table.SymbolTable
 import token.*
@@ -60,7 +61,10 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             when (token.symbol) {
                 "fun" -> table = changeTableForFunctionAnalysis(token, table.changeScope())
                 "object" -> table = table.changeVariable(globalTable.getObjectOrNull((token as Declaration).name)!!)
-                "class" -> table = table.changeVariable(globalTable.getTypeOrNull((token as Declaration).name)!!)
+                "class" -> {
+                    table = table.changeVariable(globalTable.getTypeOrNull((token as Declaration).name)!!)
+                    table.addVariable("this", PString("", null))
+                }
             }
             changeInvocationType(token, table)
         }
@@ -79,6 +83,20 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
 
     private fun changeInvocationType(token: Token, symbolTable: SymbolTable) {
         when (token) {
+            is Declaration -> {
+                for ((index, child) in token.children.withIndex()) {
+                    if (child is Invocation) {
+                        checkParamsOrArgs(child.children.subList(1), token.symbol != "fun")
+                        if (token.symbol != "fun")
+                            createSpecificInvocation(child, symbolTable, token, index)
+                    }
+                }
+                if (token.symbol == "fun") {
+                    for (child in token.children)
+                        changeInvocationType(child, changeTableForFunctionAnalysis(token, symbolTable.changeScope()))
+                    return
+                }
+            }
             is TokenNumber -> checkNumberBounds(token)
             is Link -> {
                 if (token.left is Invocation) {

@@ -1,0 +1,16 @@
+import geometry2D
+
+fun main() {
+    testPoint()
+}
+
+fun testPoint() {
+    m1 = Point(x=5, y=5)
+    m2 = Point(x=2, y=1)
+    minus_res = m1.minus(m2)
+    test(minus_res.x == 3)
+    test(minus_res.y == 4)
+
+    p_0 = Point(y = 1)
+    test(p_0.y == 1)
+}

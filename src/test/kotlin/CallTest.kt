@@ -5,6 +5,23 @@ import kotlin.test.assertTrue
 
 class CallTest {
     @Test
+    fun testChangingScope() {
+        assertTrue(assertFails {
+            eval(
+                """
+           fun main() {
+            a = 1
+            other()
+           } 
+            fun other() {
+            test(a == 1)
+            }
+        """
+            )
+        }.message!!.contains("Not found a"))
+    }
+
+    @Test
     fun testSignature() {
         eval(
             """

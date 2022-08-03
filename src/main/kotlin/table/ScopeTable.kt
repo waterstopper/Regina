@@ -15,6 +15,8 @@ class ScopeTable {
     fun getVariable(name: String) = variables[name]
         ?: throw NotFoundException()
 
+    fun getVariables() = variables.toMutableMap()
+
     fun getVariableOrNull(name: String) = variables[name]
 
     companion object {

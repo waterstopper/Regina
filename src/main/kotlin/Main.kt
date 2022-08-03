@@ -16,8 +16,8 @@ fun main() {
         {
             doThis()
         }
-        /** ауц
-        ацуау
+        /** err
+        treteefw
         **/
         else
         {

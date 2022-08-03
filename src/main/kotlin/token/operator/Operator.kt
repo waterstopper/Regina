@@ -6,6 +6,7 @@ import properties.primitive.PNumber
 import table.SymbolTable
 import token.Token
 import utils.Utils.toInt
+import utils.Utils.toVariable
 
 open class Operator(
     symbol: String,
@@ -38,7 +39,7 @@ open class Operator(
                 res
             } else {
                 val res = this.toMutableList()
-                res.add(other)
+                res.add(other.toVariable())
                 res
             }
         }

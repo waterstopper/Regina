@@ -127,4 +127,14 @@ class PArrayTest {
         }
         assertTrue(thrownBigger.message!!.contains("Index out of bounds"))
     }
+
+    @Test
+    fun testImplicitArray() {
+        eval("""
+           fun main() {
+            test((getArray() + 0).sorted() == [0, 1, 2, 3])
+           }
+           fun getArray() {return [1, 3, 2]}
+        """)
+    }
 }

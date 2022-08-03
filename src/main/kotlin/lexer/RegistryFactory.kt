@@ -290,6 +290,8 @@ object RegistryFactory {
             res
         }
 
+        registry.stmt("#stop") { token: Token, _: Parser -> token }
+
         return registry
     }
 

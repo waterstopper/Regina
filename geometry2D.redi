@@ -1,18 +1,11 @@
-object Constants {
-    PI = 3.1415926539
-}
-
-fun toRadians(angle) {
-    return double(angle) / 180 * Constants.PI
-}
-
-fun toDegrees(angle) {
-    return double(angle) * Constants.PI / 180
-}
 
 class Point {
     x = 0
     y = 0
+
+    fun plus(other) { return Point(x=x + other.x, y=y + other.y) }
+    fun minus(other) { return Point(x=x - other.x, y=y - other.y) }
+
     // angle in degrees
     fun rotate(angle, pivot = Point()) {
         s = sin(toRadians(angle))
@@ -25,25 +18,64 @@ class Point {
         ynew = this.x * s + this.y * c
         this.x = pivot.x + xnew
         this.y = pivot.y + ynew
-
         return this
     }
 
+    fun distance(p) {
+        if(p is Point)
+            return sqrt((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y))
+    }
+}
+object Constants {
+    PI = 3.1415926539
+}
+
+fun toRadians(angle) {
+    return double(angle) / 180 * Constants.PI
+}
+
+fun toDegrees(angle) {
+    return double(angle) * Constants.PI / 180
 }
 
 class Segment {
     p1 = Point()
     p2 = Point()
 
-    fun middle() {
-        return Point(x = (p1.x + p2.x) / 2, y = (p1.y + p2.y) / 2)
+    fun length() { p1;
+
+
+    return p1.distance(p2) }
+    fun vec() { return p2.minus(p1) }
+    fun isPerpendicular(other) { return product(other) == 0 }
+
+    fun center() { return centerFigure(this) }
+    fun rotate(angle, pivot = center()) { rotateFigure(this, angle, pivot) }
+
+    fun product(other) {
+        vec = this.vec()
+        #stop
+        otherVec = other.vec()
+        return vec.x * otherVec.x + vec.y * otherVec.y
     }
 
-    fun intersects(other) {
+    fun intersects(other) {  }
 
+    fun angleBetween(other) {
+        if(other is Segment)
+            return acos(cosAngleBetweenSegments(this, other))
+        if(other is Line)
+            return acos(cosAngleBetweenSegments(this, other.segment))
     }
+}
 
-    fun isPerpendicular(other) {}
+class Rectangle {
+    bl = Point()
+    ur = Point()
+
+    fun center() { return centerFigure(this) }
+    fun rotate(angle, pivot = center()) { rotateFigure(this, angle, pivot) }
+    fun length() { return }
 }
 
 class Triangle {
@@ -51,21 +83,84 @@ class Triangle {
     p2 = Point()
     p3 = Point()
 
-    fun centerMass() {
-        return Point(x = (p1.x + p2.x + p3.x) / 3, y = (p1.y + p2.y + p3.y) / 3)
-    }
-    fun rotate(angle, pivot = centerMass()) {
-
-    }
+    fun center() { return centerFigure(this) }
+    fun rotate(angle, pivot = center()) { rotateFigure(this, angle, pivot) }
 }
 
 class Circle {
+    r = 1
+    center = Point()
+}
+
+class Ellipse {
+    a = 1
+    b = 1
+    center = Point()
+
+    fun rotate(angle, pivot = center) { rotateFigure(this, angle, pivot) }
 }
 
 class Polyline {
     points = []
 
-    fun centerMass() {
+    fun center() { return centerFromPointsArray(points) }
+    fun rotate(angle, pivot = center()) { rotateFigure(this, angle, pivot) }
+}
+
+class Plane {
+    objects = []
+
+    fun center() {
+        points = []
+        i = 0
+        while(i < objects.size) {
+            points.add(centerFigure(objects[i]))
+            i = i + 1
+        }
 
     }
+    fun rotate(angle, pivot = center()) {
+        i = 0
+        while(i < objects.size) { rotateFigure(this, angle, pivot); i = i + 1 }
+    }
+}
+
+fun insCircles(c1, c2) {
+
+}
+
+fun cosAngleBetweenSegments(a, b) {
+    return double(a.product(b)) / a.length() / b.length()
+}
+
+fun rotateFigure(fig, angle, pivot) {
+    props = fig.properties
+    i = 0
+    while(i < props.size) {
+        if(props[i] is Point)
+            props[i].rotate(angle, pivot)
+    }
+}
+
+fun centerFigure(fig) {
+    props = fig.properties
+    array = []
+    i = 0
+    while(i < props.size) {
+        if(props[i] is Point)
+            array.add(props[i])
+        i = i + 1
+    }
+    return centerFromPointsArray(array)
+}
+
+fun centerFromPointsArray(array) {
+    res = Point()
+    i = 0
+    while(i < array.size) {
+        res.x = res.x + array[i].x
+        res.y = res.y + array[i].y
+        i = i + 1
+    }
+    return res
 }

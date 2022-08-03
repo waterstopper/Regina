@@ -6,21 +6,22 @@ fun rotate(point, angle, pivot) {
 // args is an array [a_{n-1},..., a_1, a_0]
 fun solve(args) {
     args = removeFirstZeros(args)
-    if (args.size <= 1 || args.size >= 6)
+    if (args.size <= 1 || args.size >= 6) {
         except("Expected from 2 to 5 elements in input array, not counting preceding zeros")
+        }
     // a = 0
     if(args.size == 1)
         return [if(args[0] == 0) [1, 2, 3, 4, 5] else []]
-    array = firstToOne(array)
+    args = firstToOne(args)
     if(args.size == 2)
         // x + a = 0
         return [-args[1]]
     if(args.size == 3)
-        return solveSquare(args[1], args[2])
+        return solveSquare(args[1], args[2]).sorted()
     if(args.size == 4)
-        return solveCubic(args[1], args[2], args[3])
+        return solveCubic(args[1], args[2], args[3]).sorted()
     if(args.size == 5)
-        return solveQuadratic(args[1], args[2], args[3], args[4])
+        return solveQuadratic(args[1], args[2], args[3], args[4]).sorted()
 }
 
 // remove all zeros from start of the array
@@ -36,17 +37,71 @@ fun firstToOne(array) {
     i = 0
     coeff = array[0]
     while(i < array.size) {
-        array[i] = array[i] / coeff
+        array[i] = array[i] / double(coeff)
         i = i + 1
     }
     return array
 }
 
-
-// http://prografix.narod.ru/rus_alg_ur4.html
 // x^4 + ax^3 + bx^2 + cx + d = 0
 fun solveQuadratic(a, b, c, d) {
-    
+    if (a == 0)
+        return solveQuadraticZeroCube(b, c, d)
+    if(d == 0)
+        return (solveCubic(a, b, c) + 0.0).sorted()
+    e = a / 4
+    h = e * e
+    p = -6 * h + b
+    q =  8 * h * e - 2 * b * e + c
+    r = -3 * h * h + b * h - c * e + d
+    offset = solveQuadraticZeroCube(p, q, r)
+    i = 0
+    while(i < offset.size) {
+        offset[i] = offset[i] - e
+        i = i + 1
+    }
+    return offset
+}
+
+fun m1(p, r) {
+    n = solveSquare(p, r).sorted()
+    if (n.size == 0) return []
+    if (n[0] >= 0)
+    {
+        n[0] = sqrt(n[0])
+        n[1] = -n[0]
+    }
+    else
+        n = []
+    if (n[1] >= 0)
+    {
+        n.add(sqrt(n[1]))
+        n.add(-n[n.size - 1])
+    }
+    return n
+}
+
+// x^4 + ax^2 + bx + c = 0
+fun solveQuadraticZeroCube(a, b, c) {
+    if(c == 0) // x^3 + 0x^2 + ax + b
+        return solveCubic(0, a, b) + 0.0
+    if(b == 0)
+        return m1(a, c)
+    n = solveCubic(2 * a, a * a - 4.0 * c, -b * b)
+    p = n[0]
+    if(n.size == 3)
+    {
+        if(p < n[1]) p = n[1]
+        if(p < n[2]) p = n[2]
+    }
+    if (p <= 0)
+        return m1(a, c)
+    a = a + p
+    p = sqrt(p)
+    ba = b / p
+    sol = solveSquare(p, 0.5 * (a - ba))
+    sol = sol + solveSquare(-p, 0.5 * (a + ba))
+    return sol
 }
 
 // x^3 + ax + b = 0
@@ -65,7 +120,7 @@ fun newton(a, b) {
     x = 1.5
     i = 0
     while (i < 9) {
-        x = x - ( x * ( x * x + a ) + b ) / ( 3.0 * x * x + a )
+        x = x - (x * ( x * x + a ) + b) / (3.0 * x * x + a)
         i = i + 1
     }
     return x * s
@@ -73,13 +128,15 @@ fun newton(a, b) {
 
 // x^3 + ax^2 + bx + c = 0
 fun solveCubic(a, b, c) {
+    d = 42
+    // #stop
     if (c == 0) {
         solution = 0.0
     } else {
         a3 = a / 3.0
         p = b - a3 * a
         q = c - (a3 * a3 + p) * a3
-        if ( q < 0 ) {
+        if (q < 0) {
             solution = newton(p, q)
         } else if (q > 0) {
             solution = -newton(p, -q)
@@ -94,24 +151,22 @@ fun solveCubic(a, b, c) {
         a = a + solution
         b = b + solution * a
     }
-    return solution + solveSquare(a, b)
+    return (solveSquare(a, b) + solution).sorted()
 }
 // x^2 + ax + b = 0
 fun solveSquare(a, b) {
-    if ( b == 0 )
-        return if(a == 0) [0.0] else [0.0, -double(a)]
+   // #stop
+    if (b == 0)
+        return if(a == 0) [0.0, 0.0] else [0.0, -double(a)].sorted()
     solution = []
     a = a * -0.5
     d = a * a - b
-    if ( d < 0 )
+    if (d < 0)
         return []
     d = sqrt(d)
     if(d == 0)
-        return [a]
-    return [a + d, a - d]
-//    solution.add(double(if(a > 0) a + d else a - d))
-//    solution.add(b / solution[0])
-//    return solution
+        return [a, a]
+    return [a + d, a - d].sorted()
 }
 
 // x + a = 0
@@ -123,7 +178,7 @@ fun solve1(a) {
 
 // Return array of doubles as a solution of ax^2 + bx + c = 0
 fun solveSquare(a, b, c) {
-    solution = [0, 0]
+    solution = [0.0, 0.0]
     if (a == 0) {
         if (c == 0) {
             if (b == 0) { return [1, 2, 3] }

@@ -6,6 +6,7 @@ import lexer.PositionalException
 import properties.*
 import properties.Function
 import token.Token
+import token.statement.Assignment
 import utils.Utils.toVariable
 
 class SymbolTable(
@@ -137,8 +138,8 @@ class SymbolTable(
     fun addType(token: Token) = fileTable.addType(token)
     fun addFunction(function: Function) = fileTable.addFunction(function)
     fun addObject(token: Token) = fileTable.addObject(token)
-
     fun addVariable(name: String, value: Variable) = scopeTable!!.addVariable(name, value)
+
     fun getImportOrNull(importName: String) = imports[fileTable]!![importName]
     fun getImportOrNullByFileName(fileName: String) = imports[fileTable]!!.values.find { it.fileName == fileName }
     fun getFileFromType(type: Type, token: Token) = imports.keys.find { it == type.fileName }
@@ -207,6 +208,13 @@ class SymbolTable(
         return variableTable?.getPropertyOrNull(name)
     }
 
+    fun getAssignmentOrNull(name: String): Assignment? {
+        if (variableTable is Type) {
+            return (variableTable as Type).getAssignment(name)
+        }
+        return null
+    }
+
     fun copy() = SymbolTable(scopeTable?.copy() ?: ScopeTable(), variableTable, fileTable)
     fun addVariableOrNot(token: Token) = scopeTable?.addVariable(token.value, "".toVariable(token))
 
@@ -224,5 +232,21 @@ class SymbolTable(
                 )
         }
         return res.toString()
+    }
+
+    fun toDebugString(): String {
+        val res = StringBuilder()
+        if (variableTable is Type) {
+            res.append("instance fields:\n")
+            for ((fieldName, fieldValue) in (variableTable as Type).getProperties().getPValue()) {
+                res.append("\t$fieldName:$fieldValue\n")
+            }
+        }
+        if (scopeTable != null)
+            for ((fieldName, fieldValue) in scopeTable!!.getVariables())
+                res.append("\t$fieldName:$fieldValue\n")
+        if (res.isEmpty())
+            return ""
+        return res.deleteCharAt(res.lastIndex).toString()
     }
 }

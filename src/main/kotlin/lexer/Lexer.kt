@@ -2,6 +2,7 @@ package lexer
 
 import Logger
 import lexer.RegistryFactory.getRegistry
+import token.Meta
 import token.Token
 import token.variable.TokenNumber
 
@@ -15,7 +16,7 @@ import token.variable.TokenNumber
 class Lexer() {
 
     private var source: String = ""
-    private val operators = "!@#$%^*-+=?.,:;\"&|/(){}[]><\n\r"
+    private val operators = "!@$%^*-+=?.,:;\"&|/(){}[]><\n\r"
     private val escapes = mutableMapOf('"' to '\"', '\\' to '\\', 'b' to '\b', 'n' to '\n', 'r' to '\r', 't' to '\t')
     private var registry: Registry = getRegistry()
     private var index: Int = 0
@@ -85,7 +86,24 @@ class Lexer() {
             nextNumber()
         else if (isOperatorChar(source[index]))
             nextOperator()
+        else if (source[index] == '#')
+            nextMeta()
         else throw PositionalException("Invalid character", position = position, length = 1)
+    }
+
+    private fun nextMeta(): Token {
+        val res = StringBuilder()
+        res.append(source[index])
+        move()
+        while (index < source.length && isIdentChar(source[index]))
+            moveAndAppend(res)
+        if (registry.defined(res.toString())) {
+            return Meta(res.toString(), res.toString(), Pair(position.first - res.toString().length, position.second))
+        }
+        throw PositionalException(
+            "No such meta token",
+            position = Pair(position.first - res.toString().length, position.second)
+        )
     }
 
     private fun nextString(): Token {

@@ -31,6 +31,7 @@ open class Type(
     val functions = mutableSetOf<Function>()
 
     fun getAssignment(token: Token): Assignment? = assignments.find { it.left == token }
+    fun getAssignment(name: String): Assignment? = assignments.find { it.left.value == name }
     fun getLinkedAssignment(link: Link, index: Int): Assignment? {
         val identProperty = getAssignment(link.children[index])
         if (identProperty != null)
@@ -166,7 +167,8 @@ open class Type(
             while (stack.isNotEmpty()) {
                 val unresolved = stack.removeLast()
                 val top = unresolved.second.getFirstUnassigned(
-                    symbolTable.changeVariable(unresolved.first), unresolved.first)
+                    symbolTable.changeVariable(unresolved.first), unresolved.first
+                )
                 if (top.second != null) {
                     //     if (trainingWheels && (stack + unresolved).contains(top))
                     //        throw PositionalException("Assignment encountered recursively during initialization of $parent", top)

@@ -8,11 +8,10 @@ import properties.primitive.*
 import table.SymbolTable
 import token.Token
 import token.statement.Assignment
+import utils.Utils.toInt
 import utils.Utils.toVariable
 import java.io.File
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.*
 import kotlin.random.Random
 
 object FunctionFactory {
@@ -88,24 +87,53 @@ object FunctionFactory {
         { token, args -> println(getIdent(token, "x", args)) }
         res["except"] = EmbeddedFunction("except", listOf(Token(value = "x")))
         { token, args ->
-            {// TODO check that instances work properly
-                throw PositionalException(getIdent(token, "x", args).toString(), token)
-            }
+            // TODO check that instances work properly. e.g. except(a())
+            throw PositionalException(getIdent(token, "x", args).toString(), token)
         }
         res["input"] = EmbeddedFunction("input", listOf()) { _, _ -> readLine() ?: "" }
         res["write"] = EmbeddedFunction(
             "write",
             listOf(
                 Token(value = "content"),
-                Token(value = "fileName")
+                Token(value = "path")
             )
         ) { token, args ->
-            val fileName = getIdent(token, "fileName", args)
+            val fileName = getIdent(token, "path", args)
             val content = getIdent(token, "content", args)
             if (fileName !is PString || content !is PString)
                 throw ExpectedTypeException(listOf(PString::class), token)
             val file = File(fileName.getPValue())
             file.writeText(content.getPValue())
+        }
+        res["read"] = EmbeddedFunction(
+            "read",
+            listOf(Token(value = "path"))
+        ) { token, args ->
+            val fileName = getIdent(token, "path", args)
+            if (fileName !is PString)
+                throw ExpectedTypeException(listOf(PString::class), token)
+            val file = File(fileName.getPValue())
+            file.readText()
+        }
+        res["exists"] = EmbeddedFunction(
+            "exists",
+            listOf(Token(value = "path"))
+        ) { token, args ->
+            val fileName = getIdent(token, "path", args)
+            if (fileName !is PString)
+                throw ExpectedTypeException(listOf(PString::class), token)
+            val file = File(fileName.getPValue())
+            file.exists().toInt()
+        }
+        res["delete"] = EmbeddedFunction(
+            "delete",
+            listOf(Token(value = "path"))
+        ) { token, args ->
+            val fileName = getIdent(token, "path", args)
+            if (fileName !is PString)
+                throw ExpectedTypeException(listOf(PString::class), token)
+            val file = File(fileName.getPValue())
+            file.delete().toInt()
         }
         res["test"] = EmbeddedFunction("test", listOf(Token(value = "x"))) { token, args ->
             val ident = getIdent(token, "x", args)
@@ -173,6 +201,20 @@ object FunctionFactory {
             when (val argument = getIdent(token, "number", args)) {
                 is PInt -> sqrt(argument.getPValue().toDouble())
                 is PDouble -> sqrt(argument.getPValue())
+                else -> throw PositionalException("Expected number", token)
+            }
+        }
+        res["asin"] = EmbeddedFunction("asin", listOf(Token(value = "sin"))) { token, args ->
+            when (val argument = getIdent(token, "sin", args)) {
+                is PInt -> asin(argument.getPValue().toDouble())
+                is PDouble -> asin(argument.getPValue())
+                else -> throw PositionalException("Expected number", token)
+            }
+        }
+        res["acos"] = EmbeddedFunction("acos", listOf(Token(value = "cos"))) { token, args ->
+            when (val argument = getIdent(token, "cos", args)) {
+                is PInt -> acos(argument.getPValue().toDouble())
+                is PDouble -> acos(argument.getPValue())
                 else -> throw PositionalException("Expected number", token)
             }
         }

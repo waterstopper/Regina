@@ -25,7 +25,7 @@ class LexerTest {
 
     @Test
     fun invalidOperator() {
-        val thrown = assertFails { Lexer("a = #") }
+        val thrown = assertFails { Lexer("a = ^") }
         assertTrue(thrown.message!!.contains("Invalid operator"))
     }
 

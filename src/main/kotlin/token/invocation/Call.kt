@@ -23,7 +23,6 @@ class Call(
     }
 
     val allArgs = children.subList(1, children.size)
-
     val unnamedArgs: List<Token>
         get() {
             val res = mutableListOf<Token>()
@@ -43,8 +42,8 @@ class Call(
      */
     override fun evaluate(symbolTable: SymbolTable): Any {
         val function = symbolTable.getFunction(this)
-        val newTable =
-            symbolTable.changeFile(symbolTable.getFileOfValue(left) { it.getFunctionOrNull(this) })
+        val newTable = symbolTable.changeFile(symbolTable.getFileOfValue(left)
+        { it.getFunctionOrNull(this) }).changeScope()
         argumentsToParameters(function, symbolTable, newTable)
         return evaluateFunction(newTable, function)
     }

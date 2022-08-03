@@ -6,6 +6,7 @@ import lexer.SemanticAnalyzer.Companion.clearAnalyzer
 import table.SymbolTable
 import table.SymbolTable.Companion.clearTable
 import token.Token
+import java.io.File
 
 /**
  * Facade class for language execution
@@ -27,7 +28,13 @@ object Evaluation {
         clear()
     }
 
-    fun evaluate(fileName: String) {}
+    fun evaluate(fileName: String) {
+        val code = File(if (fileName.contains(".")) fileName else "$fileName.redi").readText()
+        val sts = SemanticAnalyzer(fileName, Parser(code).statements()).analyze()
+        val main = globalTable.getMain()
+        main.body.evaluate(globalTable)
+        clear()
+    }
 
     @Deprecated("bad signature with tokens")
     fun oldEvaluate(tokens: List<Token>, fileName: String) {

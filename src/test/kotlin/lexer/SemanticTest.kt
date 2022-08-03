@@ -124,7 +124,8 @@ class SemanticTest {
 
     @Test
     fun invocationInLink() {
-        eval("""
+        eval(
+            """
             fun main() {
                 test(B.objectFun() == 1)
                 a = A()
@@ -143,7 +144,8 @@ class SemanticTest {
             }
            
             fun firstInvocationFun() {return A()}
-        """)
+        """
+        )
     }
 
     @Test
@@ -167,11 +169,15 @@ class SemanticTest {
 
     @Test
     fun twoSameImports() {
-        val thrown = assertFails { eval("""
+        val thrown = assertFails {
+            eval(
+                """
             import geometry2D as geom
             fun main() {}
             import geometry2D as g
-        """) }
+        """
+            )
+        }
         assertTrue(thrown.message!!.contains("Same import found above"))
     }
 }
