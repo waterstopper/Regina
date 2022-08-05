@@ -8,6 +8,7 @@ import properties.primitive.*
 import table.SymbolTable
 import token.Token
 import token.statement.Assignment
+import utils.Utils
 import utils.Utils.toInt
 import utils.Utils.toVariable
 import java.io.File
@@ -218,6 +219,30 @@ object FunctionFactory {
                 else -> throw PositionalException("Expected number", token)
             }
         }
+        res["floatEquals"] =
+            EmbeddedFunction(
+                "floatEquals", listOf(Token(value = "first"), Token(value = "second")),
+                listOf(
+                    Utils.parseAssignment("epsilon = 0.0000000000000000000000000001"),
+                    Utils.parseAssignment("absTh = 0.0000001")
+                )
+            ) { token, args ->
+                // https://stackoverflow.com/a/32334103
+                val first = getNumber(token, "first", args).getPValue().toDouble()
+                val second = getNumber(token, "second", args).getPValue().toDouble()
+                val epsilon = getNumber(token, "epsilon", args).getPValue().toDouble()
+                val absTh = getNumber(token, "absTh", args).getPValue().toDouble()
+                if (first == second)
+                    PInt(1, null)
+                else {
+                    val diff = abs(first - second)
+                    val norm = min(
+                        abs(first) + abs(second),
+                        Float.MAX_VALUE.toDouble()
+                    )
+                    (diff < max(absTh, epsilon * norm)).toInt()
+                }
+            }
         return res
     }
 }

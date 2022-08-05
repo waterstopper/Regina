@@ -30,6 +30,8 @@ class Lexer() {
     }
 
     private fun addTokens() {
+        tokens.add(Token("fictive")) // this is added to prevent tokens.last()
+        // check throwing exception if first token is comment
         tokens.add(createNextToken())
         while (index < source.length)
             addToken(createNextToken())
@@ -37,9 +39,11 @@ class Lexer() {
             tokens.add(Token("(EOF)", "(EOF)", position))
         if (tokens.size >= 100000)
             Logger.addWarning(tokens.last(), "File too large")
+        tokens.removeAt(0)
     }
 
     fun next(): Token {
+        // in current implementation if is good too, but it is safer with while if there are some changes
         while (tokens[++tokenIndex].symbol == "(SEP)") {
         }
         return tokens[tokenIndex]

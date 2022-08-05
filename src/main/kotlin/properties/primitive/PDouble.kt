@@ -16,8 +16,8 @@ class PDouble(value: Double, parent: Type?) : PNumber(value, parent) {
     companion object {
         fun initializeDoubleProperties() {
             val d = PDouble(0.0, null)
-            setProperty(d, "MIN_VALUE") { p: Primitive -> Double.MIN_VALUE.toProperty() }
-            setProperty(d, "MAX_VALUE") { p: Primitive -> Double.MAX_VALUE.toProperty() }
+            setProperty(d, "MIN_VALUE") { Double.MIN_VALUE.toProperty() }
+            setProperty(d, "MAX_VALUE") { Double.MAX_VALUE.toProperty() }
         }
 
         fun initializeEmbeddedDoubleFunctions() {

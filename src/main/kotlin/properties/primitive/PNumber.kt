@@ -29,7 +29,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
             val n = PNumber(0, null)
             setFunction(
                 n,
-                EmbeddedFunction("abs", listOf()) { token, args ->
+                EmbeddedFunction("abs", listOf()) { _, args ->
                     val number = castToNumber(args.getPropertyOrNull("this")!!)
                     if (number.getPValue().toDouble() >= 0) number.getPValue() else -number.getPValue()
                 }

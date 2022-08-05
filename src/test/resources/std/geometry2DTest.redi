@@ -11,6 +11,9 @@ fun testPoint() {
     test(minus_res.x == 3)
     test(minus_res.y == 4)
 
-    p_0 = Point(y = 1)
-    test(p_0.y == 1)
+    rotated = Point(y = 1)
+    test(rotated.y == 1)
+    rotateResult = rotated.rotate(90)
+    test(rotateResult.x == -1)
+    test(floatEquals(rotateResult.y, 0))
 }

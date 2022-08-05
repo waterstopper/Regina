@@ -1,16 +1,17 @@
-
+// also a vector class
 class Point {
     x = 0
     y = 0
 
     fun plus(other) { return Point(x=x + other.x, y=y + other.y) }
     fun minus(other) { return Point(x=x - other.x, y=y - other.y) }
+    fun crossProduct(other) { return x * other.y - y * other.x }
+    fun scale(coeff) { return Point(x=x * coeff, y=y * coeff) }
 
     // angle in degrees
     fun rotate(angle, pivot = Point()) {
         s = sin(toRadians(angle))
         c = cos(toRadians(angle))
-        log(s + " " + c)
         this.x = this.x - pivot.x
         this.y = this.y - pivot.y
 
@@ -47,19 +48,17 @@ class Segment {
 
     return p1.distance(p2) }
     fun vec() { return p2.minus(p1) }
-    fun isPerpendicular(other) { return product(other) == 0 }
+    fun isPerpendicular(other) { return dotProduct(other) == 0 }
 
     fun center() { return centerFigure(this) }
     fun rotate(angle, pivot = center()) { rotateFigure(this, angle, pivot) }
 
-    fun product(other) {
+    fun dotProduct(other) {
         vec = this.vec()
         #stop
         otherVec = other.vec()
         return vec.x * otherVec.x + vec.y * otherVec.y
     }
-
-    fun intersects(other) {  }
 
     fun angleBetween(other) {
         if(other is Segment)
@@ -67,13 +66,78 @@ class Segment {
         if(other is Line)
             return acos(cosAngleBetweenSegments(this, other.segment))
     }
+
+    fun getLine() {
+        return Line(a=p2.y-p1.y, b=p1.x-p2.x, c=p1.x*(p1.y-p2.y)+p1.y*(p2.x-p1.x))
+    }
+
+    fun inSegment(point) {
+        line = getLine()
+        if(!line.inLine(point))
+            return false
+        inX = if(point.x > p1.x) point.x <= p2.x else point.x > p2.x
+        inY = if(point.y > p1.y) point.y <= p2.y else point.y > p2.y
+        return inX && inY
+    }
+}
+
+class Line {
+    // ax + by + c = 0
+    a = 0
+    b = 1
+    c = 0
+
+    fun inLine(point) {
+        return a*point.x + b*point.y + c == 0
+    }
+
+    // get a base of the perpendicular from `point` to this line
+    fun toLine(point) {
+        perpendicular = getPerpendicularLineContainingPoint(point)
+    }
+
+    fun getPerpendicularLineContainingPoint(point) {
+        aN = b
+        bN = a
+        cN = -(aN * point.x + bN * point.y)
+        return Line(a=aN,b=bN,c=cN)
+    }
+
+    fun intersectsLine(line) {
+        if(isCollinear(line)) {
+            if(isSameLine(line))
+                if(b == 0)
+                    return [Point(x=-c/a, y=0), Point(x=-c/a, y=1)]
+                else return [Point(x=0, y=-c/b), Point(x=1, y=(-c-a)/b)]
+            else return 0
+        }
+        return Point(x=(b*other.c - c*other.b)/(a*other.b - b*other.a), \
+            y=(c*other.a - a*other.c)/(a*other.b - b*other.a))
+    }
+
+    fun isSameLine(other) {
+        if(isCollinear(other))
+            return double(c) / a == double(other.c) / other.a
+        return false
+    }
+
+    fun isCollinear(other) {
+        if(b == 0 || other.b == 0) {
+            if(b != other.b)
+                return false
+            return true
+        }
+        return double(a) / b == double(other.a) / other.b
+    }
 }
 
 class Rectangle {
-    bl = Point()
-    ur = Point()
+    width = 1
+    height = 1
+    center = Point()
+    rotation = 0
 
-    fun center() { return centerFigure(this) }
+    fun center() { return center }
     fun rotate(angle, pivot = center()) { rotateFigure(this, angle, pivot) }
     fun length() { return }
 }
@@ -96,7 +160,9 @@ class Ellipse {
     a = 1
     b = 1
     center = Point()
+    rotation = 0
 
+    fun coefficients() {}
     fun rotate(angle, pivot = center) { rotateFigure(this, angle, pivot) }
 }
 
@@ -130,15 +196,44 @@ fun insCircles(c1, c2) {
 }
 
 fun cosAngleBetweenSegments(a, b) {
-    return double(a.product(b)) / a.length() / b.length()
+    return double(a.dotProduct(b)) / a.length() / b.length()
 }
 
 fun rotateFigure(fig, angle, pivot) {
     props = fig.properties
     i = 0
-    while(i < props.size) {
+    while(i < props.size)
         if(props[i] is Point)
             props[i].rotate(angle, pivot)
+}
+
+fun translateFigure(fig, vec) {
+    props = fig.properties
+    i = 0
+    while(i < props.size)
+        if(props[i] is Point)
+            props[i] = props[i].plus(vec)
+}
+
+fun scaleArrayFromLine(points, segment, coeff) {
+//    i = 0
+//    while(i < points.size) {
+//        if(points[i] is Point) {
+//            vec = points[i].minus(point).scale(coeff)
+//            points[i] = point.plus(vec)
+//        }
+//        i = i + 1
+//    }
+}
+
+fun scaleArrayFromPoint(points, point, coeff) {
+    i = 0
+    while(i < points.size) {
+        if(points[i] is Point) {
+            vec = points[i].minus(point).scale(coeff)
+            points[i] = point.plus(vec)
+        }
+        i = i + 1
     }
 }
 
