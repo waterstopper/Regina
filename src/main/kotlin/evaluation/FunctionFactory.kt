@@ -174,8 +174,8 @@ object FunctionFactory {
                     .map {
                         PDictionary(
                             mutableMapOf(
-                                "key" to it.key.toVariable(token),
-                                "value" to it.value.toVariable(token)
+                                PString("key", null) to it.key.toVariable(token),
+                                PString("value", null) to it.value.toVariable(token)
                             ),
                             null
                         )

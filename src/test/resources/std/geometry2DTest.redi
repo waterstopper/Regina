@@ -27,5 +27,6 @@ fun testSegment() {
     test(line.c == 3)
 
     p = s.center()
-    log(p.x + " " + p.y)
+    test(p.x == 1.5)
+    test(p.y == 2)
 }

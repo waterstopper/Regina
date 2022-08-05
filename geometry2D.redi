@@ -239,19 +239,14 @@ fun scaleArrayFromPoint(points, point, coeff) {
 
 fun centerFigure(fig) {
     props = array(fig.properties)
-    a = props[0]//["value"])
-    a["value"] = 1
-   // log(a)
-    //log(a["value"])
     array = []
-//    i = 0
-//    while(i < props.size) {
-//        log(props[i]["value"])
-//        if(props[i]["value"] is Point)
-//            array.add(props[i])
-//        i = i + 1
-//    }
-//    #stop
+    i = 0
+    while(i < props.size) {
+        log(props[i]["value"])
+        if(props[i]["value"] is Point)
+            array.add(props[i]["value"])
+        i = i + 1
+    }
     return centerFromPointsArray(array)
 }
 
@@ -263,5 +258,7 @@ fun centerFromPointsArray(array) {
         res.y = res.y + array[i].y
         i = i + 1
     }
+    res.x = double(res.x) / array.size
+    res.y = double(res.y) / array.size
     return res
 }
