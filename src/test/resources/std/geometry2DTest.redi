@@ -2,6 +2,7 @@ import geometry2D
 
 fun main() {
     testPoint()
+    testSegment()
 }
 
 fun testPoint() {
@@ -14,6 +15,17 @@ fun testPoint() {
     rotated = Point(y = 1)
     test(rotated.y == 1)
     rotateResult = rotated.rotate(90)
-    test(rotateResult.x == -1)
+    test(floatEquals(rotateResult.x, -1))
     test(floatEquals(rotateResult.y, 0))
+}
+
+fun testSegment() {
+    s = Segment(p1=Point(y=1, x=0), p2=Point(y=3, x=3))
+    line = s.getLine() // 2x - 3y + 3 = 0
+    test(line.a == 2)
+    test(line.b == -3)
+    test(line.c == 3)
+
+    p = s.center()
+    log(p.x + " " + p.y)
 }

@@ -236,10 +236,7 @@ object FunctionFactory {
                     PInt(1, null)
                 else {
                     val diff = abs(first - second)
-                    val norm = min(
-                        abs(first) + abs(second),
-                        Float.MAX_VALUE.toDouble()
-                    )
+                    val norm = min(abs(first) + abs(second), Float.MAX_VALUE.toDouble())
                     (diff < max(absTh, epsilon * norm)).toInt()
                 }
             }

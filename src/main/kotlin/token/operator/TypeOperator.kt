@@ -3,10 +3,7 @@ package token.operator
 import lexer.Parser
 import lexer.PositionalException
 import properties.Type
-import properties.primitive.PArray
-import properties.primitive.PDouble
-import properties.primitive.PInt
-import properties.primitive.PString
+import properties.primitive.*
 import table.SymbolTable
 import token.Token
 import utils.Utils.toInt
@@ -42,6 +39,8 @@ class TypeOperator(
             "Double" -> checked is PDouble
             "Array" -> checked is PArray
             else -> {
+                if(checked is Primitive)
+                    return false
                 val type = right.evaluate(symbolTable)
                 if (checked is Type && type is Type &&
                     checked.assignments.isEmpty() &&

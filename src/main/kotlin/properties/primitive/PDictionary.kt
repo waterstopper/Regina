@@ -21,6 +21,10 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?) : Pri
         getPValue()[index.toVariable(tokenIndex)] = value.toVariable(tokenValue)
     }
 
+    override fun checkIndexType(index: Variable): Boolean {
+        return true
+    }
+
     companion object {
         fun initializeDictionaryProperties() {
             val p = PDictionary(mutableMapOf(), null)

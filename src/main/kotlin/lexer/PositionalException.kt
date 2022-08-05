@@ -55,7 +55,13 @@ class ExpectedTypeException(
         get() {
             return "Expected " + classes.joinToString(
                 separator = if (expectedMultiple) " and " else " or "
-            ) { mapToString(it) } + if (value != null) ", but got ${mapToString(value::class)}" else ""
+            ) {
+                mapToString(it)
+            } + (if (value != null) ", but got ${
+                mapToString(
+                    value::class
+                )
+            }" else "") + " ${token.position}"
         }
 
     private fun mapToString(mapped: KClass<*>): String {

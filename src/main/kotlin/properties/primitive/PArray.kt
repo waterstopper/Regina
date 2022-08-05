@@ -30,7 +30,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
     }
 
     override fun set(index: Any, value: Any, tokenIndex: Token, tokenValue: Token) {
-        getPValue()[index as Int] = value.toVariable(tokenIndex)
+            getPValue()[(index as PInt).getPValue()] = value.toVariable(tokenIndex)
     }
 
     override fun toString(): String {
@@ -50,6 +50,10 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
     }
 
     override fun hashCode(): Int = getPValue().hashCode()
+
+    override fun checkIndexType(index: Variable): Boolean {
+        return index is PInt
+    }
 
     companion object {
         fun initializeArrayProperties() {

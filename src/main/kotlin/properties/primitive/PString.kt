@@ -5,6 +5,7 @@ import evaluation.FunctionFactory.getString
 import lexer.PositionalException
 import properties.EmbeddedFunction
 import properties.Type
+import properties.Variable
 import token.Token
 import utils.Utils.castToString
 import utils.Utils.parseAssignment
@@ -27,6 +28,10 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
 
     override fun toString(): String {
         return "\"$value\""
+    }
+
+    override fun checkIndexType(index: Variable): Boolean {
+        return index is PInt
     }
 
     companion object {
