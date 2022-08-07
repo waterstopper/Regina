@@ -50,8 +50,6 @@ object RegistryFactory {
         registry.consumable(",")
         registry.consumable("else")
 
-        registry.consumable("export")
-
         registry.consumable("{")
         registry.consumable("}")
         registry.consumable("as")
