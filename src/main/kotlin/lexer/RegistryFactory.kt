@@ -229,10 +229,7 @@ object RegistryFactory {
             if (expr.symbol == ":") {
                 res.children.addAll(expr.children)
             } else res.children.addAll(listOf(expr, Token("", "")))
-            if (parser.lexer.peek().value == "export") {
-                parser.advance("export")
-                res.children.add(parser.expression(0))
-            } else res.children.add(Token("", ""))
+            
             res.children.add(parser.block())
             res
         }
@@ -240,10 +237,7 @@ object RegistryFactory {
         registry.stmt("object") { token: Token, parser: Parser ->
             val res = Declaration(token)
             res.children.add(parser.expression(0))
-            if (parser.lexer.peek().value == "export") {
-                parser.advance("export")
-                res.children.add(parser.expression(0))
-            }
+            
             res.children.add(parser.block())
             res
         }
