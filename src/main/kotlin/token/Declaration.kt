@@ -42,19 +42,13 @@ class Declaration(
                 res
             }
             "object" -> left
-            "class" -> getSupertype(getExport(left)).first
+            "class" -> getSupertype(left).first
             "import" -> if (children.size != 1 || children.first() !is Identifier) throw PositionalException(
                 "Expected file name",
                 this
             ) else children.first()
             else -> throw PositionalException("Unregistered declaration", this)
         }
-    }
-
-    private fun getExport(token: Token): Token {
-        return if (token.value == "export")
-            token.left
-        else token
     }
 
     private fun getSupertype(token: Token): Pair<Token, Token?> {
