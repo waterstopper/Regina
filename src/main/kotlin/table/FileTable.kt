@@ -22,9 +22,9 @@ class FileTable(
     fun addType(token: Token) {
         // assignName(assignType(assignExported(token.left), fileName))
         val name = token.left.value
-        val exported = if (token.children[2].value != "") token.children[2].value else null
+        val exported = null
 
-        val (assignments, functions) = createAssignmentsAndFunctions(token.children[3])
+        val (assignments, functions) = createAssignmentsAndFunctions(token.children[2])
         val added = Type(name, null, assignments, this, exported)
         added.functions.addAll(functions)
         if (types.find { it.name == name } != null)
