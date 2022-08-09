@@ -10,14 +10,14 @@ import token.statement.Assignment
 /**
  * Object is a [singleton][https://en.wikipedia.org/wiki/Singleton_pattern] Type
  */
-class Object(name: String, assignments: MutableSet<Assignment>, fileName: FileTable) :
-    Type(name, null, assignments, fileName) {
+class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileTable) :
+    Type(name, null, assignments, fileTable) {
     override fun getProperty(token: Token): Property {
         if (properties[token.value] != null)
             return properties[token.value]!!
         val assignment = assignments.find { it.left.value == token.value }
         if (assignment != null) {
-            processAssignment(SymbolTable(fileTable = fileName), mutableListOf(Pair(this,assignment)))
+            processAssignment(SymbolTable(fileTable = fileTable), mutableListOf(Pair(this, assignment)))
             return properties[token.value]!!
         }
         return PInt(0, null)
@@ -28,7 +28,7 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileName: FileTa
             return properties[name]!!
         val assignment = assignments.find { it.left.value == name }
         if (assignment != null) {
-            processAssignment(SymbolTable(fileTable = fileName), mutableListOf(Pair(this,assignment)))
+            processAssignment(SymbolTable(fileTable = fileTable), mutableListOf(Pair(this, assignment)))
             return properties[name]!!
         }
         return null

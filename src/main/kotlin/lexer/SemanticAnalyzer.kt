@@ -4,6 +4,7 @@ import evaluation.Evaluation.globalTable
 import evaluation.FunctionFactory
 import properties.primitive.PString
 import readFile
+import table.FileTable
 import table.SymbolTable
 import token.*
 import token.TokenFactory.changeInvocationOnSecondPositionInLink
@@ -18,13 +19,20 @@ import utils.Utils.subList
  * Performs basic semantic analysis and creates symbol table for future evaluation
  */
 class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
+    val files = mutableMapOf<String, FileTable>()
 
     fun analyze(): List<Token> {
-        // println(tokens.treeView())
         println("Analyzing: `$fileName`")
         createAssociations()
         changeIdentTokens()
         return tokens
+    }
+
+    private fun createImportGraph(fileTable: FileTable, tokens: List<Token>) {
+        for (token in tokens) {
+            if (token.symbol != "import")
+                break
+        }
     }
 
     private fun createAssociations() {

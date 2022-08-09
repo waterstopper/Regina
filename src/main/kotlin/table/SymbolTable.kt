@@ -87,7 +87,7 @@ class SymbolTable(
                 suitable.add(table)
         }
         when (suitable.size) {
-            0 -> throw PositionalException("File with `${token.value}` not found", token)
+            0 -> return fileTable // if function is in class //throw PositionalException("File with `${token.value}` not found", token)
             1 -> return suitable.first()
             else -> throw PositionalException("`${token.value}` is found in files: $suitable. Specify file.", token)
         }
@@ -121,7 +121,7 @@ class SymbolTable(
     }
 
     fun changeVariable(type: Variable) =
-        SymbolTable(scopeTable?.copy(), type, if (type is Type) changeFile(type.fileName).fileTable else fileTable)
+        SymbolTable(scopeTable?.copy(), type, if (type is Type) changeFile(type.fileTable).fileTable else fileTable)
 
     fun addFile(fileName: String): Boolean {
         if (imports[FileTable(fileName)] == null) {
@@ -142,8 +142,8 @@ class SymbolTable(
 
     fun getImportOrNull(importName: String) = imports[fileTable]!![importName]
     fun getImportOrNullByFileName(fileName: String) = imports[fileTable]!!.values.find { it.fileName == fileName }
-    fun getFileFromType(type: Type, token: Token) = imports.keys.find { it == type.fileName }
-        ?: throw PositionalException("File `${type.fileName.fileName}` not found", token)
+    fun getFileFromType(type: Type, token: Token) = imports.keys.find { it == type.fileTable }
+        ?: throw PositionalException("File `${type.fileTable.fileName}` not found", token)
 
     fun getImport(token: Token) =
         imports[fileTable]!![token.value]
@@ -194,15 +194,6 @@ class SymbolTable(
             return property
         return getObjectOrNull(token)
     }
-
-    fun getTypes(): MutableMap<String, MutableMap<String, Type>> {
-        val res = mutableMapOf<String, MutableMap<String, Type>>()
-        for (i in imports.keys)
-            res[i.fileName] = i.getTypes()
-        return res
-    }
-
-    fun getProperty(token: Token): Property = variableTable!!.getProperty(token)
 
     fun getPropertyOrNull(name: String): Property? {
         return variableTable?.getPropertyOrNull(name)

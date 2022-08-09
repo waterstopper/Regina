@@ -29,4 +29,7 @@ fun testSegment() {
     p = s.center()
     test(p.x == 1.5)
     test(p.y == 2)
+
+    rotated = s.rotate(45)
+    log(rotated)
 }

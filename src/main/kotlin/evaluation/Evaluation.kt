@@ -20,7 +20,7 @@ object Evaluation {
 
     fun eval(code: String) {
         val statements = SemanticAnalyzer("@NoFile", Parser(code).statements()).analyze()
-        SemanticAnalyzer.initializeSuperTypes()
+        SemanticAnalyzer.initializeSuperTypes() // TODO do before analyzing file, but after imports.
         val main = globalTable.getMain()
         main.body.evaluate(globalTable)
 //        for (stat in statements)

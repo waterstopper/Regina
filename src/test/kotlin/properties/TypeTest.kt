@@ -182,4 +182,27 @@ class TypeTest {
         """
         )
     }
+
+    @Test
+    fun testTripleInheritance() {
+        eval("""
+            fun main() {
+                a = A()
+            //    log(a.c)
+                log(a.b)
+                log(a.p)
+            }
+            class A : B {
+                p = 2
+            }
+            class B : C {
+                p = 1
+                b = p
+            }
+            class C {
+                p = 0
+                c = p
+            }
+        """)
+    }
 }

@@ -21,9 +21,7 @@ open class Type(
     val name: String,
     parent: Type?,
     val assignments: MutableSet<Assignment>,
-    val fileName: FileTable,
-    private val exported: Any? = null,
-    private val exportArgs: Any? = null,
+    val fileTable: FileTable,
     var supertype: Type? = null
 ) :
     Property(parent) {
@@ -120,7 +118,7 @@ open class Type(
     }
 
     fun equalToType(other: Type): Boolean {
-        return name == other.name && fileName == other.fileName && other !is Object
+        return name == other.name && fileTable == other.fileTable && other !is Object
     }
 
     fun copy(): Type {
@@ -130,9 +128,7 @@ open class Type(
                 parent = parent?.copy(),
                 assignments = (assignments + getInheritedAssignments()).map { TokenFactory.copy(it) as Assignment }
                     .toMutableSet(),
-                fileName = fileName,
-                exported = exported,
-                exportArgs = exportArgs,
+                fileTable = fileTable,
                 supertype = supertype
             )
         copy.assignments.forEach { it.parent = this }

@@ -215,13 +215,13 @@ fun whileFun() {
 	log(a)
 }
 
-class A export e{
+class A {
     a = 1
 }
 
 class B : A {}
 
-class D:imported.A export srv{}
+class D:imported.A {}
 
 class Colors {
 	BLACK = "000000"

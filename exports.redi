@@ -59,5 +59,8 @@ class Polygon : Polyline deprecated.export polygon {
 }
 
 class Rectangle : Nothing deprecated.export rect {
-
+    width = 1
+    height = 1
+    rotation = 1
+    exportArgs = {}
 }

@@ -7,6 +7,7 @@ package token
 import Optional
 import lexer.Parser
 import lexer.PositionalException
+import node.Node
 import properties.Type
 import table.SymbolTable
 import token.operator.TokenTernary
@@ -159,5 +160,9 @@ open class Token(
         for ((i, c) in children.withIndex())
             hash += c.hashCode() * (i + 1)
         return hash
+    }
+
+    fun toNode(): Node {
+        throw NotImplementedError()
     }
 }

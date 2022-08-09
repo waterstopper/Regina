@@ -3,7 +3,7 @@ package token
 import lexer.Parser
 import lexer.PositionalException
 
-class Declaration(
+open class Declaration(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
@@ -56,4 +56,20 @@ class Declaration(
             Pair(token.left, token.right)
         else Pair(token, null)
     }
+}
+
+class ImportDeclaration(
+    symbol: String,
+    value: String,
+    position: Pair<Int, Int>,
+    bindingPower: Int,
+    nud: ((token: Token, parser: Parser) -> Token)?,
+    led: (
+        (
+        token: Token, parser: Parser, token2: Token
+    ) -> Token
+    )?,
+    std: ((token: Token, parser: Parser) -> Token)?,
+) : Declaration(symbol, value, position, bindingPower, nud, led, std, listOf()) {
+
 }

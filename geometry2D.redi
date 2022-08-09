@@ -55,7 +55,6 @@ class Segment {
 
     fun dotProduct(other) {
         vec = this.vec()
-        #stop
         otherVec = other.vec()
         return vec.x * otherVec.x + vec.y * otherVec.y
     }
@@ -202,9 +201,11 @@ fun cosAngleBetweenSegments(a, b) {
 fun rotateFigure(fig, angle, pivot) {
     props = fig.properties
     i = 0
-    while(i < props.size)
+    while(i < props.size) {
         if(props[i] is Point)
-            props[i].rotate(angle, pivot)
+            props[i] = props[i].rotate(angle, pivot)
+        i = i + 1
+    }
 }
 
 fun translateFigure(fig, vec) {
@@ -242,7 +243,6 @@ fun centerFigure(fig) {
     array = []
     i = 0
     while(i < props.size) {
-        log(props[i]["value"])
         if(props[i]["value"] is Point)
             array.add(props[i]["value"])
         i = i + 1

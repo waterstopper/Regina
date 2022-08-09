@@ -18,18 +18,17 @@ class FileTable(
     private val types: MutableSet<Type> = mutableSetOf()
     private val objects: MutableSet<Object> = mutableSetOf()
     private val functions: MutableSet<Function> = mutableSetOf()
+    private val imports:MutableMap<String, FileTable> = mutableMapOf()
 
     fun addType(token: Token) {
-        // assignName(assignType(assignExported(token.left), fileName))
         val name = token.left.value
-        val exported = null
 
         val (assignments, functions) = createAssignmentsAndFunctions(token.children[2])
-        val added = Type(name, null, assignments, this, exported)
+        val added = Type(name, null, assignments, this)
         added.functions.addAll(functions)
         if (types.find { it.name == name } != null)
             throw PositionalException("Two classes with same name in `$fileName`", token)
-        val res = types.add(added)
+        types.add(added)
         for (assignment in added.assignments)
             assignment.parent = added
     }
