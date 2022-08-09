@@ -1,8 +1,8 @@
 package properties
 
-import token.Token
-import token.invocation.Call
-import token.statement.Assignment
+import node.Node
+import node.invocation.Call
+import node.statement.Assignment
 
 /**
  * Function's signature is:
@@ -11,9 +11,9 @@ import token.statement.Assignment
  */
 open class Function(
     val name: String,
-    val nonDefaultParams: List<Token>,
+    val nonDefaultParams: List<Node>,
     val defaultParams: List<Assignment>,
-    val body: Token
+    val body: Node
 ) {
     override fun toString(): String = "$name(${nonDefaultParams.joinToString(separator = ",")})"
 

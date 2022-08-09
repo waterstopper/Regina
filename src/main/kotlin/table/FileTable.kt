@@ -4,13 +4,15 @@ import evaluation.FunctionFactory
 import lexer.ExpectedTypeException
 import lexer.NotFoundException
 import lexer.PositionalException
+import lexer.RuntimeError
+import delete.Delete
 import properties.Function
 import properties.Object
 import properties.Type
-import token.Identifier
-import token.Token
-import token.invocation.Call
-import token.statement.Assignment
+import node.Identifier
+import node.Node
+import node.invocation.Call
+import node.statement.Assignment
 
 class FileTable(
     val fileName: String
@@ -18,28 +20,28 @@ class FileTable(
     private val types: MutableSet<Type> = mutableSetOf()
     private val objects: MutableSet<Object> = mutableSetOf()
     private val functions: MutableSet<Function> = mutableSetOf()
-    private val imports:MutableMap<String, FileTable> = mutableMapOf()
+    private val imports: MutableMap<String, FileTable> = mutableMapOf()
 
-    fun addType(token: Token) {
-        val name = token.left.value
+    fun addType(node: Node) {
+        val name = node.left.value
 
-        val (assignments, functions) = createAssignmentsAndFunctions(token.children[2])
+        val (assignments, functions) = createAssignmentsAndFunctions(node.children[2])
         val added = Type(name, null, assignments, this)
         added.functions.addAll(functions)
         if (types.find { it.name == name } != null)
-            throw PositionalException("Two classes with same name in `$fileName`", token)
+            throw PositionalException("Two classes with same name in `$fileName`", node)
         types.add(added)
         for (assignment in added.assignments)
             assignment.parent = added
     }
 
-    fun addObject(token: Token) {
-        if(token.left !is Identifier)
-            throw PositionalException("Object cannot be inherited", token)
-        val name = token.left.value
-        val (assignments, functions) = createAssignmentsAndFunctions(token.right)
+    fun addObject(node: Node) {
+        if (node.left !is Identifier)
+            throw PositionalException("Object cannot be inherited", node)
+        val name = node.left.value
+        val (assignments, functions) = createAssignmentsAndFunctions(node.right)
         if (objects.find { it.name == name } != null)
-            throw PositionalException("Two objects with same name", token)
+            throw PositionalException("Two objects with same name", node)
         objects.add(Object(name, assignments, this))
         objects.last().functions.addAll(functions)
     }
@@ -51,18 +53,18 @@ class FileTable(
     }
 
     fun getTypeOrNull(name: String): Type? = types.find { it.name == name }?.copy()
-    fun getType(token: Token): Type = types.find { it.name == token.value }?.copy()
-        ?: throw NotFoundException(token)
+    fun getType(node: Node): Type = types.find { it.name == node.value }?.copy()
+        ?: throw NotFoundException(node)
 
-    fun getUncopiedType(token: Token): Type = types.find { it.name == token.value }
-        ?: throw throw NotFoundException(token)
+    fun getUncopiedType(node: Node): Type = types.find { it.name == node.value }
+        ?: throw throw NotFoundException(node)
 
     fun getObjectOrNull(name: String) = objects.find { it.name == name }
 
-    fun getFunction(token: Token): Function =
-        getFunctionOrNull(token) ?: throw PositionalException("Function not found in `$fileName`", token)
+    fun getFunction(node: Node): Function =
+        getFunctionOrNull(node) ?: throw PositionalException("Function not found in `$fileName`", node)
 
-    fun getFunctionOrNull(token: Token): Function? = Function.getFunctionOrNull(token as Call, functions)
+    fun getFunctionOrNull(node: Node): Function? = Function.getFunctionOrNull(node as Call, functions)
 
     fun getMain(): Function {
         val mains = functions.filter { it.name == "main" }
@@ -73,12 +75,12 @@ class FileTable(
         return mains.first()
     }
 
-    private fun createAssignmentsAndFunctions(token: Token): Pair<MutableSet<Assignment>, List<Function>> {
+    private fun createAssignmentsAndFunctions(node: Node): Pair<MutableSet<Assignment>, List<Function>> {
         val res = mutableSetOf<Assignment>()
         val functions = mutableListOf<Function>()
-        for (a in token.children) {
+        for (a in node.children) {
             if (a is Assignment) {
-                if(!res.add(a))
+                if (!res.add(a))
                     throw PositionalException("Same property found above", a)
                 a.isProperty = true
             } else if (a.symbol == "fun")
@@ -116,4 +118,20 @@ class FileTable(
 
     fun getTypes(): MutableMap<String, Type> = types.associateBy { it.name }.toMutableMap()
     fun getObjects() = objects
+    fun getFileOfValue(delete: Delete, getValue: (table: FileTable) -> Any?): FileTable {
+        val inCurrent = getValue(this)
+        if (inCurrent != null)
+            return this
+        val suitable = mutableListOf<FileTable>()
+        for (table in imports.values) {
+            val fromFile = getValue(table)
+            if (fromFile != null)
+                suitable.add(table)
+        }
+        return when (suitable.size) {
+            0 -> this // if function is in class //throw PositionalException("File with `${token.value}` not found", token)
+            1 -> suitable.first()
+            else -> throw RuntimeError("`${delete}` is found in files: $suitable. Specify file.", delete)
+        }
+    }
 }

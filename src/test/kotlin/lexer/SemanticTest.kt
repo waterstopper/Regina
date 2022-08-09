@@ -2,7 +2,7 @@ package lexer
 
 import Optional
 import evaluation.Evaluation.eval
-import token.invocation.Invocation
+import node.invocation.Invocation
 import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertTrue

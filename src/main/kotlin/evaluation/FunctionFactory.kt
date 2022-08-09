@@ -6,8 +6,8 @@ import properties.EmbeddedFunction
 import properties.Function
 import properties.primitive.*
 import table.SymbolTable
-import token.Token
-import token.statement.Assignment
+import node.Node
+import node.statement.Assignment
 import utils.Utils
 import utils.Utils.toInt
 import utils.Utils.toVariable
@@ -19,74 +19,74 @@ object FunctionFactory {
     private var randomSeed = 42
     private var rnd = Random(randomSeed)
 
-    fun createFunction(token: Token): Function {
-        if (token.left.value != "(")
-            throw PositionalException("Expected parentheses after function name", token.left)
-        val withoutDefault = mutableListOf<Token>()
+    fun createFunction(node: Node): Function {
+        if (node.left.value != "(")
+            throw PositionalException("Expected parentheses after function name", node.left)
+        val withoutDefault = mutableListOf<Node>()
         val withDefault = mutableListOf<Assignment>()
-        for (i in 1..token.left.children.lastIndex) {
-            if (token.left.children[i] !is Assignment)
-                withoutDefault.add(token.left.children[i])
-            else withDefault.add(token.left.children[i] as Assignment)
+        for (i in 1..node.left.children.lastIndex) {
+            if (node.left.children[i] !is Assignment)
+                withoutDefault.add(node.left.children[i])
+            else withDefault.add(node.left.children[i] as Assignment)
         }
         return Function(
-            name = token.left.left.value,
+            name = node.left.left.value,
             nonDefaultParams = withoutDefault,
             defaultParams = withDefault,
-            body = token.children[1]
+            body = node.children[1]
         )
     }
 
-    private fun createIdent(token: Token, name: String) = Token(value = name, symbol = name, position = token.position)
+    private fun createIdent(node: Node, name: String) = Node(value = name, symbol = name, position = node.position)
 
-    fun getIdent(token: Token, name: String, args: SymbolTable) = args.getIdentifier(createIdent(token, name))
-    fun getDictionary(token: Token, name: String, args: SymbolTable): PDictionary {
-        val dictionary = getIdent(token, name, args)
+    fun getIdent(node: Node, name: String, args: SymbolTable) = args.getIdentifier(createIdent(node, name))
+    fun getDictionary(node: Node, name: String, args: SymbolTable): PDictionary {
+        val dictionary = getIdent(node, name, args)
         if (dictionary !is PDictionary)
-            throw PositionalException("Expected array as $name", token)
+            throw PositionalException("Expected array as $name", node)
         return dictionary
     }
 
-    fun getArray(token: Token, name: String, args: SymbolTable): PArray {
-        val array = getIdent(token, name, args)
+    fun getArray(node: Node, name: String, args: SymbolTable): PArray {
+        val array = getIdent(node, name, args)
         if (array !is PArray)
-            throw PositionalException("Expected array as $name", token)
+            throw PositionalException("Expected array as $name", node)
         return array
     }
 
-    fun getString(token: Token, name: String, args: SymbolTable): PString {
-        val str = getIdent(token, name, args)
+    fun getString(node: Node, name: String, args: SymbolTable): PString {
+        val str = getIdent(node, name, args)
         if (str !is PString)
-            throw PositionalException("Expected string as $name", token)
+            throw PositionalException("Expected string as $name", node)
         return str
     }
 
-    fun getNumber(token: Token, name: String, args: SymbolTable): PNumber {
-        val num = getIdent(token, name, args)
+    fun getNumber(node: Node, name: String, args: SymbolTable): PNumber {
+        val num = getIdent(node, name, args)
         if (num !is PNumber)
-            throw PositionalException("Expected integer as $name", token)
+            throw PositionalException("Expected integer as $name", node)
         return num
     }
 
-    fun getInt(token: Token, name: String, args: SymbolTable): PInt {
-        val int = getIdent(token, name, args)
+    fun getInt(node: Node, name: String, args: SymbolTable): PInt {
+        val int = getIdent(node, name, args)
         if (int !is PInt)
-            throw PositionalException("Expected integer as $name", token)
+            throw PositionalException("Expected integer as $name", node)
         return int
     }
 
-    fun getDouble(token: Token, name: String, args: SymbolTable): PDouble {
-        val double = getIdent(token, name, args)
+    fun getDouble(node: Node, name: String, args: SymbolTable): PDouble {
+        val double = getIdent(node, name, args)
         if (double !is PDouble)
-            throw PositionalException("Expected integer as $name", token)
+            throw PositionalException("Expected integer as $name", node)
         return double
     }
 
     fun initializeEmbedded(): MutableMap<String, Function> {
         val res = mutableMapOf<String, Function>()
-        res["log"] = EmbeddedFunction("log", listOf(Token(value = "x")))
+        res["log"] = EmbeddedFunction("log", listOf(Node(value = "x")))
         { token, args -> println(getIdent(token, "x", args)) }
-        res["except"] = EmbeddedFunction("except", listOf(Token(value = "x")))
+        res["except"] = EmbeddedFunction("except", listOf(Node(value = "x")))
         { token, args ->
             // TODO check that instances work properly. e.g. except(a())
             throw PositionalException(getIdent(token, "x", args).toString(), token)
@@ -95,8 +95,8 @@ object FunctionFactory {
         res["write"] = EmbeddedFunction(
             "write",
             listOf(
-                Token(value = "content"),
-                Token(value = "path")
+                Node(value = "content"),
+                Node(value = "path")
             )
         ) { token, args ->
             val fileName = getIdent(token, "path", args)
@@ -108,7 +108,7 @@ object FunctionFactory {
         }
         res["read"] = EmbeddedFunction(
             "read",
-            listOf(Token(value = "path"))
+            listOf(Node(value = "path"))
         ) { token, args ->
             val fileName = getIdent(token, "path", args)
             if (fileName !is PString)
@@ -118,7 +118,7 @@ object FunctionFactory {
         }
         res["exists"] = EmbeddedFunction(
             "exists",
-            listOf(Token(value = "path"))
+            listOf(Node(value = "path"))
         ) { token, args ->
             val fileName = getIdent(token, "path", args)
             if (fileName !is PString)
@@ -128,7 +128,7 @@ object FunctionFactory {
         }
         res["delete"] = EmbeddedFunction(
             "delete",
-            listOf(Token(value = "path"))
+            listOf(Node(value = "path"))
         ) { token, args ->
             val fileName = getIdent(token, "path", args)
             if (fileName !is PString)
@@ -136,13 +136,13 @@ object FunctionFactory {
             val file = File(fileName.getPValue())
             file.delete().toInt()
         }
-        res["test"] = EmbeddedFunction("test", listOf(Token(value = "x"))) { token, args ->
+        res["test"] = EmbeddedFunction("test", listOf(Node(value = "x"))) { token, args ->
             val ident = getIdent(token, "x", args)
             if (ident !is PInt || ident.getPValue() == 0)
                 throw PositionalException("test failed", token)
         }
         res["rnd"] = EmbeddedFunction("rnd", listOf()) { _, _ -> rnd.nextDouble() }
-        res["seed"] = EmbeddedFunction("seed", listOf(Token(value = "x"))) { token, args ->
+        res["seed"] = EmbeddedFunction("seed", listOf(Node(value = "x"))) { token, args ->
             val seed = getIdent(token, "x", args)
             if (seed !is PInt)
                 throw ExpectedTypeException(listOf(PInt::class), token)
@@ -151,8 +151,8 @@ object FunctionFactory {
             Unit
         }
         res["str"] =
-            EmbeddedFunction("str", listOf(Token(value = "x"))) { token, args -> getIdent(token, "x", args).toString() }
-        res["int"] = EmbeddedFunction("int", listOf(Token(value = "x"))) { token, args ->
+            EmbeddedFunction("str", listOf(Node(value = "x"))) { token, args -> getIdent(token, "x", args).toString() }
+        res["int"] = EmbeddedFunction("int", listOf(Node(value = "x"))) { token, args ->
             when (val argument = getIdent(token, "x", args)) {
                 is PDouble -> argument.getPValue().toInt()
                 is PInt -> argument.getPValue()
@@ -160,7 +160,7 @@ object FunctionFactory {
                 else -> throw PositionalException("cannot cast type to integer", token)
             }
         }
-        res["double"] = EmbeddedFunction("double", listOf(Token(value = "x"))) { token, args ->
+        res["double"] = EmbeddedFunction("double", listOf(Node(value = "x"))) { token, args ->
             when (val argument = getIdent(token, "x", args)) {
                 is PDouble -> argument.getPValue()
                 is PInt -> argument.getPValue().toDouble()
@@ -168,7 +168,7 @@ object FunctionFactory {
                 else -> throw PositionalException("cannot cast type to double", token)
             }
         }
-        res["array"] = EmbeddedFunction("array", listOf(Token(value = "x"))) { token, args ->
+        res["array"] = EmbeddedFunction("array", listOf(Node(value = "x"))) { token, args ->
             when (val argument = getIdent(token, "x", args)) {
                 is PDictionary -> argument.getPValue()
                     .map {
@@ -184,35 +184,35 @@ object FunctionFactory {
                 else -> throw PositionalException("cannot cast type to array", token)
             }
         }
-        res["sin"] = EmbeddedFunction("sin", listOf(Token(value = "angle"))) { token, args ->
+        res["sin"] = EmbeddedFunction("sin", listOf(Node(value = "angle"))) { token, args ->
             when (val argument = getIdent(token, "angle", args)) {
                 is PInt -> sin(argument.getPValue().toDouble())
                 is PDouble -> sin(argument.getPValue())
                 else -> throw PositionalException("Expected number", token)
             }
         }
-        res["cos"] = EmbeddedFunction("cos", listOf(Token(value = "angle"))) { token, args ->
+        res["cos"] = EmbeddedFunction("cos", listOf(Node(value = "angle"))) { token, args ->
             when (val argument = getIdent(token, "angle", args)) {
                 is PInt -> cos(argument.getPValue().toDouble())
                 is PDouble -> cos(argument.getPValue())
                 else -> throw PositionalException("Expected number", token)
             }
         }
-        res["sqrt"] = EmbeddedFunction("sqrt", listOf(Token(value = "number"))) { token, args ->
+        res["sqrt"] = EmbeddedFunction("sqrt", listOf(Node(value = "number"))) { token, args ->
             when (val argument = getIdent(token, "number", args)) {
                 is PInt -> sqrt(argument.getPValue().toDouble())
                 is PDouble -> sqrt(argument.getPValue())
                 else -> throw PositionalException("Expected number", token)
             }
         }
-        res["asin"] = EmbeddedFunction("asin", listOf(Token(value = "sin"))) { token, args ->
+        res["asin"] = EmbeddedFunction("asin", listOf(Node(value = "sin"))) { token, args ->
             when (val argument = getIdent(token, "sin", args)) {
                 is PInt -> asin(argument.getPValue().toDouble())
                 is PDouble -> asin(argument.getPValue())
                 else -> throw PositionalException("Expected number", token)
             }
         }
-        res["acos"] = EmbeddedFunction("acos", listOf(Token(value = "cos"))) { token, args ->
+        res["acos"] = EmbeddedFunction("acos", listOf(Node(value = "cos"))) { token, args ->
             when (val argument = getIdent(token, "cos", args)) {
                 is PInt -> acos(argument.getPValue().toDouble())
                 is PDouble -> acos(argument.getPValue())
@@ -221,7 +221,7 @@ object FunctionFactory {
         }
         res["floatEquals"] =
             EmbeddedFunction(
-                "floatEquals", listOf(Token(value = "first"), Token(value = "second")),
+                "floatEquals", listOf(Node(value = "first"), Node(value = "second")),
                 listOf(
                     Utils.parseAssignment("epsilon = 0.0000000000000000000000000001"),
                     Utils.parseAssignment("absTh = 0.0000001")

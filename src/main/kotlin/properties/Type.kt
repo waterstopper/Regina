@@ -5,11 +5,11 @@ import properties.primitive.PDictionary
 import properties.primitive.PInt
 import table.FileTable
 import table.SymbolTable
-import token.Link
-import token.Token
-import token.TokenFactory
-import token.invocation.Call
-import token.statement.Assignment
+import node.Link
+import node.Node
+import node.TokenFactory
+import node.invocation.Call
+import node.statement.Assignment
 import utils.Utils.toVariable
 
 /**
@@ -28,7 +28,7 @@ open class Type(
     protected val properties = mutableMapOf<String, Property>()
     val functions = mutableSetOf<Function>()
 
-    fun getAssignment(token: Token): Assignment? = assignments.find { it.left == token }
+    fun getAssignment(node: Node): Assignment? = assignments.find { it.left == node }
     fun getAssignment(name: String): Assignment? = assignments.find { it.left.value == name }
     fun getLinkedAssignment(link: Link, index: Int): Assignment? {
         val identProperty = getAssignment(link.children[index])
@@ -44,9 +44,12 @@ open class Type(
     }
 
     fun removeAssignment(assignment: Assignment) = assignments.remove(assignment)
-    fun removeAssignment(token: Token): Assignment? {
+    fun removeAssignment(assignment: delete.Assignment) {//assignments.remove(assignment) TODO
+    }
+
+    fun removeAssignment(node: Node): Assignment? {
         for (a in assignments)
-            if (a.left == token) {
+            if (a.left == node) {
                 assignments.remove(a)
                 return a
             }
@@ -65,11 +68,11 @@ open class Type(
         return setOf()
     }
 
-    override fun getFunctionOrNull(token: Token): Function? =
-        Function.getFunctionOrNull(token as Call, functions + getInheritedFunctions())
+    override fun getFunctionOrNull(node: Node): Function? =
+        Function.getFunctionOrNull(node as Call, functions + getInheritedFunctions())
 
-    override fun getFunction(token: Token) = getFunctionOrNull(token)
-        ?: throw PositionalException("Class `$name` does not contain function", token)
+    override fun getFunction(node: Node) = getFunctionOrNull(node)
+        ?: throw PositionalException("Class `$name` does not contain function", node)
 
     override fun getProperties() =
         PDictionary(properties.mapKeys { (key, _) -> key.toVariable() }.toMutableMap(), this)
@@ -80,10 +83,10 @@ open class Type(
         else -> properties[name]
     }
 
-    override fun getProperty(token: Token) = when (token.value) {
+    override fun getProperty(node: Node) = when (node.value) {
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
-        else -> properties[token.value] ?: PInt(
+        else -> properties[node.value] ?: PInt(
             0,
             this
         )

@@ -1,10 +1,10 @@
 package lexer
 
-import token.Identifier
-import token.Token
-import token.TokenFactory
-import token.variable.TokenNumber
-import token.variable.TokenString
+import node.Identifier
+import node.Node
+import node.TokenFactory
+import node.variable.NodeNumber
+import node.variable.NodeString
 
 /**
  * Registers common token groups, such as:
@@ -16,14 +16,14 @@ import token.variable.TokenString
  * @property table dictionary of registered token symbols mapped to created tokens
  */
 class Registry {
-    private val table = mutableMapOf<String, Token>()
+    private val table = mutableMapOf<String, Node>()
 
     private fun register(
         symbol: String,
         bp: Int,
-        nud: ((token: Token, parser: Parser) -> Token)?,
-        led: ((token: Token, parser: Parser, token2: Token) -> Token)?,
-        std: ((token: Token, parser: Parser) -> Token)?,
+        nud: ((node: Node, parser: Parser) -> Node)?,
+        led: ((node: Node, parser: Parser, node2: Node) -> Node)?,
+        std: ((node: Node, parser: Parser) -> Node)?,
     ) {
         if (table[symbol] != null) {
             // It is debatable whether these should be overridden on `register` call or not
@@ -35,11 +35,11 @@ class Registry {
                 value.led = led
             if (std != null && value.std == null)
                 value.std = std
-        } else table[symbol] = Token(bindingPower = bp, nud = nud, led = led, std = std)
+        } else table[symbol] = Node(bindingPower = bp, nud = nud, led = led, std = std)
     }
 
     fun prefix(symbol: String) {
-        register(symbol, 0, { t: Token, p: Parser ->
+        register(symbol, 0, { t: Node, p: Parser ->
             t.children.add(p.expression(100))
             t
         }, null, null)
@@ -50,9 +50,9 @@ class Registry {
      * Therefore, standard evaluation won't work (it will produce NumberFormatException)
      */
     fun unaryMinus(symbol: String) {
-        register(symbol, 0, { t: Token, p: Parser ->
+        register(symbol, 0, { t: Node, p: Parser ->
             t.children.add(p.expression(100))
-            if (t.left is TokenNumber) {
+            if (t.left is NodeNumber) {
                 t.left.value = "-${t.left.value}"
                 t.left
             } else t
@@ -60,14 +60,14 @@ class Registry {
     }
 
     fun infix(symbol: String, bp: Int) {
-        register(symbol, bp, null, { t: Token, p: Parser, left: Token ->
+        register(symbol, bp, null, { t: Node, p: Parser, left: Node ->
             t.children.add(left)
             t.children.add(p.expression(t.bindingPower))
             t
         }, null)
     }
 
-    fun operator(symbol: String, value: String, position: Pair<Int, Int>): Token {
+    fun operator(symbol: String, value: String, position: Pair<Int, Int>): Node {
         return TokenFactory.createOperator(
             symbol,
             value,
@@ -79,8 +79,8 @@ class Registry {
         )
     }
 
-    fun string(symbol: String, value: String, position: Pair<Int, Int>): TokenString =
-        TokenString(
+    fun string(symbol: String, value: String, position: Pair<Int, Int>): NodeString =
+        NodeString(
             symbol,
             value,
             position,
@@ -90,8 +90,8 @@ class Registry {
             table[symbol]!!.std
         )
 
-    fun token(symbol: String, value: String, position: Pair<Int, Int>): Token =
-        Token(
+    fun token(symbol: String, value: String, position: Pair<Int, Int>): Node =
+        Node(
             symbol,
             value,
             position,
@@ -102,40 +102,40 @@ class Registry {
         )
 
     fun symbol(symbol: String) {
-        register(symbol, 0, { t: Token, _: Parser -> t }, null, null)
+        register(symbol, 0, { t: Node, _: Parser -> t }, null, null)
     }
 
     fun consumable(symbol: String) {
         register(symbol, 0, null, null, null)
     }
 
-    fun infixLed(symbol: String, bp: Int, led: ((token: Token, parser: Parser, token2: Token) -> Token)?) {
+    fun infixLed(symbol: String, bp: Int, led: ((node: Node, parser: Parser, node2: Node) -> Node)?) {
         register(symbol, bp, null, led, null)
     }
 
     fun infixRight(symbol: String, bp: Int) {
-        register(symbol, bp, null, { t: Token, p: Parser, left: Token ->
+        register(symbol, bp, null, { t: Node, p: Parser, left: Node ->
             t.children.add(left)
             t.children.add(p.expression(t.bindingPower - 1))
             t
         }, null)
     }
 
-    fun prefixNud(symbol: String, nud: (token: Token, parser: Parser) -> Token) {
+    fun prefixNud(symbol: String, nud: (node: Node, parser: Parser) -> Node) {
         register(symbol, 0, nud, null, null)
     }
 
-    fun infixRightLed(symbol: String, bp: Int, led: ((token: Token, parser: Parser, token2: Token) -> Token)) {
+    fun infixRightLed(symbol: String, bp: Int, led: ((node: Node, parser: Parser, node2: Node) -> Node)) {
         register(symbol, bp, null, led, null)
     }
 
-    fun stmt(symbol: String, std: (token: Token, parser: Parser) -> Token) {
+    fun stmt(symbol: String, std: (node: Node, parser: Parser) -> Node) {
         register(symbol, 0, null, null, std)
     }
 
     fun defined(symbol: String): Boolean = table[symbol] != null
 
-    fun definedIdentifier(symbol: String, value: String, position: Pair<Int, Int>): Token {
+    fun definedIdentifier(symbol: String, value: String, position: Pair<Int, Int>): Node {
         return TokenFactory.createWordToken(
             symbol, value, position,
             table[symbol]!!.bindingPower,

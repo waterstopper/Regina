@@ -2,7 +2,7 @@ package table
 
 import lexer.NotFoundException
 import properties.Variable
-import token.Token
+import node.Node
 
 class ScopeTable {
     private val variables: MutableMap<String, Variable> = mutableMapOf()
@@ -11,7 +11,7 @@ class ScopeTable {
         variables[name] = variable
     }
 
-    fun getVariable(token: Token) = variables[token.value] ?: throw NotFoundException(token)
+    fun getVariable(node: Node) = variables[node.value] ?: throw NotFoundException(node)
     fun getVariable(name: String) = variables[name]
         ?: throw NotFoundException()
 

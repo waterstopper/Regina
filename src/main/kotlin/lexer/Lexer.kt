@@ -2,9 +2,9 @@ package lexer
 
 import Logger
 import lexer.RegistryFactory.getRegistry
-import token.Meta
-import token.Token
-import token.variable.TokenNumber
+import node.Meta
+import node.Node
+import node.variable.NodeNumber
 
 /**
  * Lexer creates tokens from text
@@ -21,7 +21,7 @@ class Lexer() {
     private var registry: Registry = getRegistry()
     private var index: Int = 0
     var position: Pair<Int, Int> = Pair(0, 0)
-    private val tokens = mutableListOf<Token>()
+    private val nodes = mutableListOf<Node>()
     private var tokenIndex = -1
 
     constructor(source: String = "") : this() {
@@ -30,45 +30,45 @@ class Lexer() {
     }
 
     private fun addTokens() {
-        tokens.add(Token("fictive")) // this is added to prevent tokens.last()
+        nodes.add(Node("fictive")) // this is added to prevent tokens.last()
         // check throwing exception if first token is comment
-        tokens.add(createNextToken())
+        nodes.add(createNextToken())
         while (index < source.length)
             addToken(createNextToken())
-        if (tokens.last().symbol != "(EOF)")
-            tokens.add(Token("(EOF)", "(EOF)", position))
-        if (tokens.size >= 100000)
-            Logger.addWarning(tokens.last(), "File too large")
-        tokens.removeAt(0)
+        if (nodes.last().symbol != "(EOF)")
+            nodes.add(Node("(EOF)", "(EOF)", position))
+        if (nodes.size >= 100000)
+            Logger.addWarning(nodes.last(), "File too large")
+        nodes.removeAt(0)
     }
 
-    fun next(): Token {
+    fun next(): Node {
         // in current implementation if is good too, but it is safer with while if there are some changes
-        while (tokens[++tokenIndex].symbol == "(SEP)") {
+        while (nodes[++tokenIndex].symbol == "(SEP)") {
         }
-        return tokens[tokenIndex]
+        return nodes[tokenIndex]
     }
 
-    fun prev(): Token = tokens[--tokenIndex]
+    fun prev(): Node = nodes[--tokenIndex]
 
     fun moveAfterSeparator() {
         tokenIndex++
-        if (tokens[tokenIndex].symbol != "(SEP)" && tokens[tokenIndex].symbol != "(EOF)")
-            throw PositionalException("Expected separator", tokens[tokenIndex])
+        if (nodes[tokenIndex].symbol != "(SEP)" && nodes[tokenIndex].symbol != "(EOF)")
+            throw PositionalException("Expected separator", nodes[tokenIndex])
     }
 
-    fun peek(): Token {
+    fun peek(): Node {
         var offset = 1
-        if (tokenIndex + offset > tokens.lastIndex)
-            return tokens.last()
-        while (tokens[tokenIndex + offset].symbol == "(SEP)")
+        if (tokenIndex + offset > nodes.lastIndex)
+            return nodes.last()
+        while (nodes[tokenIndex + offset].symbol == "(SEP)")
             offset++
-        return tokens[tokenIndex + offset]
+        return nodes[tokenIndex + offset]
     }
 
-    fun peekSeparator(): Boolean = tokens[tokenIndex + 1].symbol == "(SEP)"
+    fun peekSeparator(): Boolean = nodes[tokenIndex + 1].symbol == "(SEP)"
 
-    private fun createNextToken(): Token {
+    private fun createNextToken(): Node {
         consumeWhitespaceAndComments()
         if (index == source.length)
             return registry.token("(EOF)", "(EOF)", position)
@@ -95,7 +95,7 @@ class Lexer() {
         else throw PositionalException("Invalid character", position = position, length = 1)
     }
 
-    private fun nextMeta(): Token {
+    private fun nextMeta(): Node {
         val res = StringBuilder()
         res.append(source[index])
         move()
@@ -110,7 +110,7 @@ class Lexer() {
         )
     }
 
-    private fun nextString(): Token {
+    private fun nextString(): Node {
         val res = StringBuilder()
         moveAndAppend(res)
         while (source[index] != '"') {
@@ -131,7 +131,7 @@ class Lexer() {
         )
     }
 
-    private fun nextIdent(): Token {
+    private fun nextIdent(): Node {
         val res = StringBuilder()
         while (index < source.length && isIdentChar(source[index]))
             moveAndAppend(res)
@@ -147,7 +147,7 @@ class Lexer() {
         )
     }
 
-    private fun nextNumber(): Token {
+    private fun nextNumber(): Node {
         val res = StringBuilder()
         moveAndAppend(res)
         while (index < source.length && source[index].isDigit())
@@ -157,10 +157,10 @@ class Lexer() {
             while (index < source.length && source[index].isDigit())
                 moveAndAppend(res)
         }
-        return TokenNumber(res.toString(), Pair(position.first - res.toString().length, position.second))
+        return NodeNumber(res.toString(), Pair(position.first - res.toString().length, position.second))
     }
 
-    private fun nextOperator(): Token {
+    private fun nextOperator(): Node {
         for (ind in index + 2 downTo index) {
             if (ind < source.length && registry.defined(source.substring(index..ind))) {
                 val value = source.substring(index..ind)
@@ -243,9 +243,9 @@ class Lexer() {
      * (SEP) tokens' purpose is separating statements. Therefore, there is no need to have more than one (SEP) in a row.
      * Additionally, if-else statement denotation function in [RegistryFactory] relies on one (SEP) in a row.
      */
-    private fun addToken(newToken: Token) {
-        if (tokens.last().symbol != "(SEP)" || newToken.symbol != "(SEP)")
-            tokens.add(newToken)
+    private fun addToken(newNode: Node) {
+        if (nodes.last().symbol != "(SEP)" || newNode.symbol != "(SEP)")
+            nodes.add(newNode)
     }
 
     private fun move(step: Int = 1) {

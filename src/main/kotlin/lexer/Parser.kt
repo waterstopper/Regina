@@ -1,7 +1,7 @@
 package lexer
 
-import token.Token
-import token.statement.Block
+import node.Node
+import node.statement.Block
 
 /**
  * Parses created tokens into AST
@@ -17,7 +17,7 @@ class Parser() {
         lexer = Lexer(text)
     }
 
-    fun expression(rbp: Int): Token {
+    fun expression(rbp: Int): Node {
         var t = lexer.next()
         var left = t.nud?.let { it(t, this) }
             ?: throw PositionalException(
@@ -32,7 +32,7 @@ class Parser() {
         return left
     }
 
-    fun advance(symbol: String): Token {
+    fun advance(symbol: String): Node {
         var token = lexer.next()
         if (token.symbol == symbol)
             return token
@@ -43,8 +43,8 @@ class Parser() {
         lexer.moveAfterSeparator()
     }
 
-    fun statements(): List<Token> {
-        val statements = mutableListOf<Token>()
+    fun statements(): List<Node> {
+        val statements = mutableListOf<Node>()
         var next = lexer.peek()
         while (next.symbol != "(EOF)" && next.symbol != "}") {
             statements.add(statement())
@@ -53,7 +53,7 @@ class Parser() {
         return statements.filter { it.symbol != "(SEP)" }
     }
 
-    fun statement(): Token {
+    fun statement(): Node {
         var token = lexer.peek()
         if (token.std != null) {
             token = lexer.next()
@@ -67,7 +67,7 @@ class Parser() {
         return token
     }
 
-    fun block(canBeSingleStatement: Boolean = false): Token {
+    fun block(canBeSingleStatement: Boolean = false): Node {
         val token = lexer.next()
         if (token.symbol != "{") {
             if (canBeSingleStatement) {

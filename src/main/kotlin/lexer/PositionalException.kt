@@ -1,19 +1,20 @@
 package lexer
 
 import evaluation.Evaluation.clear
+import delete.Delete
 import properties.Function
 import properties.Variable
 import properties.primitive.*
 import table.FileTable
-import token.Identifier
-import token.Token
-import token.invocation.Invocation
-import token.operator.Index
+import node.Identifier
+import node.Node
+import node.invocation.Invocation
+import node.operator.Index
 import kotlin.reflect.KClass
 
 open class PositionalException(
-    private val errorMessage: String,
-    protected val token: Token = Token(),
+    protected val errorMessage: String,
+    protected val node: Node = Node(),
     protected val position: Pair<Int, Int> = Pair(0, 0),
     protected val length: Int = 1,
     private val file: String = ""
@@ -24,33 +25,38 @@ open class PositionalException(
     }
 
     override val message: String
-        get() = "`${token.value}` $errorMessage at ${getPosition()}"
+        get() = "`${node.value}` $errorMessage at ${getPosition()}"
 
     protected fun getPosition(): String {
-        return if (token.value != "")
-            "${token.position.second},${token.position.first}-${token.position.first + token.value.length - 1}"
+        return if (node.value != "")
+            "${node.position.second},${node.position.first}-${node.position.first + node.value.length - 1}"
         else "${position.second},${position.first}-${position.first + length - 1}"
     }
 }
 
+class RuntimeError(errorMessage: String, private val delete: Delete) : PositionalException(errorMessage) {
+    override val message: String
+        get() = "$errorMessage at ${delete.position}"
+}
+
 class NotFoundException(
-    token: Token = Token(),
+    node: Node = Node(),
     fileName: String = "",
     file: FileTable = FileTable(""),
     val variable: Variable? = null
 ) :
-    PositionalException("", token, file = if (fileName == "") file.fileName else fileName) {
+    PositionalException("", node, file = if (fileName == "") file.fileName else fileName) {
     override val message: String
         get() =
-            "Not found " + (variable?.toString() ?: token.value) + " at ${getPosition()}"
+            "Not found " + (variable?.toString() ?: node.value) + " at ${getPosition()}"
 }
 
 class ExpectedTypeException(
     private val classes: List<KClass<*>>,
-    token: Token,
+    node: Node,
     private val value: Any? = null,
     private val expectedMultiple: Boolean = false
-) : PositionalException("", token) {
+) : PositionalException("", node) {
     override val message: String
         get() {
             return "Expected " + classes.joinToString(
@@ -61,7 +67,7 @@ class ExpectedTypeException(
                 mapToString(
                     value::class
                 )
-            }" else "") + " ${token.position}"
+            }" else "") + " ${node.position}"
         }
 
     private fun mapToString(mapped: KClass<*>): String {

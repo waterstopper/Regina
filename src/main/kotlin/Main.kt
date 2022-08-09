@@ -2,7 +2,7 @@ import evaluation.Evaluation.oldEvaluate
 import lexer.Parser
 import lexer.PositionalException
 import lexer.SemanticAnalyzer
-import token.Token
+import node.Node
 import utils.Utils.treeView
 import java.io.File
 import java.io.FileNotFoundException
@@ -41,13 +41,13 @@ fun main() {
     oldEvaluate(s, "testCode.redi")
 }
 
-fun readFile(path: String = "", tokenPath: Token = Token()): List<Token> {
-    val file = File(if (path == "") tokenPath.value else if (path.contains(".")) path else "$path.redi")
+fun readFile(path: String = "", nodePath: Node = Node()): List<Node> {
+    val file = File(if (path == "") nodePath.value else if (path.contains(".")) path else "$path.redi")
     val text: String
     try {
         text = file.readText()
     } catch (_: FileNotFoundException) {
-        throw PositionalException("no import `${file.name}` found", tokenPath)
+        throw PositionalException("no import `${file.name}` found", nodePath)
     }
     val statements = Parser(text).statements()
     statements.treeView()

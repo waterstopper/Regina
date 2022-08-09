@@ -4,7 +4,7 @@ import evaluation.FunctionFactory.getIdent
 import evaluation.FunctionFactory.getNumber
 import properties.EmbeddedFunction
 import properties.Type
-import token.Token
+import node.Node
 import utils.Utils.castToNumber
 import utils.Utils.unaryMinus
 import utils.Utils.unifyPNumbers
@@ -36,7 +36,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
             )
             setFunction(
                 n,
-                EmbeddedFunction("min", listOf(Token(value = "other"))) { token, args ->
+                EmbeddedFunction("min", listOf(Node(value = "other"))) { token, args ->
                     val (number, other) = unifyPNumbers(
                         args.getPropertyOrNull("this")!!,
                         getIdent(token, "other", args),
@@ -49,7 +49,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
             )
             setFunction(
                 n,
-                EmbeddedFunction("max", listOf(Token(value = "other"))) { token, args ->
+                EmbeddedFunction("max", listOf(Node(value = "other"))) { token, args ->
                     val (number, other) = unifyPNumbers(
                         args.getPropertyOrNull("this")!!,
                         getIdent(token, "other", args),
@@ -62,7 +62,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
             )
             setFunction(
                 n,
-                EmbeddedFunction("pow", listOf(Token(value = "deg"))) { token, args ->
+                EmbeddedFunction("pow", listOf(Node(value = "deg"))) { token, args ->
                     val number = castToNumber(args.getPropertyOrNull("this")!!)
                     val deg = getNumber(token, "deg", args)
                     number.getPValue().toDouble().pow(deg.getPValue().toDouble())

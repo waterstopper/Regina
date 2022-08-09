@@ -3,10 +3,12 @@ package table
 import evaluation.Evaluation.globalTable
 import evaluation.FunctionFactory.initializeEmbedded
 import lexer.PositionalException
+import delete.Delete
+import delete.invocation.Invocation
 import properties.*
 import properties.Function
-import token.Token
-import token.statement.Assignment
+import node.Node
+import node.statement.Assignment
 import utils.Utils.toVariable
 
 class SymbolTable(
@@ -67,16 +69,16 @@ class SymbolTable(
         else null
     }
 
-    private fun getFromFiles(token: Token, getValue: (table: FileTable) -> Any?): Any {
+    private fun getFromFiles(node: Node, getValue: (table: FileTable) -> Any?): Any {
         val valuesList = getListFromFiles(getValue)
         if (valuesList.size >= 2)
-            throw PositionalException("Import ambiguity. `${token.value}` found in $valuesList", token)
+            throw PositionalException("Import ambiguity. `${node.value}` found in $valuesList", node)
         if (valuesList.isEmpty())
-            throw PositionalException("`${token.value}` not found", token)
+            throw PositionalException("`${node.value}` not found", node)
         return valuesList.first()
     }
 
-    fun getFileOfValue(token: Token, getValue: (table: FileTable) -> Any?): FileTable {
+    fun getFileOfValue(node: Node, getValue: (table: FileTable) -> Any?): FileTable {
         val inCurrent = getValue(fileTable)
         if (inCurrent != null)
             return fileTable
@@ -86,12 +88,15 @@ class SymbolTable(
             if (fromFile != null)
                 suitable.add(table)
         }
-        when (suitable.size) {
-            0 -> return fileTable // if function is in class //throw PositionalException("File with `${token.value}` not found", token)
-            1 -> return suitable.first()
-            else -> throw PositionalException("`${token.value}` is found in files: $suitable. Specify file.", token)
+        return when (suitable.size) {
+            0 -> fileTable // if function is in class //throw PositionalException("File with `${token.value}` not found", token)
+            1 -> suitable.first()
+            else -> throw PositionalException("`${node.value}` is found in files: $suitable. Specify file.", node)
         }
     }
+
+    fun getFileOfValue(delete: Delete, getValue: (table: FileTable) -> Any?): FileTable =
+        fileTable.getFileOfValue(delete, getValue)
 
     fun getFileTable() = fileTable
     fun getScope() = scopeTable
@@ -131,46 +136,50 @@ class SymbolTable(
         return false
     }
 
-    fun addImport(fileName: Token, importName: Token) {
+    fun addImport(fileName: Node, importName: Node) {
         imports[fileTable]!![importName.value] = imports.keys.find { it.fileName == fileName.value }!!
     }
 
-    fun addType(token: Token) = fileTable.addType(token)
+    fun addType(node: Node) = fileTable.addType(node)
     fun addFunction(function: Function) = fileTable.addFunction(function)
-    fun addObject(token: Token) = fileTable.addObject(token)
+    fun addObject(node: Node) = fileTable.addObject(node)
     fun addVariable(name: String, value: Variable) = scopeTable!!.addVariable(name, value)
 
     fun getImportOrNull(importName: String) = imports[fileTable]!![importName]
     fun getImportOrNullByFileName(fileName: String) = imports[fileTable]!!.values.find { it.fileName == fileName }
-    fun getFileFromType(type: Type, token: Token) = imports.keys.find { it == type.fileTable }
-        ?: throw PositionalException("File `${type.fileTable.fileName}` not found", token)
+    fun getFileFromType(type: Type, node: Node) = imports.keys.find { it == type.fileTable }
+        ?: throw PositionalException("File `${type.fileTable.fileName}` not found", node)
 
-    fun getImport(token: Token) =
-        imports[fileTable]!![token.value]
-            ?: throw PositionalException("File not found", token)
+    fun getImport(node: Node) =
+        imports[fileTable]!![node.value]
+            ?: throw PositionalException("File not found", node)
 
-    fun getType(token: Token): Type =
-        getFromFiles(token) { it.getTypeOrNull(token.value) } as Type?
+    fun getType(node: Node): Type =
+        getFromFiles(node) { it.getTypeOrNull(node.value) } as Type?
             ?: throw PositionalException(
-                "Type `${token.value}` not found",
-                token
+                "Type `${node.value}` not found",
+                node
             )
 
-    fun getFunction(token: Token): Function {
-        val res = getFromFilesOrNull { it.getFunctionOrNull(token) } as Function?
+    fun getFunction(node: Node): Function {
+        val res = getFromFilesOrNull { it.getFunctionOrNull(node) } as Function?
         if (res == null) {
-            if (variableTable == null) throw PositionalException("Function `${token.value}` not found", token)
-            return variableTable!!.getFunction(token)
+            if (variableTable == null) throw PositionalException("Function `${node.value}` not found", node)
+            return variableTable!!.getFunction(node)
         }
         return res
     }
 
-    fun getObjectOrNull(token: Token): Object? = getFromFilesOrNull { it.getObjectOrNull(token.value) } as Object?
-    fun getTypeOrNull(token: Token): Type? = getFromFilesOrNull { it.getTypeOrNull(token.value) } as Type?
+    fun getFunction(invocation: Invocation): Function {
+        TODO()
+    }
 
-    fun getFunctionOrNull(token: Token): Function? =
-        getFromFilesOrNull { it.getFunctionOrNull(token) } as Function?
-            ?: if (variableTable != null) variableTable!!.getFunctionOrNull(token) else null
+    fun getObjectOrNull(node: Node): Object? = getFromFilesOrNull { it.getObjectOrNull(node.value) } as Object?
+    fun getTypeOrNull(node: Node): Type? = getFromFilesOrNull { it.getTypeOrNull(node.value) } as Type?
+
+    fun getFunctionOrNull(node: Node): Function? =
+        getFromFilesOrNull { it.getFunctionOrNull(node) } as Function?
+            ?: if (variableTable != null) variableTable!!.getFunctionOrNull(node) else null
 
     fun getMain(): Function {
         val mains = getFromFilesOrNull { it.getMain() }
@@ -180,19 +189,19 @@ class SymbolTable(
 
     fun getVariableOrNull(name: String): Variable? = scopeTable?.getVariableOrNull(name)
 
-    fun getIdentifier(token: Token): Variable = getIdentifierOrNull(token) ?: throw PositionalException(
-        "Identifier `${token.value}` not found in `$fileTable`",
-        token
+    fun getIdentifier(node: Node): Variable = getIdentifierOrNull(node) ?: throw PositionalException(
+        "Identifier `${node.value}` not found in `$fileTable`",
+        node
     )
 
-    fun getIdentifierOrNull(token: Token): Variable? {
-        val variable = getVariableOrNull(token.value)
+    fun getIdentifierOrNull(node: Node): Variable? {
+        val variable = getVariableOrNull(node.value)
         if (variable != null)
             return variable
-        val property = variableTable?.getPropertyOrNull(token.value)
+        val property = variableTable?.getPropertyOrNull(node.value)
         if (property != null)
             return property
-        return getObjectOrNull(token)
+        return getObjectOrNull(node)
     }
 
     fun getPropertyOrNull(name: String): Property? {
@@ -207,7 +216,7 @@ class SymbolTable(
     }
 
     fun copy() = SymbolTable(scopeTable?.copy() ?: ScopeTable(), variableTable, fileTable)
-    fun addVariableOrNot(token: Token) = scopeTable?.addVariable(token.value, "".toVariable(token))
+    fun addVariableOrNot(node: Node) = scopeTable?.addVariable(node.value, "".toVariable(node))
 
     override fun toString(): String {
         val res = StringBuilder()

@@ -5,7 +5,7 @@ import evaluation.FunctionFactory.getIdent
 import properties.EmbeddedFunction
 import properties.Type
 import properties.Variable
-import token.Token
+import node.Node
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
@@ -13,12 +13,12 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?) : Pri
     override fun getIndex() = 6
     override fun getPValue() = value as MutableMap<Any, Variable>
 
-    override fun get(index: Any, token: Token): Variable {
-        return getPValue()[index.toVariable(token)] ?: PInt(0, null)
+    override fun get(index: Any, node: Node): Variable {
+        return getPValue()[index.toVariable(node)] ?: PInt(0, null)
     }
 
-    override fun set(index: Any, value: Any, tokenIndex: Token, tokenValue: Token) {
-        getPValue()[index.toVariable(tokenIndex)] = value.toVariable(tokenValue)
+    override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node) {
+        getPValue()[index.toVariable(nodeIndex)] = value.toVariable(nodeValue)
     }
 
     override fun checkIndexType(index: Variable): Boolean {
@@ -39,7 +39,7 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?) : Pri
 
         fun initializeDictionaryFunctions() {
             val p = PDictionary(mutableMapOf(), null)
-            setFunction(p, EmbeddedFunction("remove", listOf(Token(value = "key"))) { token, args ->
+            setFunction(p, EmbeddedFunction("remove", listOf(Node(value = "key"))) { token, args ->
                 val dict = getDictionary(token, "this", args)
                 val key = getIdent(token, "key", args)
                 dict.getPValue().remove(key)?.toVariable(token) ?: PInt(0, null)

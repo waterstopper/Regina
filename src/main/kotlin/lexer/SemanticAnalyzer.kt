@@ -6,30 +6,30 @@ import properties.primitive.PString
 import readFile
 import table.FileTable
 import table.SymbolTable
-import token.*
-import token.TokenFactory.changeInvocationOnSecondPositionInLink
-import token.TokenFactory.createSpecificInvocation
-import token.invocation.Call
-import token.invocation.Invocation
-import token.statement.Assignment
-import token.variable.TokenNumber
+import node.*
+import node.TokenFactory.changeInvocationOnSecondPositionInLink
+import node.TokenFactory.createSpecificInvocation
+import node.invocation.Call
+import node.invocation.Invocation
+import node.statement.Assignment
+import node.variable.NodeNumber
 import utils.Utils.subList
 
 /**
  * Performs basic semantic analysis and creates symbol table for future evaluation
  */
-class SemanticAnalyzer(private val fileName: String, private val tokens: List<Token>) {
+class SemanticAnalyzer(private val fileName: String, private val nodes: List<Node>) {
     val files = mutableMapOf<String, FileTable>()
 
-    fun analyze(): List<Token> {
+    fun analyze(): List<Node> {
         println("Analyzing: `$fileName`")
         createAssociations()
         changeIdentTokens()
-        return tokens
+        return nodes
     }
 
-    private fun createImportGraph(fileTable: FileTable, tokens: List<Token>) {
-        for (token in tokens) {
+    private fun createImportGraph(fileTable: FileTable, nodes: List<Node>) {
+        for (token in nodes) {
             if (token.symbol != "import")
                 break
         }
@@ -38,7 +38,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
     private fun createAssociations() {
         globalTable.addFile(fileName)
         globalTable = globalTable.changeFile(fileName)
-        for (token in tokens)
+        for (token in nodes)
             when (token.symbol) {
                 "fun" -> globalTable.addFunction(FunctionFactory.createFunction(token))
                 "class" -> {
@@ -64,7 +64,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
     }
 
     private fun changeIdentTokens() {
-        for (token in tokens) {
+        for (token in nodes) {
             var table = globalTable.copy()
             when (token.symbol) {
                 "fun" -> table = changeTableForFunctionAnalysis(token, table.changeScope())
@@ -78,8 +78,8 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
         }
     }
 
-    private fun changeTableForFunctionAnalysis(functionToken: Token, table: SymbolTable): SymbolTable {
-        val args = functionToken.left.children.subList(1)
+    private fun changeTableForFunctionAnalysis(functionNode: Node, table: SymbolTable): SymbolTable {
+        val args = functionNode.left.children.subList(1)
         for (arg in args)
             when (arg) {
                 is Assignment -> table.addVariableOrNot(arg.left)
@@ -89,64 +89,64 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
         return table
     }
 
-    private fun changeInvocationType(token: Token, symbolTable: SymbolTable) {
-        when (token) {
+    private fun changeInvocationType(node: Node, symbolTable: SymbolTable) {
+        when (node) {
             is Declaration -> {
-                for ((index, child) in token.children.withIndex()) {
+                for ((index, child) in node.children.withIndex()) {
                     if (child is Invocation) {
-                        checkParamsOrArgs(child.children.subList(1), token.symbol != "fun")
-                        if (token.symbol != "fun")
-                            createSpecificInvocation(child, symbolTable, token, index)
+                        checkParamsOrArgs(child.children.subList(1), node.symbol != "fun")
+                        if (node.symbol != "fun")
+                            createSpecificInvocation(child, symbolTable, node, index)
                     }
                 }
-                if (token.symbol == "fun") {
-                    for (child in token.children)
-                        changeInvocationType(child, changeTableForFunctionAnalysis(token, symbolTable.changeScope()))
+                if (node.symbol == "fun") {
+                    for (child in node.children)
+                        changeInvocationType(child, changeTableForFunctionAnalysis(node, symbolTable.changeScope()))
                     return
                 }
             }
-            is TokenNumber -> checkNumberBounds(token)
+            is NodeNumber -> checkNumberBounds(node)
             is Link -> {
-                if (token.left is Invocation) {
-                    checkParamsOrArgs(token.left.children.subList(1), true)
-                    createSpecificInvocation(token.left, symbolTable, token, 0)
+                if (node.left is Invocation) {
+                    checkParamsOrArgs(node.left.children.subList(1), true)
+                    createSpecificInvocation(node.left, symbolTable, node, 0)
                 }
                 // the only case in Link when Invocation might be a Constructor
-                if (token.right is Invocation) {
-                    checkParamsOrArgs(token.right.children.subList(1), true)
-                    if (token.left is Identifier) {
+                if (node.right is Invocation) {
+                    checkParamsOrArgs(node.right.children.subList(1), true)
+                    if (node.left is Identifier) {
                         // symbolTable.addVariableOrNot(token.left)
-                        changeInvocationOnSecondPositionInLink(symbolTable, token)
-                    } else token.children[1] = Call(token.right)
+                        changeInvocationOnSecondPositionInLink(symbolTable, node)
+                    } else node.children[1] = Call(node.right)
                 }
-                for ((index, child) in token.children.subList(2).withIndex())
+                for ((index, child) in node.children.subList(2).withIndex())
                     if (child is Invocation) {
                         checkParamsOrArgs(child.children.subList(1), true)
-                        token.children[index + 2] = Call(child)
+                        node.children[index + 2] = Call(child)
                     }
                 //            for (child in token.children)
                 //                changeInvocationType(child, symbolTable)
             }
             else -> {
-                if (token is Assignment) {
-                    if (token.left !is Assignable)
-                        throw PositionalException("Left operand is not assignable", token.left)
-                    symbolTable.addVariableOrNot(token.left)
+                if (node is Assignment) {
+                    if (node.left !is Assignable)
+                        throw PositionalException("Left operand is not assignable", node.left)
+                    symbolTable.addVariableOrNot(node.left)
                 }
-                for ((index, child) in token.children.withIndex()) {
+                for ((index, child) in node.children.withIndex()) {
                     if (child is Invocation) {
-                        checkParamsOrArgs(child.children.subList(1), token.symbol != "fun")
-                        if (token.symbol != "fun")
-                            createSpecificInvocation(child, symbolTable, token, index)
+                        checkParamsOrArgs(child.children.subList(1), node.symbol != "fun")
+                        if (node.symbol != "fun")
+                            createSpecificInvocation(child, symbolTable, node, index)
                     }
                 }
             }
         }
-        for (child in token.children)
+        for (child in node.children)
             changeInvocationType(child, symbolTable)
     }
 
-    private fun checkParamsOrArgs(params: List<Token>, areArgs: Boolean = false) {
+    private fun checkParamsOrArgs(params: List<Node>, areArgs: Boolean = false) {
         var wasAssignment = false
         for (param in params)
             when (param) {
@@ -158,7 +158,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
             }
     }
 
-    private fun checkNumberBounds(number: TokenNumber) {
+    private fun checkNumberBounds(number: NodeNumber) {
         if (isInt(number)) {
             val parsedDouble = number.value.toDouble()
             if (parsedDouble < Int.MIN_VALUE || parsedDouble > Int.MAX_VALUE)
@@ -167,7 +167,7 @@ class SemanticAnalyzer(private val fileName: String, private val tokens: List<To
         } else number.number = number.value.toDouble()
     }
 
-    private fun isInt(number: TokenNumber) = !number.value.contains(".")
+    private fun isInt(number: NodeNumber) = !number.value.contains(".")
 
     companion object {
         private var declarations: MutableMap<String, MutableList<Declaration>> = mutableMapOf()

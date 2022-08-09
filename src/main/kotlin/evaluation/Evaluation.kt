@@ -5,7 +5,7 @@ import lexer.SemanticAnalyzer
 import lexer.SemanticAnalyzer.Companion.clearAnalyzer
 import table.SymbolTable
 import table.SymbolTable.Companion.clearTable
-import token.Token
+import node.Node
 import java.io.File
 
 /**
@@ -37,7 +37,7 @@ object Evaluation {
     }
 
     @Deprecated("bad signature with tokens")
-    fun oldEvaluate(tokens: List<Token>, fileName: String) {
+    fun oldEvaluate(nodes: List<Node>, fileName: String) {
         val main = globalTable.getMain()
         main.body.evaluate(globalTable)
         clear()

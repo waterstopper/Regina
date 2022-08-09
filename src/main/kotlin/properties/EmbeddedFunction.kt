@@ -1,14 +1,14 @@
 package properties
 
 import table.SymbolTable
-import token.Token
-import token.statement.Assignment
+import node.Node
+import node.statement.Assignment
 
 class EmbeddedFunction(
     name: String,
-    args: List<Token>,
+    args: List<Node>,
     namedArgs: List<Assignment> = listOf(),
-    private val execute: (token: Token, arguments: SymbolTable) -> Any,
-) : Function(name, args, namedArgs, Token()) {
-    fun executeFunction(token: Token, symbolTable: SymbolTable): Any = execute(token, symbolTable)
+    private val execute: (node: Node, arguments: SymbolTable) -> Any,
+) : Function(name, args, namedArgs, Node()) {
+    fun executeFunction(node: Node, symbolTable: SymbolTable): Any = execute(node, symbolTable)
 }

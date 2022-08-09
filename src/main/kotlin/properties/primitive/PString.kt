@@ -6,7 +6,7 @@ import lexer.PositionalException
 import properties.EmbeddedFunction
 import properties.Type
 import properties.Variable
-import token.Token
+import node.Node
 import utils.Utils.castToString
 import utils.Utils.parseAssignment
 import utils.Utils.toProperty
@@ -14,16 +14,16 @@ import utils.Utils.toProperty
 class PString(value: String, parent: Type? = null) : Primitive(value, parent), Indexable {
     override fun getIndex() = 4
     override fun getPValue() = value as String
-    override fun get(index: Any, token: Token): Any {
+    override fun get(index: Any, node: Node): Any {
         if (index !is Int)
-            throw PositionalException("Expected integer", token)
+            throw PositionalException("Expected integer", node)
         if (index < 0 || index >= getPValue().length)
-            throw PositionalException("Index out of bounds", token)
+            throw PositionalException("Index out of bounds", node)
         return getPValue()[index]
     }
 
-    override fun set(index: Any, value: Any, tokenIndex: Token, tokenValue: Token) {
-        throw PositionalException("Set is not implemented for String", tokenValue)
+    override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node) {
+        throw PositionalException("Set is not implemented for String", nodeValue)
     }
 
     override fun toString(): String {
@@ -54,7 +54,7 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
                 s,
                 EmbeddedFunction(
                     "substring",
-                    listOf(Token(value = "start")),
+                    listOf(Node(value = "start")),
                     listOf(parseAssignment("end = this.size"))
                 ) { token, args ->
                     val string = castToString(args.getPropertyOrNull("this")!!)
@@ -67,7 +67,7 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
                 s,
                 EmbeddedFunction(
                     "replace",
-                    listOf(Token(value = "oldString"), Token(value = "newString"))
+                    listOf(Node(value = "oldString"), Node(value = "newString"))
                 ) { token, args ->
                     val string = castToString(args.getPropertyOrNull("this")!!)
                     val oldString = getString(token, "oldString", args)

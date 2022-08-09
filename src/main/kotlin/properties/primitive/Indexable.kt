@@ -1,11 +1,10 @@
 package properties.primitive
 
 import properties.Variable
-import token.Token
-import kotlin.reflect.KClass
+import node.Node
 
 interface Indexable {
-    operator fun get(index: Any, token: Token): Any
-    operator fun set(index: Any, value: Any, tokenIndex: Token, tokenValue: Token)
+    operator fun get(index: Any, node: Node): Any
+    operator fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node)
     fun checkIndexType(index: Variable) : Boolean
 }

@@ -2,8 +2,8 @@ package formatter
 
 import lexer.Parser
 import lexer.SemanticAnalyzer
-import token.Token
-import token.operator.Operator
+import node.Node
+import node.operator.Operator
 import java.io.File
 
 // 1. add spaces in arrays and calls after commas
@@ -11,20 +11,20 @@ import java.io.File
 class Formatter(filePath: String) {
     private val result = mutableListOf<StringBuilder>()
 
-    private val tokens: List<Token>
+    private val nodes: List<Node>
     private var identLevel = 0
     private var lineAdditions = 0
     private var line = 0
 
     init {
-        tokens = createAST(filePath).map { it }
-        for (token in tokens)
+        nodes = createAST(filePath).map { it }
+        for (token in nodes)
             traverse(token)
         placeIdents()
         result.forEach { println(it) }
     }
 
-    private fun createAST(filePath: String): List<Token> {
+    private fun createAST(filePath: String): List<Node> {
         val text =
             StringBuilder(File(filePath).readText()).split('\n').map { it.trimStart { c -> c == ' ' || c == '\t' } }
 
@@ -34,28 +34,28 @@ class Formatter(filePath: String) {
         return SemanticAnalyzer(filePath, statements).analyze()
     }
 
-    private fun traverse(token: Token) {
-        if (token.children.size != 0)
-            traverse(token.left)
-        write(token)
-        if (token.children.size > 1)
-            for (child in token.children.subList(1, token.children.size))
+    private fun traverse(node: Node) {
+        if (node.children.size != 0)
+            traverse(node.left)
+        write(node)
+        if (node.children.size > 1)
+            for (child in node.children.subList(1, node.children.size))
                 traverse(child)
     }
 
-    private fun write(token: Token) {
-        if (token.position.second != line) {
+    private fun write(node: Node) {
+        if (node.position.second != line) {
             lineAdditions = 0
-            line = token.position.second
+            line = node.position.second
         }
-        if (token is Operator && token.children.size > 1) {
-            if (result[token.position.second][token.position.first - 1 + lineAdditions] != ' ') {
-                result[token.position.second].insert(token.position.first + lineAdditions, " ")
+        if (node is Operator && node.children.size > 1) {
+            if (result[node.position.second][node.position.first - 1 + lineAdditions] != ' ') {
+                result[node.position.second].insert(node.position.first + lineAdditions, " ")
                 lineAdditions++
             }
-            if (result[token.position.second][token.position.first + token.value.length + lineAdditions] != ' ') {
-                result[token.position.second].insert(
-                    token.position.first + token.value.length + lineAdditions,
+            if (result[node.position.second][node.position.first + node.value.length + lineAdditions] != ' ') {
+                result[node.position.second].insert(
+                    node.position.first + node.value.length + lineAdditions,
                     " "
                 )
                 lineAdditions++

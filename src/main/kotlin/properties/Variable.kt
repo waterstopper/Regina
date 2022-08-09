@@ -1,12 +1,12 @@
 package properties
 
 import properties.primitive.PDictionary
-import token.Token
+import node.Node
 
 abstract class Variable(var parent: Type?) {
     abstract fun getPropertyOrNull(name: String): Property?
-    abstract fun getProperty(token: Token): Property
-    abstract fun getFunctionOrNull(token: Token): Function?
-    abstract fun getFunction(token: Token): Function
+    abstract fun getProperty(node: Node): Property
+    abstract fun getFunctionOrNull(node: Node): Function?
+    abstract fun getFunction(node: Node): Function
     abstract fun getProperties(): PDictionary
 }

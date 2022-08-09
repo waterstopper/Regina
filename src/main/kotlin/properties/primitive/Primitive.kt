@@ -2,10 +2,12 @@ package properties.primitive
 
 import lexer.NotFoundException
 import lexer.PositionalException
+import lexer.RuntimeError
+import delete.Delete
 import properties.*
 import properties.Function
-import token.Token
-import token.invocation.Call
+import node.Node
+import node.invocation.Call
 
 /**
  * Stores Dictionary, Array, String, Int, Double values.
@@ -49,15 +51,15 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
             else properties[0][name]?.let { it(this) })
     }
 
-    override fun getProperty(token: Token): Property = when (token.value) {
+    override fun getProperty(node: Node): Property = when (node.value) {
         "this" -> this
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
-        else -> properties[getIndex()][token.value]?.let { it(this) }
+        else -> properties[getIndex()][node.value]?.let { it(this) }
             ?: (if (getIndex() in 2..3)
-                properties[1][token.value]?.let { it(this) } ?: properties[0][token.value]?.let { it(this) }
-            else properties[0][token.value]?.let { it(this) })
-            ?: throw NotFoundException(token, variable = this)
+                properties[1][node.value]?.let { it(this) } ?: properties[0][node.value]?.let { it(this) }
+            else properties[0][node.value]?.let { it(this) })
+            ?: throw NotFoundException(node, variable = this)
     }
 
     /**
@@ -71,11 +73,11 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         return PDictionary(res.mapValues { it.value(this) }.toMutableMap(), null)
     }
 
-    override fun getFunction(token: Token): Function = getFunctionOrNull(token)
-        ?: throw PositionalException("${formatClassName()} does not contain function", token)
+    override fun getFunction(node: Node): Function = getFunctionOrNull(node)
+        ?: throw PositionalException("${formatClassName()} does not contain function", node)
 
-    override fun getFunctionOrNull(token: Token): Function? = Function.getFunctionOrNull(
-        token as Call,
+    override fun getFunctionOrNull(node: Node): Function? = Function.getFunctionOrNull(
+        node as Call,
         if (getIndex() in 2..3)
             (functions[getIndex()] + functions[1]) + functions[0] else functions[getIndex()]
     )
@@ -93,7 +95,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
 
         val properties = List(7) { mutableMapOf<String, (s: Primitive) -> Property>() }
         val functions = List(7) { mutableSetOf<Function>() }
-        fun createPrimitive(value: Any, parent: Type? = null, token: Token = Token()): Primitive {
+        fun createPrimitive(value: Any, parent: Type? = null, node: Node = Node()): Primitive {
             return when (value) {
                 is String -> PString(value, parent)
                 is List<*> -> PArray(value as MutableList<Variable>, parent)
@@ -101,7 +103,20 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
                 is Double -> PDouble(value, parent)
                 is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent)
                 else -> throw PositionalException(
-                    "Cannot create variable of type `${value::class}`", token
+                    "Cannot create variable of type `${value::class}`", node
+                )
+            }
+        }
+
+        fun createPrimitive(value: Any, parent: Type? = null, delete: Delete): Primitive {
+            return when (value) {
+                is String -> PString(value, parent)
+                is List<*> -> PArray(value as MutableList<Variable>, parent)
+                is Int -> PInt(value, parent)
+                is Double -> PDouble(value, parent)
+                is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent)
+                else -> throw RuntimeError(
+                    "Cannot create variable of type `${value::class}`", delete
                 )
             }
         }

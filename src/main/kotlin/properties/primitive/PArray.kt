@@ -10,8 +10,8 @@ import properties.EmbeddedFunction
 import properties.Object
 import properties.Type
 import properties.Variable
-import token.Token
-import token.statement.Assignment
+import node.Node
+import node.statement.Assignment
 import utils.Utils.castToArray
 import utils.Utils.parseAssignment
 import utils.Utils.toInt
@@ -21,16 +21,16 @@ import utils.Utils.toVariable
 class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, parent), Indexable {
     override fun getIndex() = 5
     override fun getPValue() = value as MutableList<Variable>
-    override fun get(index: Any, token: Token): Any {
+    override fun get(index: Any, node: Node): Any {
         if (index !is Int)
-            throw PositionalException("Expected integer as index", token)
+            throw PositionalException("Expected integer as index", node)
         if (index < 0 || index >= getPValue().size)
-            throw PositionalException("Index out of bounds", token)
+            throw PositionalException("Index out of bounds", node)
         return getPValue()[index]
     }
 
-    override fun set(index: Any, value: Any, tokenIndex: Token, tokenValue: Token) {
-            getPValue()[(index as PInt).getPValue()] = value.toVariable(tokenIndex)
+    override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node) {
+            getPValue()[(index as PInt).getPValue()] = value.toVariable(nodeIndex)
     }
 
     override fun toString(): String {
@@ -67,7 +67,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 p,
                 EmbeddedFunction(
                     "add",
-                    listOf(Token(value = "element")),
+                    listOf(Node(value = "element")),
                     listOf(parseAssignment("index = this.size"))
                 ) { token, args ->
                     val list = castToArray(args.getPropertyOrNull("this")!!)
@@ -82,7 +82,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 p,
                 EmbeddedFunction(
                     "remove",
-                    listOf(Token(value = "element")),
+                    listOf(Node(value = "element")),
                 ) { token, args ->
                     val list = castToArray(args.getPropertyOrNull("this")!!)
                     val argument = getIdent(token, "element", args)
@@ -101,7 +101,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             )
             setFunction(
                 p,
-                EmbeddedFunction("removeAt", listOf(Token(value = "index"))) { token, args ->
+                EmbeddedFunction("removeAt", listOf(Node(value = "index"))) { token, args ->
                     val list = castToArray(args.getPropertyOrNull("this")!!)
                     val index = getInt(token, "index", args)
                     try {
@@ -115,7 +115,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             )
             setFunction(
                 p,
-                EmbeddedFunction("has", listOf(Token(value = "element"))) { token, args ->
+                EmbeddedFunction("has", listOf(Node(value = "element"))) { token, args ->
                     val list = castToArray(args.getPropertyOrNull("this")!!)
                     val element = getIdent(token, "element", args)
                     if (element is Primitive)

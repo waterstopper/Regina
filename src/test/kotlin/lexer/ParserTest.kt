@@ -86,10 +86,10 @@ class ParserTest {
     @Test
     fun failLinkableToken() {
         val thrown = assertFails { Parser("fun main() {a = 1.[3]}").statements() }
-        assertTrue(thrown.message!!.contains("Expected Identifier or Invocation or Index, but got TokenArray"))
+        assertTrue(thrown.message!!.contains("Expected Identifier or Invocation or Index, but got"))
 
         val thrown2 =  assertFails { Parser("fun main() {a = 1.[1,2][3]}").statements() }
-        assertTrue(thrown2.message!!.contains("Expected Identifier or Invocation or Index, but got TokenArray"))
+        assertTrue(thrown2.message!!.contains("Expected Identifier or Invocation or Index, but got"))
     }
 
     @Test

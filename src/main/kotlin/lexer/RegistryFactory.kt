@@ -1,14 +1,14 @@
 package lexer
 
-import token.*
-import token.invocation.Invocation
-import token.operator.Index
-import token.operator.TokenTernary
-import token.statement.Block
-import token.statement.WordStatement
-import token.variable.TokenArray
-import token.variable.TokenDictionary
-import token.variable.TokenNumber
+import node.*
+import node.invocation.Invocation
+import node.operator.Index
+import node.operator.NodeTernary
+import node.statement.Block
+import node.statement.WordStatement
+import node.variable.NodeArray
+import node.variable.NodeDictionary
+import node.variable.NodeNumber
 
 object RegistryFactory {
     /**
@@ -22,12 +22,12 @@ object RegistryFactory {
         registry.symbol("(NUMBER)")
         registry.symbol("(STRING)")
 
-        registry.prefixNud("false") { token: Token, _: Parser ->
-            TokenNumber("0", token.position)
+        registry.prefixNud("false") { node: Node, _: Parser ->
+            NodeNumber("0", node.position)
         }
 
-        registry.prefixNud("true") { token: Token, _: Parser ->
-            TokenNumber("1", token.position)
+        registry.prefixNud("true") { node: Node, _: Parser ->
+            NodeNumber("1", node.position)
         }
         registry.symbol("true")
         registry.symbol("false")
@@ -84,39 +84,39 @@ object RegistryFactory {
         // tokReg.infixRight("+=", 10)
         // tokReg.infixRight("-=", 10)
 
-        registry.infixLed(".", 105) { token: Token, parser: Parser, left: Token ->
-            token.children.add(left)
-            token.children.add(parser.expression(105))
-            isLinkable(token.children.last())
+        registry.infixLed(".", 105) { node: Node, parser: Parser, left: Node ->
+            node.children.add(left)
+            node.children.add(parser.expression(105))
+            isLinkable(node.children.last())
             var t = parser.lexer.peek()
             while (t.symbol == "(LINK)") {
                 parser.advance("(LINK)")
-                token.children.add(parser.expression(105))
+                node.children.add(parser.expression(105))
                 t = parser.lexer.peek()
-                isLinkable(token.children.last())
+                isLinkable(node.children.last())
             }
-            token
+            node
         }
 
         // function use
-        registry.infixLed("(", 120) { token: Token, parser: Parser, left: Token ->
+        registry.infixLed("(", 120) { node: Node, parser: Parser, left: Node ->
             if (left.symbol != "(LINK)" && left.symbol != "(IDENT)" && left.symbol != "[" &&
                 left.symbol != "(" && left.symbol != "!"
             )
                 throw PositionalException("`$left` is not invokable", left)
-            token.children.add(left)
+            node.children.add(left)
             val t = parser.lexer.peek()
             if (t.symbol != ")") {
-                sequence(token, parser)
+                sequence(node, parser)
                 parser.advance(")")
             } else
                 parser.advance(")")
-            token
+            node
         }
 
         // array indexing
-        registry.infixLed("[", 110) { token: Token, parser: Parser, left: Token ->
-            val res = Index(token)
+        registry.infixLed("[", 110) { node: Node, parser: Parser, left: Node ->
+            val res = Index(node)
             res.children.add(left)
             val t = parser.lexer.peek()
             if (t.symbol != "]") {
@@ -127,23 +127,23 @@ object RegistryFactory {
         }
 
         // arithmetic and redundant parentheses
-        registry.prefixNud("(") { token: Token, parser: Parser ->
+        registry.prefixNud("(") { node: Node, parser: Parser ->
             var comma = false
             if (parser.lexer.peek().symbol != ")")
-                comma = sequence(token, parser)
+                comma = sequence(node, parser)
             parser.advance(")")
             if (comma)
-                throw PositionalException("Tuples are not implemented", token)
-            else if (token.children.size == 0)
-                throw  PositionalException("Empty parentheses", token)
+                throw PositionalException("Tuples are not implemented", node)
+            else if (node.children.size == 0)
+                throw  PositionalException("Empty parentheses", node)
             /* Return first child when parentheses are redundant e.g. condition for `if` or `while`
                or if parentheses are inside arithmetic expression. Then, this will return an expression inside them */
             else
-                token.children[0]
+                node.children[0]
         }
 
-        registry.prefixNud("[") { token: Token, parser: Parser ->
-            val res = TokenArray(token)
+        registry.prefixNud("[") { node: Node, parser: Parser ->
+            val res = NodeArray(node)
             if (parser.lexer.peek().symbol != "]")
                 sequence(res, parser)
             parser.advance("]")
@@ -152,8 +152,8 @@ object RegistryFactory {
             res
         }
 
-        registry.prefixNud("{") { token: Token, parser: Parser ->
-            val res = TokenDictionary(token)
+        registry.prefixNud("{") { node: Node, parser: Parser ->
+            val res = NodeDictionary(node)
             if (parser.lexer.peek().symbol != "}") {
                 while (true) {
                     res.children.add(parser.expression(0))
@@ -170,8 +170,8 @@ object RegistryFactory {
             res
         }
 
-        registry.prefixNud("if") { token: Token, parser: Parser ->
-            val res = TokenTernary(token)
+        registry.prefixNud("if") { node: Node, parser: Parser ->
+            val res = NodeTernary(node)
             parser.advance("(")
             val cond = parser.expression(0)
             res.children.add(cond)
@@ -183,8 +183,8 @@ object RegistryFactory {
         }
 
         // statements
-        registry.stmt("if") { token: Token, parser: Parser ->
-            val res = Block(token)
+        registry.stmt("if") { node: Node, parser: Parser ->
+            val res = Block(node)
             res.children.add(parser.expression(0))
             res.children.add(parser.block(canBeSingleStatement = true))
             var next = parser.lexer.peek()
@@ -199,8 +199,8 @@ object RegistryFactory {
             res
         }
 
-        registry.stmt("import") { token: Token, parser: Parser ->
-            val res = Declaration(token)
+        registry.stmt("import") { node: Node, parser: Parser ->
+            val res = Declaration(node)
             res.children.add(parser.expression(0))
             if (parser.lexer.peek().value == "as") {
                 parser.advance("as")
@@ -214,7 +214,7 @@ object RegistryFactory {
                                 "`import path as identifier` and used in code with specified identifier",
                         res
                     )
-                res.children.add(Token(res.left.symbol, res.left.value))
+                res.children.add(Node(res.left.symbol, res.left.value))
             }
             if (res.left is Link)
                 checkImportedFolder(res.left as Link)
@@ -223,74 +223,74 @@ object RegistryFactory {
             res
         }
 
-        registry.stmt("class") { token: Token, parser: Parser ->
-            val res = Declaration(token)
+        registry.stmt("class") { node: Node, parser: Parser ->
+            val res = Declaration(node)
             val expr = parser.expression(0)
             if (expr.symbol == ":") {
                 res.children.addAll(expr.children)
-            } else res.children.addAll(listOf(expr, Token("", "")))
+            } else res.children.addAll(listOf(expr, Node("", "")))
             
             res.children.add(parser.block())
             res
         }
 
-        registry.stmt("object") { token: Token, parser: Parser ->
-            val res = Declaration(token)
+        registry.stmt("object") { node: Node, parser: Parser ->
+            val res = Declaration(node)
             res.children.add(parser.expression(0))
             
             res.children.add(parser.block())
             res
         }
 
-        registry.stmt("fun") { token: Token, parser: Parser ->
-            val res = Declaration(token)
+        registry.stmt("fun") { node: Node, parser: Parser ->
+            val res = Declaration(node)
             res.children.add(parser.expression(0))
             res.children.add(parser.block())
             res
         }
 
-        registry.stmt("{") { token: Token, parser: Parser ->
-            val res = Block(token)
+        registry.stmt("{") { node: Node, parser: Parser ->
+            val res = Block(node)
             res.children.addAll(parser.statements())
             parser.advance("}")
             res
         }
 
-        registry.stmt("while") { token: Token, parser: Parser ->
-            val res = Block(token)
+        registry.stmt("while") { node: Node, parser: Parser ->
+            val res = Block(node)
             res.children.add(parser.expression(0))
             res.children.add(parser.block(canBeSingleStatement = true))
             res
         }
 
-        registry.stmt("break") { token: Token, parser: Parser ->
+        registry.stmt("break") { node: Node, parser: Parser ->
             if (parser.lexer.peek().symbol != "}")
                 parser.advanceSeparator()
-            WordStatement(token)
+            WordStatement(node)
         }
 
-        registry.stmt("continue") { token: Token, parser: Parser ->
+        registry.stmt("continue") { node: Node, parser: Parser ->
             if (parser.lexer.peek().symbol != "}")
                 parser.advanceSeparator()
-            WordStatement(token)
+            WordStatement(node)
         }
 
-        registry.stmt("return") { token: Token, parser: Parser ->
-            val res = WordStatement(token)
+        registry.stmt("return") { node: Node, parser: Parser ->
+            val res = WordStatement(node)
             if (parser.lexer.peek().symbol != "}" && !parser.lexer.peekSeparator())
                 res.children.add(parser.expression(0))
             res
         }
 
-        registry.stmt("#stop") { token: Token, _: Parser -> token }
+        registry.stmt("#stop") { node: Node, _: Parser -> node }
 
         return registry
     }
 
-    private fun sequence(token: Token, parser: Parser): Boolean {
+    private fun sequence(node: Node, parser: Parser): Boolean {
         var comma = false
         while (true) {
-            token.children.add(parser.expression(0))
+            node.children.add(parser.expression(0))
             if (parser.lexer.peek().symbol != ",")
                 return comma
             parser.advance(",")
@@ -299,14 +299,14 @@ object RegistryFactory {
     }
 
     /**
-     * Check if [token] can be used as a child inside [Link][token.Link]
+     * Check if [node] can be used as a child inside [Link][node.Link]
      *
-     * First child of [Link][token.Link] can be anything
+     * First child of [Link][node.Link] can be anything
      */
-    private fun isLinkable(token: Token) {
-        if (token !is Linkable)
-            throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), token, token)
-        var index = token
+    private fun isLinkable(node: Node) {
+        if (node !is Linkable)
+            throw ExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), node, node)
+        var index = node
         while (index is Index)
             index = index.left
         if (index !is Linkable)
@@ -319,5 +319,5 @@ object RegistryFactory {
                 throw PositionalException("Each folder should be represented as identifier", ident)
     }
 
-    private fun checkIdentifierInImport(token: Token): Boolean = token is Identifier || token.children.size == 0
+    private fun checkIdentifierInImport(node: Node): Boolean = node is Identifier || node.children.size == 0
 }
