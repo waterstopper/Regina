@@ -1,20 +1,19 @@
 package node.invocation
 
 import lexer.PositionalException
+import node.Node
+import node.statement.Assignment
 import properties.EmbeddedFunction
 import properties.Function
 import properties.Variable
 import table.SymbolTable
-import node.Node
-import node.statement.Assignment
 import utils.Utils.toVariable
 
 class Call(
     node: Node
 ) : Invocation(
     node.symbol, node.value,
-    node.position, node.bindingPower,
-    node.nud, node.led, node.std,
+    node.position,
     node.children
 ) {
     init {
@@ -42,6 +41,8 @@ class Call(
      */
     override fun evaluate(symbolTable: SymbolTable): Any {
         val function = symbolTable.getFunction(this)
+        if(function.name=="log")
+            println()
         val newTable = symbolTable.changeFile(symbolTable.getFileOfValue(left)
         { it.getFunctionOrNull(this) }).changeScope()
         argumentsToParameters(function, symbolTable, newTable)

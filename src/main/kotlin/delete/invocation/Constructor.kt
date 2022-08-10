@@ -1,8 +1,8 @@
 package delete.invocation
 
-import lexer.RuntimeError
 import delete.Assignment
 import delete.Identifier
+import lexer.RuntimeError
 import properties.Type
 import table.SymbolTable
 import utils.Utils.toProperty

@@ -1,23 +1,18 @@
 package node.statement
 
-import lexer.Parser
-import properties.Type
-import table.SymbolTable
 import node.Assignable
 import node.Link
 import node.Node
 import node.operator.Operator
+import properties.Type
+import table.SymbolTable
 
 class Assignment(
     symbol: String = "",
     value: String,
     position: Pair<Int, Int> = Pair(0, 0),
-    bindingPower: Int = 0,
-    nud: ((node: Node, parser: Parser) -> Node)? = null,
-    led: ((node: Node, parser: Parser, node2: Node) -> Node)? = null,
-    std: ((node: Node, parser: Parser) -> Node)? = null,
     children: MutableList<Node> = mutableListOf()
-) : Operator(symbol, value, position, bindingPower, nud, led, std) {
+) : Operator(symbol, value, position, children) {
     init {
         this.children.clear()
         this.children.addAll(children)
@@ -68,6 +63,8 @@ class Assignment(
     }
 
     override fun hashCode(): Int {
+        if(children.size == 0)
+            println()
         return left.hashCode()
     }
 }

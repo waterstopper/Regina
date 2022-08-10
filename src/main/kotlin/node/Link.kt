@@ -3,19 +3,18 @@ package node
 import Optional
 import Tuple4
 import lexer.NotFoundException
-import lexer.Parser
 import lexer.PositionalException
+import node.invocation.Call
+import node.invocation.Constructor
+import node.invocation.Invocation
+import node.operator.Index
+import node.statement.Assignment
 import properties.Function
 import properties.Object
 import properties.Type
 import properties.Variable
 import properties.primitive.Primitive
 import table.SymbolTable
-import node.invocation.Call
-import node.invocation.Constructor
-import node.invocation.Invocation
-import node.operator.Index
-import node.statement.Assignment
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
@@ -37,17 +36,11 @@ open class Link(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
-    bindingPower: Int,
-    nud: ((node: Node, parser: Parser) -> Node)?,
-    led: ((node: Node, parser: Parser, node2: Node) -> Node)?,
-    std: ((node: Node, parser: Parser) -> Node)?,
     children: List<Node> = listOf()
-) : Node(symbol, value, position, bindingPower, nud, led, std), Assignable {
+) : Node(symbol, value, position), Assignable {
     constructor(node: Node) : this(
         node.symbol, node.value,
-        node.position, node.bindingPower,
-        node.nud, node.led,
-        node.std, node.children
+        node.position, node.children
     )
 
     init {

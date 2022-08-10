@@ -1,11 +1,10 @@
 package node.operator
 
-import lexer.Parser
 import lexer.PositionalException
+import node.Node
 import properties.Type
 import properties.primitive.*
 import table.SymbolTable
-import node.Node
 import utils.Utils.toInt
 import utils.Utils.toVariable
 
@@ -13,15 +12,8 @@ class TypeOperator(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
-    bindingPower: Int,
-    nud: ((node: Node, parser: Parser) -> Node)?,
-    led: (
-        (
-        node: Node, parser: Parser, node2: Node
-    ) -> Node
-    )?,
-    std: ((node: Node, parser: Parser) -> Node)?
-) : Operator(symbol, value, position, bindingPower, nud, led, std) {
+    children: List<Node>
+) : Operator(symbol, value, position, children) {
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         return when (symbol) {
@@ -39,7 +31,7 @@ class TypeOperator(
             "Double" -> checked is PDouble
             "Array" -> checked is PArray
             else -> {
-                if(checked is Primitive)
+                if (checked is Primitive)
                     return false
                 val type = right.evaluate(symbolTable)
                 if (checked is Type && type is Type &&

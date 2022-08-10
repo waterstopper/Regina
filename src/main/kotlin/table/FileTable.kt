@@ -1,18 +1,18 @@
 package table
 
+import delete.Delete
 import evaluation.FunctionFactory
 import lexer.ExpectedTypeException
 import lexer.NotFoundException
 import lexer.PositionalException
 import lexer.RuntimeError
-import delete.Delete
-import properties.Function
-import properties.Object
-import properties.Type
 import node.Identifier
 import node.Node
 import node.invocation.Call
 import node.statement.Assignment
+import properties.Function
+import properties.Object
+import properties.Type
 
 class FileTable(
     val fileName: String

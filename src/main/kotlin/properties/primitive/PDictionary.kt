@@ -2,10 +2,10 @@ package properties.primitive
 
 import evaluation.FunctionFactory.getDictionary
 import evaluation.FunctionFactory.getIdent
+import node.Node
 import properties.EmbeddedFunction
 import properties.Type
 import properties.Variable
-import node.Node
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 

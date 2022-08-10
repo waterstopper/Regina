@@ -6,12 +6,12 @@ import evaluation.FunctionFactory.getInt
 import evaluation.FunctionFactory.getString
 import lexer.Parser
 import lexer.PositionalException
+import node.Node
+import node.statement.Assignment
 import properties.EmbeddedFunction
 import properties.Object
 import properties.Type
 import properties.Variable
-import node.Node
-import node.statement.Assignment
 import utils.Utils.castToArray
 import utils.Utils.parseAssignment
 import utils.Utils.toInt
@@ -30,7 +30,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
     }
 
     override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node) {
-            getPValue()[(index as PInt).getPValue()] = value.toVariable(nodeIndex)
+        getPValue()[(index as PInt).getPValue()] = value.toVariable(nodeIndex)
     }
 
     override fun toString(): String {
@@ -127,7 +127,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 p,
                 EmbeddedFunction(
                     "joinToString", listOf(),
-                    listOf(Parser("separator = \", \"").statements().first() as Assignment)
+                    listOf(Parser("separator = \", \"").statements().first().toNode() as Assignment)
                 ) { token, args ->
                     val array = getArray(token, "this", args)
                     val separator = getString(token, "separator", args)
@@ -148,7 +148,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 p,
                 EmbeddedFunction(
                     "sort", listOf(),
-                    listOf(Parser("desc = false").statements().first() as Assignment)
+                    listOf(Parser("desc = false").statements().first().toNode() as Assignment)
                 ) { token, args ->
                     val array = getArray(token, "this", args)
                     val desc = getInt(token, "desc", args)
@@ -162,7 +162,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                 p,
                 EmbeddedFunction(
                     "sorted", listOf(),
-                    listOf(Parser("reverse = false").statements().first() as Assignment)
+                    listOf(Parser("reverse = false").statements().first().toNode() as Assignment)
                 ) { token, args ->
                     val array = getArray(token, "this", args)
                     val desc = getInt(token, "reverse", args)

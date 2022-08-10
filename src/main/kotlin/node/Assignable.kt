@@ -1,8 +1,8 @@
 package node
 
+import node.statement.Assignment
 import properties.Type
 import table.SymbolTable
-import node.statement.Assignment
 
 /**
  * Marks tokens that can be on the left side of assignment.

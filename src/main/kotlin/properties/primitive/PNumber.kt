@@ -2,9 +2,9 @@ package properties.primitive
 
 import evaluation.FunctionFactory.getIdent
 import evaluation.FunctionFactory.getNumber
+import node.Node
 import properties.EmbeddedFunction
 import properties.Type
-import node.Node
 import utils.Utils.castToNumber
 import utils.Utils.unaryMinus
 import utils.Utils.unifyPNumbers

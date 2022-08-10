@@ -1,7 +1,7 @@
 package lexer
 
-import node.Node
-import node.statement.Block
+import token.Token
+import token.TokenBlock
 
 /**
  * Parses created tokens into AST
@@ -17,7 +17,7 @@ class Parser() {
         lexer = Lexer(text)
     }
 
-    fun expression(rbp: Int): Node {
+    fun expression(rbp: Int): Token {
         var t = lexer.next()
         var left = t.nud?.let { it(t, this) }
             ?: throw PositionalException(
@@ -32,7 +32,7 @@ class Parser() {
         return left
     }
 
-    fun advance(symbol: String): Node {
+    fun advance(symbol: String): Token {
         var token = lexer.next()
         if (token.symbol == symbol)
             return token
@@ -43,8 +43,8 @@ class Parser() {
         lexer.moveAfterSeparator()
     }
 
-    fun statements(): List<Node> {
-        val statements = mutableListOf<Node>()
+    fun statements(): List<Token> {
+        val statements = mutableListOf<Token>()
         var next = lexer.peek()
         while (next.symbol != "(EOF)" && next.symbol != "}") {
             statements.add(statement())
@@ -53,7 +53,7 @@ class Parser() {
         return statements.filter { it.symbol != "(SEP)" }
     }
 
-    fun statement(): Node {
+    fun statement(): Token {
         var token = lexer.peek()
         if (token.std != null) {
             token = lexer.next()
@@ -67,12 +67,12 @@ class Parser() {
         return token
     }
 
-    fun block(canBeSingleStatement: Boolean = false): Node {
+    fun block(canBeSingleStatement: Boolean = false): Token {
         val token = lexer.next()
         if (token.symbol != "{") {
             if (canBeSingleStatement) {
                 lexer.prev()
-                val res = Block(Pair(token.position.first - 1, token.position.second))
+                val res = TokenBlock(Pair(token.position.first - 1, token.position.second))
                 res.children.add(statement())
                 return res
             }

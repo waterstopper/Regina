@@ -2,16 +2,15 @@ package node.operator
 
 import Optional
 import lexer.ExpectedTypeException
-import lexer.Parser
 import lexer.PositionalException
-import properties.Type
-import properties.Variable
-import properties.primitive.*
-import table.SymbolTable
 import node.Assignable
 import node.Linkable
 import node.Node
 import node.statement.Assignment
+import properties.Type
+import properties.Variable
+import properties.primitive.*
+import table.SymbolTable
 import utils.Utils.toVariable
 
 /**
@@ -24,24 +23,12 @@ class Index(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
-    bindingPower: Int,
-    nud: ((node: Node, parser: Parser) -> Node)?,
-    led: (
-        (
-        node: Node, parser: Parser, node2: Node
-    ) -> Node
-    )?,
-    std: ((node: Node, parser: Parser) -> Node)?,
     children: List<Node> = listOf()
-) : Node(symbol, value, position, bindingPower, nud, led, std), Assignable, Linkable {
+) : Node(symbol, value, position), Assignable, Linkable {
     constructor(node: Node) : this(
         node.symbol,
         node.value,
         node.position,
-        node.bindingPower,
-        node.nud,
-        node.led,
-        node.std,
         node.children
     )
 

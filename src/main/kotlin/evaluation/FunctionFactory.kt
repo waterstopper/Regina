@@ -2,12 +2,12 @@ package evaluation
 
 import lexer.ExpectedTypeException
 import lexer.PositionalException
+import node.Node
+import node.statement.Assignment
 import properties.EmbeddedFunction
 import properties.Function
 import properties.primitive.*
 import table.SymbolTable
-import node.Node
-import node.statement.Assignment
 import utils.Utils
 import utils.Utils.toInt
 import utils.Utils.toVariable
@@ -37,7 +37,7 @@ object FunctionFactory {
         )
     }
 
-    private fun createIdent(node: Node, name: String) = Node(value = name, symbol = name, position = node.position)
+    private fun createIdent(node: Node, name: String) = Node(symbol = name, value = name, position = node.position)
 
     fun getIdent(node: Node, name: String, args: SymbolTable) = args.getIdentifier(createIdent(node, name))
     fun getDictionary(node: Node, name: String, args: SymbolTable): PDictionary {

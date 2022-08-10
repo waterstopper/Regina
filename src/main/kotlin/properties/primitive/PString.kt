@@ -3,10 +3,10 @@ package properties.primitive
 import evaluation.FunctionFactory.getInt
 import evaluation.FunctionFactory.getString
 import lexer.PositionalException
+import node.Node
 import properties.EmbeddedFunction
 import properties.Type
 import properties.Variable
-import node.Node
 import utils.Utils.castToString
 import utils.Utils.parseAssignment
 import utils.Utils.toProperty

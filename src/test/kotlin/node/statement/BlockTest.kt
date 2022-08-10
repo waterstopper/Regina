@@ -1,4 +1,5 @@
 package node.statement
+
 import evaluation.Evaluation.eval
 import kotlin.test.Test
 import kotlin.test.assertFails
@@ -6,49 +7,65 @@ import kotlin.test.assertTrue
 
 class BlockTest {
     @Test
-    fun failBlockWithinBlock(){
-        val thrown = assertFails { eval("""
+    fun failBlockWithinBlock() {
+        val thrown = assertFails {
+            eval(
+                """
             fun main() {
              {}
             }
-        """) }
+        """
+            )
+        }
         assertTrue(thrown.message!!.contains("Block within a block"))
     }
+
     @Test
     fun failBreakOutOfCycle() {
-        val thrown = assertFails { eval("""
+        val thrown = assertFails {
+            eval(
+                """
             fun main(){
             while(0)
                 a = 1
              break
             }
-        """) }
+        """
+            )
+        }
         assertTrue(thrown.message!!.contains("break out of cycle"))
     }
 
     @Test
     fun failContinueOutOfCycle() {
-        val thrown = assertFails { eval("""
+        val thrown = assertFails {
+            eval(
+                """
             fun main(){
             while(0)
                 a = 1
              continue
             }
-        """) }
+        """
+            )
+        }
         assertTrue(thrown.message!!.contains("continue out of cycle"))
     }
 
     @Test
     fun returnInCycle() {
-        eval("""
+        eval(
+            """
             fun main() {test(funWithReturnInCycle() == 2)}
             fun funWithReturnInCycle() {while(1) return 2 }
-        """)
+        """
+        )
     }
 
     @Test
     fun cycleTest() {
-        eval("""
+        eval(
+            """
             fun main() {
             	arg = 0
             	if(true) {
@@ -62,6 +79,7 @@ class BlockTest {
             		}
             	}
             }
-        """)
+        """
+        )
     }
 }

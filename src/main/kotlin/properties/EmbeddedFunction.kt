@@ -1,8 +1,8 @@
 package properties
 
-import table.SymbolTable
 import node.Node
 import node.statement.Assignment
+import table.SymbolTable
 
 class EmbeddedFunction(
     name: String,

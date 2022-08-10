@@ -1,15 +1,15 @@
 package properties
 
 import lexer.PositionalException
-import properties.primitive.PDictionary
-import properties.primitive.PInt
-import table.FileTable
-import table.SymbolTable
 import node.Link
 import node.Node
 import node.TokenFactory
 import node.invocation.Call
 import node.statement.Assignment
+import properties.primitive.PDictionary
+import properties.primitive.PInt
+import table.FileTable
+import table.SymbolTable
 import utils.Utils.toVariable
 
 /**

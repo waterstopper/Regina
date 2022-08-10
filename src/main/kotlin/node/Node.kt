@@ -5,12 +5,11 @@
 package node
 
 import Optional
-import lexer.Parser
 import lexer.PositionalException
-import properties.Type
-import table.SymbolTable
 import node.operator.NodeTernary
 import node.statement.Assignment
+import properties.Type
+import table.SymbolTable
 
 /**
  * Tokens are building blocks of evaluated code.
@@ -28,10 +27,6 @@ open class Node(
     var symbol: String = "",
     var value: String = "",
     val position: Pair<Int, Int> = Pair(0, 0),
-    val bindingPower: Int = 0, // precedence priority
-    var nud: ((node: Node, parser: Parser) -> Node)? = null, // null denotation: values, prefix operators
-    var led: ((node: Node, parser: Parser, node2: Node) -> Node)? = null, // left denotation: infix and suffix operators
-    var std: ((node: Node, parser: Parser) -> Node)? = null, // statement denotation
     val children: MutableList<Node> = mutableListOf()
 ) {
     val left: Node
@@ -90,12 +85,16 @@ open class Node(
      */
     fun traverseUntilOptional(condition: (node: Node) -> Optional): Optional {
         val forThis = condition(this)
-        if (forThis.value != null && (if (forThis.value is Node) forThis.value.symbol != "(LEAVE)" else true))
+        if (forThis.value != null
+            && (if (forThis.value is Node) forThis.value.symbol != "(LEAVE)" else true)
+        )
             return forThis
         if (!forThis.isGood)
             for (i in children) {
                 val childRes = i.traverseUntilOptional(condition)
-                if (childRes.value != null && (if (childRes.value is Node) childRes.value.symbol != "(LEAVE)" else true))
+                if (childRes.value != null
+                    && (if (childRes.value is Node) childRes.value.symbol != "(LEAVE)" else true)
+                )
                     return childRes
             }
         return condition(this)

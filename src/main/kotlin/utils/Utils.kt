@@ -1,14 +1,14 @@
 package utils
 
+import delete.Delete
 import lexer.Parser
 import lexer.PositionalException
-import delete.Delete
+import node.Node
+import node.statement.Assignment
 import properties.Property
 import properties.Type
 import properties.Variable
 import properties.primitive.*
-import node.Node
-import node.statement.Assignment
 
 object Utils {
     init {
@@ -48,7 +48,7 @@ object Utils {
     fun Any.toProperty(delete: Delete, parent: Type? = null): Property =
         if (this is Property) this else Primitive.createPrimitive(this, parent, delete)
 
-    fun parseAssignment(assignment: String) = Parser(assignment).statements().first() as Assignment
+    fun parseAssignment(assignment: String) = Parser(assignment).statements().first().toNode() as Assignment
 
     /**
      * Prints AST with indentation to  show children.

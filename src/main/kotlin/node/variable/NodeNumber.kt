@@ -1,11 +1,10 @@
 package node.variable
 
-import lexer.Parser
-import table.SymbolTable
 import node.Node
+import table.SymbolTable
 
 class NodeNumber(value: String, position: Pair<Int, Int>) :
-    Node("(NUMBER)", value, position, 0, { t: Node, _: Parser -> t }, null, null) {
+    Node("(NUMBER)", value, position) {
     var number: Number? = null
 
     override fun evaluate(symbolTable: SymbolTable): Number {

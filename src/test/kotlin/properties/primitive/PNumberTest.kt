@@ -34,7 +34,8 @@ class PNumberTest {
 
     @Test
     fun testDouble() {
-        eval("""
+        eval(
+            """
             fun main() {
                 test(2.345453.round(12) == 2.345453)
                 test(12345.0.round(-2) == 12300.0)
@@ -43,7 +44,8 @@ class PNumberTest {
                 test(-0.5.round() == -1.0)
                 log(-1.125.round(2) == -1.13)
             }
-        """)
+        """
+        )
     }
 
     @Test

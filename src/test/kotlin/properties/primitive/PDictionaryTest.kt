@@ -7,7 +7,8 @@ import kotlin.test.Test
 class PDictionaryTest {
     @Test
     fun testDictionary() {
-        eval("""
+        eval(
+            """
            fun main() {
                 b = {1:2, 2:2}
                 log(b)
@@ -35,6 +36,7 @@ class PDictionaryTest {
                 test(a.values == [3])
                 
            } 
-        """)
+        """
+        )
     }
 }

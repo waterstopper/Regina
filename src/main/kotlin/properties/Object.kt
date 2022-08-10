@@ -1,11 +1,11 @@
 package properties
 
 import lexer.PositionalException
+import node.Node
+import node.statement.Assignment
 import properties.primitive.PInt
 import table.FileTable
 import table.SymbolTable
-import node.Node
-import node.statement.Assignment
 
 /**
  * Object is a [singleton][https://en.wikipedia.org/wiki/Singleton_pattern] Type

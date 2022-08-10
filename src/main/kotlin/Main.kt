@@ -27,7 +27,7 @@ fun main() {
             doo()
     """
     ).statements()
-    println(statements.treeView())
+    println(statements.map { it.toNode() }.treeView())
 //    println(Parser("A !is B").statements().treeView())
     // println(Parser("(v-a).b.c[1][2][3].s.r").statements().treeView())
 //    val s = readFile("src/test/resources/testCode.redi")
@@ -50,9 +50,9 @@ fun readFile(path: String = "", nodePath: Node = Node()): List<Node> {
         throw PositionalException("no import `${file.name}` found", nodePath)
     }
     val statements = Parser(text).statements()
-    statements.treeView()
+    statements.map { it.toNode() }.treeView()
     // println(statements.treeView())
-    return SemanticAnalyzer(parseFilePath(path), statements).analyze()
+    return SemanticAnalyzer(parseFilePath(path), statements.map { it.toNode() }).analyze()
 }
 
 fun parseFilePath(path: String): String = path.split("/").last()

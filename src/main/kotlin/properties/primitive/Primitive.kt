@@ -1,13 +1,13 @@
 package properties.primitive
 
+import delete.Delete
 import lexer.NotFoundException
 import lexer.PositionalException
 import lexer.RuntimeError
-import delete.Delete
-import properties.*
-import properties.Function
 import node.Node
 import node.invocation.Call
+import properties.*
+import properties.Function
 
 /**
  * Stores Dictionary, Array, String, Int, Double values.

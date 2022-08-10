@@ -80,7 +80,8 @@ class TypeTest {
 
     @Test
     fun testNontrivialTwoStepLink() {
-        eval("""
+        eval(
+            """
             class B {
                 nontrivial = c.d.e
                 c = C()
@@ -99,7 +100,8 @@ class TypeTest {
                 test(b.nontrivial is E)
                 test(b is B); test(b.c is C)
             }
-        """)
+        """
+        )
     }
 
     @Test
@@ -185,7 +187,8 @@ class TypeTest {
 
     @Test
     fun testTripleInheritance() {
-        eval("""
+        eval(
+            """
             fun main() {
                 a = A()
             //    log(a.c)
@@ -203,6 +206,7 @@ class TypeTest {
                 p = 0
                 c = p
             }
-        """)
+        """
+        )
     }
 }

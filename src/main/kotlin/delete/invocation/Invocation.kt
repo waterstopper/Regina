@@ -1,9 +1,9 @@
 package delete.invocation
 
-import lexer.RuntimeError
 import delete.Assignment
-import delete.Identifier
 import delete.Delete
+import delete.Identifier
+import lexer.RuntimeError
 import table.SymbolTable
 
 open class Invocation(

@@ -2,14 +2,13 @@ package node
 
 import lexer.Parser
 import lexer.PositionalException
-import table.SymbolTable
 import node.invocation.Call
 import node.invocation.Constructor
 import node.invocation.Invocation
-import node.operator.ArithmeticOperator
-import node.operator.Operator
-import node.operator.TypeOperator
 import node.statement.Assignment
+import table.SymbolTable
+import token.Token
+import token.TokenIdentifier
 
 object TokenFactory {
     private val nonArithmeticOperators = listOf("+", "==", "!=")
@@ -21,13 +20,13 @@ object TokenFactory {
         value: String,
         position: Pair<Int, Int>,
         bindingPower: Int,
-        nud: ((node: Node, parser: Parser) -> Node)?,
-        led: ((node: Node, parser: Parser, node2: Node) -> Node)?,
-        std: ((node: Node, parser: Parser) -> Node)?
-    ): Node {
+        nud: ((node: Token, parser: Parser) -> Token)?,
+        led: ((node: Token, parser: Parser, node2: Token) -> Token)?,
+        std: ((node: Token, parser: Parser) -> Token)?
+    ): Token {
         return when (symbol) {
-            in wordOperators -> TypeOperator(symbol, value, position, bindingPower, nud, led, std)
-            else -> Identifier(symbol, value, position, bindingPower, nud, led, std)
+            in wordOperators -> token.TypeOperator(symbol, value, position, bindingPower, nud, led, std)
+            else -> TokenIdentifier(symbol, value, position, bindingPower, nud, led, std)
         }
     }
 
@@ -38,10 +37,6 @@ object TokenFactory {
                 node.symbol,
                 node.value,
                 node.position,
-                node.bindingPower,
-                node.nud,
-                node.led,
-                node.std,
                 node.children
             )
             res.isProperty = node.isProperty
@@ -52,10 +47,6 @@ object TokenFactory {
             node.symbol,
             node.value,
             node.position,
-            node.bindingPower,
-            node.nud,
-            node.led,
-            node.std,
             node.children.subList(childrenStart, childrenStart + childrenNumber)
         )
     }
@@ -65,19 +56,19 @@ object TokenFactory {
         value: String,
         position: Pair<Int, Int>,
         bindingPower: Int,
-        nud: ((node: Node, parser: Parser) -> Node)?,
-        led: ((node: Node, parser: Parser, node2: Node) -> Node)?,
-        std: ((node: Node, parser: Parser) -> Node)?
-    ): Node {
+        nud: ((node: Token, parser: Parser) -> Token)?,
+        led: ((node: Token, parser: Parser, node2: Token) -> Token)?,
+        std: ((node: Token, parser: Parser) -> Token)?
+    ): Token {
         return when (symbol) {
-            "!is" -> TypeOperator(symbol, value, position, bindingPower, nud, led, std)
-            "(" -> Invocation(symbol, value, position, bindingPower, nud, led, std)
-            "." -> Link(("(LINK)"), value, position, bindingPower, nud, led, std)
-            "=" -> Assignment("(ASSIGNMENT)", value, position, bindingPower, nud, led, std)
-            ";", "\n", "\r\n", "\r" -> Node("(SEP)", value, position, bindingPower, nud, led, std)
-            in nonArithmeticOperators -> Operator(symbol, value, position, bindingPower, nud, led, std)
-            in arithmeticOperators -> ArithmeticOperator(symbol, value, position, bindingPower, nud, led, std)
-            else -> Node(symbol, value, position, bindingPower, nud, led, std)
+            "!is" -> token.TypeOperator(symbol, value, position, bindingPower, nud, led, std)
+            "(" -> token.Invocation(symbol, value, position, bindingPower, nud, led, std)
+            "." -> token.Link(("(LINK)"), value, position, bindingPower, nud, led, std)
+            "=" -> token.Assignment("(ASSIGNMENT)", value, position, bindingPower, nud, led, std)
+            ";", "\n", "\r\n", "\r" -> Token("(SEP)", value, position, bindingPower, nud, led, std)
+            in nonArithmeticOperators -> token.Operator(symbol, value, position, bindingPower, nud, led, std)
+            in arithmeticOperators -> token.ArithmeticOperator(symbol, value, position, bindingPower, nud, led, std)
+            else -> Token(symbol, value, position, bindingPower, nud, led, std)
         }
     }
 

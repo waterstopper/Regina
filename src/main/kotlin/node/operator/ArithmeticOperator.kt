@@ -1,10 +1,9 @@
 package node.operator
 
 import lexer.ExpectedTypeException
-import lexer.Parser
 import lexer.PositionalException
-import table.SymbolTable
 import node.Node
+import table.SymbolTable
 import utils.Utils.toInt
 import utils.Utils.unifyNumbers
 
@@ -12,15 +11,8 @@ class ArithmeticOperator(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
-    bindingPower: Int,
-    nud: ((node: Node, parser: Parser) -> Node)?,
-    led: (
-        (
-        node: Node, parser: Parser, node2: Node
-    ) -> Node
-    )?,
-    std: ((node: Node, parser: Parser) -> Node)?
-) : Operator(symbol, value, position, bindingPower, nud, led, std) {
+    children: List<Node>
+) : Operator(symbol, value, position, children.toMutableList()) {
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         if (children.size == 1) {

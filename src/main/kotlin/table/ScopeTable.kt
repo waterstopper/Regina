@@ -1,8 +1,8 @@
 package table
 
 import lexer.NotFoundException
-import properties.Variable
 import node.Node
+import properties.Variable
 
 class ScopeTable {
     private val variables: MutableMap<String, Variable> = mutableMapOf()

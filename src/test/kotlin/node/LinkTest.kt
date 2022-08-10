@@ -9,7 +9,9 @@ import kotlin.test.assertTrue
 class LinkTest {
     @Test
     fun testNotFound() {
-        val thrown = assertFails { eval("""
+        val thrown = assertFails {
+            eval(
+                """
            fun main() {
             a = A()
             log(a.s)
@@ -17,7 +19,9 @@ class LinkTest {
             class A {
                  a = 0
             }
-        """) }
+        """
+            )
+        }
         assertTrue(thrown.message!!.contains("Link not resolved"))
     }
 }

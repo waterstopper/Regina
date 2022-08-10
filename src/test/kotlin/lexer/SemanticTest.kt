@@ -159,7 +159,7 @@ class SemanticTest {
            } 
         """
         ).statements()
-        val withoutInvocation = SemanticAnalyzer("@NoFile", tokens).analyze()
+        val withoutInvocation = SemanticAnalyzer("@NoFile", tokens.map { it.toNode() }).analyze()
         withoutInvocation.forEach {
             val res = it.traverseUntilOptional { token -> if (token is Invocation) Optional(token) else Optional() }
             if (res.isGood)

@@ -1,6 +1,5 @@
 package properties.primitive
 
-import evaluation.Evaluation
 import evaluation.Evaluation.eval
 import kotlin.test.Test
 import kotlin.test.assertFails
@@ -9,7 +8,7 @@ import kotlin.test.assertTrue
 class PArrayTest {
     @Test
     fun testArray() {
-       eval(
+        eval(
             """
         fun main() {
             a = []
@@ -36,7 +35,8 @@ class PArrayTest {
 
     @Test
     fun testArrayEquals() {
-        eval("""
+        eval(
+            """
             fun main() {
             aInst = A()
            a = [aInst]
@@ -49,11 +49,12 @@ class PArrayTest {
            class A{
             a = 0
            }
-        """)
+        """
+        )
     }
 
     @Test
-    fun testArraySort(){
+    fun testArraySort() {
         eval(
             """
            fun main() {
@@ -76,14 +77,16 @@ class PArrayTest {
 
     @Test
     fun testJoinToString() {
-        eval("""
+        eval(
+            """
             fun main() {
                 a = [1,2,3]
                 test(a.joinToString() == "1, 2, 3")
                 test(a.joinToString(separator="\n") == "1\n2\n3")
                 test(a.joinToString(separator="\"") == "1\"2\"3")
             }
-        """)
+        """
+        )
     }
 
     @Test
@@ -130,11 +133,13 @@ class PArrayTest {
 
     @Test
     fun testImplicitArray() {
-        eval("""
+        eval(
+            """
            fun main() {
             test((getArray() + 0).sorted() == [0, 1, 2, 3])
            }
            fun getArray() {return [1, 3, 2]}
-        """)
+        """
+        )
     }
 }

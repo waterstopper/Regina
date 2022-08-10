@@ -1,7 +1,6 @@
 package formatter
 
 import lexer.Parser
-import lexer.SemanticAnalyzer
 import node.Node
 import node.operator.Operator
 import java.io.File
@@ -31,7 +30,8 @@ class Formatter(filePath: String) {
         text.forEach { result.add(StringBuilder(it)) }
 
         val statements = Parser(text.joinToString(separator = "\n")).statements()
-        return SemanticAnalyzer(filePath, statements).analyze()
+        // return SemanticAnalyzer(filePath, statements).analyze()
+        return listOf()
     }
 
     private fun traverse(node: Node) {

@@ -9,7 +9,8 @@ import kotlin.test.assertTrue
 class ObjectTest {
     @Test
     fun testProperty() {
-        eval("""
+        eval(
+            """
             fun main() {
                 test(Obj.a == 1)
                 test(Obj.a == 1)
@@ -28,17 +29,22 @@ class ObjectTest {
                 test(beforeObj.isInit == 2)
                 return 1
             }
-        """)
+        """
+        )
     }
 
     @Test
     fun failInheritance() {
-        val thrown= assertFails {   eval("""
+        val thrown = assertFails {
+            eval(
+                """
            class C {}
            object Ok {}
            object O: C {}
            fun main() {}
-        """)}
-     assertTrue(thrown.message!!.contains("Object cannot be inherited"))
+        """
+            )
+        }
+        assertTrue(thrown.message!!.contains("Object cannot be inherited"))
     }
 }

@@ -3,12 +3,10 @@ package table
 import evaluation.Evaluation.globalTable
 import evaluation.FunctionFactory.initializeEmbedded
 import lexer.PositionalException
-import delete.Delete
-import delete.invocation.Invocation
-import properties.*
-import properties.Function
 import node.Node
 import node.statement.Assignment
+import properties.*
+import properties.Function
 import utils.Utils.toVariable
 
 class SymbolTable(
@@ -95,9 +93,6 @@ class SymbolTable(
         }
     }
 
-    fun getFileOfValue(delete: Delete, getValue: (table: FileTable) -> Any?): FileTable =
-        fileTable.getFileOfValue(delete, getValue)
-
     fun getFileTable() = fileTable
     fun getScope() = scopeTable
     fun getCurrentType() = variableTable
@@ -168,10 +163,6 @@ class SymbolTable(
             return variableTable!!.getFunction(node)
         }
         return res
-    }
-
-    fun getFunction(invocation: Invocation): Function {
-        TODO()
     }
 
     fun getObjectOrNull(node: Node): Object? = getFromFilesOrNull { it.getObjectOrNull(node.value) } as Object?

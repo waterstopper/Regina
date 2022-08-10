@@ -2,10 +2,6 @@ package lexer
 
 import evaluation.Evaluation.globalTable
 import evaluation.FunctionFactory
-import properties.primitive.PString
-import readFile
-import table.FileTable
-import table.SymbolTable
 import node.*
 import node.TokenFactory.changeInvocationOnSecondPositionInLink
 import node.TokenFactory.createSpecificInvocation
@@ -13,7 +9,12 @@ import node.invocation.Call
 import node.invocation.Invocation
 import node.statement.Assignment
 import node.variable.NodeNumber
+import properties.primitive.PString
+import readFile
+import table.FileTable
+import table.SymbolTable
 import utils.Utils.subList
+import utils.Utils.treeView
 
 /**
  * Performs basic semantic analysis and creates symbol table for future evaluation
@@ -22,6 +23,7 @@ class SemanticAnalyzer(private val fileName: String, private val nodes: List<Nod
     val files = mutableMapOf<String, FileTable>()
 
     fun analyze(): List<Node> {
+        println(nodes.treeView())
         println("Analyzing: `$fileName`")
         createAssociations()
         changeIdentTokens()

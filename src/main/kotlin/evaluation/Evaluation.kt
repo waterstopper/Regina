@@ -3,9 +3,9 @@ package evaluation
 import lexer.Parser
 import lexer.SemanticAnalyzer
 import lexer.SemanticAnalyzer.Companion.clearAnalyzer
+import node.Node
 import table.SymbolTable
 import table.SymbolTable.Companion.clearTable
-import node.Node
 import java.io.File
 
 /**
@@ -19,7 +19,7 @@ object Evaluation {
     var globalTable = SymbolTable()
 
     fun eval(code: String) {
-        val statements = SemanticAnalyzer("@NoFile", Parser(code).statements()).analyze()
+        val statements = SemanticAnalyzer("@NoFile", Parser(code).statements().map { it.toNode() }).analyze()
         SemanticAnalyzer.initializeSuperTypes() // TODO do before analyzing file, but after imports.
         val main = globalTable.getMain()
         main.body.evaluate(globalTable)
@@ -30,7 +30,7 @@ object Evaluation {
 
     fun evaluate(fileName: String) {
         val code = File(if (fileName.contains(".")) fileName else "$fileName.redi").readText()
-        val sts = SemanticAnalyzer(fileName, Parser(code).statements()).analyze()
+        val sts = SemanticAnalyzer(fileName, Parser(code).statements().map { it.toNode() }).analyze()
         val main = globalTable.getMain()
         main.body.evaluate(globalTable)
         clear()

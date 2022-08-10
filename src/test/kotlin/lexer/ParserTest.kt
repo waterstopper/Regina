@@ -16,7 +16,7 @@ class ParserTest {
     }
 
     @Test
-    fun failNoIndexInIndexing(){
+    fun failNoIndexInIndexing() {
         val thrown = assertFails { Parser("a[]").statements() }
         assertTrue(thrown.message!!.contains("Expected index"))
     }
@@ -41,10 +41,12 @@ class ParserTest {
 
     @Test
     fun parseStatementSeparators() {
-        Parser("""
+        Parser(
+            """
             a = b /* comment */ otherStatement(); other()
             last()
-        """).statements()
+        """
+        ).statements()
     }
 
     @Test
@@ -88,7 +90,7 @@ class ParserTest {
         val thrown = assertFails { Parser("fun main() {a = 1.[3]}").statements() }
         assertTrue(thrown.message!!.contains("Expected Identifier or Invocation or Index, but got"))
 
-        val thrown2 =  assertFails { Parser("fun main() {a = 1.[1,2][3]}").statements() }
+        val thrown2 = assertFails { Parser("fun main() {a = 1.[1,2][3]}").statements() }
         assertTrue(thrown2.message!!.contains("Expected Identifier or Invocation or Index, but got"))
     }
 
@@ -103,21 +105,25 @@ class ParserTest {
 
     @Test
     fun ignoreSeparators() {
-        eval("""
+        eval(
+            """
             fun /**/ main/**/() {
                 a = 0; a = 0;
                 if(a) {} /**/ else {}; if(a) {} else {}
             }
-        """)
+        """
+        )
     }
 
     @Test
     fun controversialSeparatorsTest() {
-        eval("""
+        eval(
+            """
            fun main;(;); {
             if(a()) b = 0; else {}
             test(b == 0)
            }; fun a() {return 1} 
-        """)
+        """
+        )
     }
 }

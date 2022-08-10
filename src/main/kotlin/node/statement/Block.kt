@@ -1,12 +1,12 @@
 package node.statement
 
 import lexer.PositionalException
-import table.SymbolTable
 import node.Node
+import table.SymbolTable
 import utils.Utils.toBoolean
 
 class Block(node: Node) :
-    Node(node.symbol, node.value, node.position, node.bindingPower, node.nud, node.led, node.std) {
+    Node(node.symbol, node.value, node.position, node.children) {
     constructor(position: Pair<Int, Int>) : this(Node("{", "{", position))
 
     override fun evaluate(symbolTable: SymbolTable): Any {

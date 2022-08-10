@@ -1,11 +1,10 @@
 package node
 
 import lexer.NotFoundException
-import lexer.Parser
+import node.statement.Assignment
 import properties.Type
 import properties.primitive.Primitive
 import table.SymbolTable
-import node.statement.Assignment
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
@@ -13,11 +12,7 @@ open class Identifier(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
-    bindingPower: Int,
-    nud: ((node: Node, parser: Parser) -> Node)?,
-    led: ((node: Node, parser: Parser, node2: Node) -> Node)?,
-    std: ((node: Node, parser: Parser) -> Node)?
-) : Node(symbol, value, position, bindingPower, nud, led, std), Assignable, Linkable {
+) : Node(symbol, value, position), Assignable, Linkable {
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         val variable = symbolTable.getIdentifierOrNull(this)

@@ -1,7 +1,7 @@
 package properties
 
-import properties.primitive.PDictionary
 import node.Node
+import properties.primitive.PDictionary
 
 abstract class Variable(var parent: Type?) {
     abstract fun getPropertyOrNull(name: String): Property?

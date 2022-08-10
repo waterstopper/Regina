@@ -1,30 +1,18 @@
 package node
 
-import lexer.Parser
 import lexer.PositionalException
+import utils.Utils.toBoolean
 
 open class Declaration(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
-    bindingPower: Int,
-    nud: ((node: Node, parser: Parser) -> Node)?,
-    led: (
-        (
-        node: Node, parser: Parser, node2: Node
-    ) -> Node
-    )?,
-    std: ((node: Node, parser: Parser) -> Node)?,
     children: List<Node>
-) : Node(symbol, value, position, bindingPower, nud, led, std) {
+) : Node(symbol, value, position, children.toMutableList()) {
     constructor(node: Node) : this(
         node.symbol,
         node.value,
         node.position,
-        node.bindingPower,
-        node.nud,
-        node.led,
-        node.std,
         node.children
     )
 
@@ -56,20 +44,4 @@ open class Declaration(
             Pair(node.left, node.right)
         else Pair(node, null)
     }
-}
-
-class ImportDeclaration(
-    symbol: String,
-    value: String,
-    position: Pair<Int, Int>,
-    bindingPower: Int,
-    nud: ((node: Node, parser: Parser) -> Node)?,
-    led: (
-        (
-        node: Node, parser: Parser, node2: Node
-    ) -> Node
-    )?,
-    std: ((node: Node, parser: Parser) -> Node)?,
-) : Declaration(symbol, value, position, bindingPower, nud, led, std, listOf()) {
-
 }

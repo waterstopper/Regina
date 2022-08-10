@@ -6,7 +6,8 @@ import kotlin.test.Test
 class PStringTest {
     @Test
     fun testString() {
-        eval("""
+        eval(
+            """
             fun main() {
             s = "abcde"
             test(s.substring(2) == "cde")
@@ -31,7 +32,8 @@ class PStringTest {
             
             test(array(s) == ["a", "b", "c", "d", "e"])
             }
-        """)
+        """
+        )
 
     }
 }

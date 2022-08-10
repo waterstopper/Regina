@@ -1,10 +1,9 @@
 package node.operator
 
-import lexer.Parser
 import lexer.PositionalException
+import node.Node
 import properties.primitive.PNumber
 import table.SymbolTable
-import node.Node
 import utils.Utils.toInt
 import utils.Utils.toVariable
 
@@ -12,15 +11,8 @@ open class Operator(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
-    bindingPower: Int,
-    nud: ((node: Node, parser: Parser) -> Node)?,
-    led: (
-        (
-        node: Node, parser: Parser, node2: Node
-    ) -> Node
-    )?,
-    std: ((node: Node, parser: Parser) -> Node)?
-) : Node(symbol, value, position, bindingPower, nud, led, std) {
+    children: List<Node>
+) : Node(symbol, value, position, children.toMutableList()) {
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         return when (value) {
