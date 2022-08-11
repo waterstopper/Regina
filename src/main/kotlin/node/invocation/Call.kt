@@ -41,8 +41,6 @@ class Call(
      */
     override fun evaluate(symbolTable: SymbolTable): Any {
         val function = symbolTable.getFunction(this)
-        if(function.name=="log")
-            println()
         val newTable = symbolTable.changeFile(symbolTable.getFileOfValue(left)
         { it.getFunctionOrNull(this) }).changeScope()
         argumentsToParameters(function, symbolTable, newTable)

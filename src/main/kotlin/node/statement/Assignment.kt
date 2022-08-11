@@ -1,5 +1,6 @@
 package node.statement
 
+import lexer.PositionalException
 import node.Assignable
 import node.Link
 import node.Node
@@ -16,6 +17,8 @@ class Assignment(
     init {
         this.children.clear()
         this.children.addAll(children)
+        if(left !is Assignable)
+            throw PositionalException("Left operand is not assignable", left)
     }
 
     var parent: Type? = null
@@ -63,8 +66,6 @@ class Assignment(
     }
 
     override fun hashCode(): Int {
-        if(children.size == 0)
-            println()
         return left.hashCode()
     }
 }

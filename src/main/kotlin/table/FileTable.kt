@@ -1,19 +1,20 @@
 package table
 
-import delete.Delete
 import evaluation.FunctionFactory
 import lexer.ExpectedTypeException
 import lexer.NotFoundException
 import lexer.PositionalException
-import lexer.RuntimeError
 import node.Identifier
+import node.ImportNode
 import node.Node
 import node.invocation.Call
 import node.statement.Assignment
 import properties.Function
 import properties.Object
 import properties.Type
+import table.SymbolTable.Companion.globalFile
 
+//@Serializable
 class FileTable(
     val fileName: String
 ) {
@@ -22,7 +23,11 @@ class FileTable(
     private val functions: MutableSet<Function> = mutableSetOf()
     private val imports: MutableMap<String, FileTable> = mutableMapOf()
 
-    fun addType(node: Node) {
+    init {
+        imports["@global"] = globalFile
+    }
+
+    fun addType(node: Node): Type {
         val name = node.left.value
 
         val (assignments, functions) = createAssignmentsAndFunctions(node.children[2])
@@ -33,6 +38,7 @@ class FileTable(
         types.add(added)
         for (assignment in added.assignments)
             assignment.parent = added
+        return added
     }
 
     fun addObject(node: Node) {
@@ -49,22 +55,42 @@ class FileTable(
     fun addFunction(function: Function) {
         val res = functions.add(function)
         if (!res)
-            throw PositionalException("Two functions with same signature (name and number of non-default parameters) `$function` in $fileName")
+            throw PositionalException(
+                "Two functions with same signature (name and number of non-default parameters) `$function` in $fileName"
+            )
     }
 
-    fun getTypeOrNull(name: String): Type? = types.find { it.name == name }?.copy()
-    fun getType(node: Node): Type = types.find { it.name == node.value }?.copy()
+    fun addImport(importNode: ImportNode, fileTable: FileTable) {
+        if (imports.filter { it.value == fileTable }.isNotEmpty())
+            throw PositionalException("Same import found above", importNode)
+        imports[importNode.importName] = fileTable
+    }
+
+    fun getTypeOrNull(name: String): Type? = getFromFilesOrNull {
+        it.types.find { type -> type.name == name }?.copy()
+    } as Type?
+
+    fun getType(node: Node): Type = getTypeOrNull(node.value)
         ?: throw NotFoundException(node)
 
     fun getUncopiedType(node: Node): Type = types.find { it.name == node.value }
         ?: throw throw NotFoundException(node)
 
-    fun getObjectOrNull(name: String) = objects.find { it.name == name }
+    fun getObjectOrNull(name: String): Object? = getFromFilesOrNull {
+        it.objects.find { obj -> obj.name == name }
+    } as Object?
+
+    fun getFunctionOrNull(node: Node): Function? = getFromFilesOrNull {
+        Function.getFunctionOrNull(node as Call, it.functions)
+    } as Function?
 
     fun getFunction(node: Node): Function =
         getFunctionOrNull(node) ?: throw PositionalException("Function not found in `$fileName`", node)
 
-    fun getFunctionOrNull(node: Node): Function? = Function.getFunctionOrNull(node as Call, functions)
+    fun getImportOrNull(importName: String) = imports[importName]
+    fun getImportOrNullByFileName(fileName: String) = imports.values.find { it.fileName == fileName }
+    fun getImport(node: Node) = imports[node.value] ?: throw PositionalException("File not found", node)
+
 
     fun getMain(): Function {
         val mains = functions.filter { it.name == "main" }
@@ -118,7 +144,8 @@ class FileTable(
 
     fun getTypes(): MutableMap<String, Type> = types.associateBy { it.name }.toMutableMap()
     fun getObjects() = objects
-    fun getFileOfValue(delete: Delete, getValue: (table: FileTable) -> Any?): FileTable {
+    fun getFunctions() = functions
+    fun getFileOfValue(node: Node, getValue: (table: FileTable) -> Any?): FileTable {
         val inCurrent = getValue(this)
         if (inCurrent != null)
             return this
@@ -131,7 +158,32 @@ class FileTable(
         return when (suitable.size) {
             0 -> this // if function is in class //throw PositionalException("File with `${token.value}` not found", token)
             1 -> suitable.first()
-            else -> throw RuntimeError("`${delete}` is found in files: $suitable. Specify file.", delete)
+            else -> throw PositionalException("`${node}` is found in files: $suitable. Specify file.", node)
         }
     }
+
+    private fun getFromFilesOrNull(getValue: (table: FileTable) -> Any?): Any? {
+        val valuesList = getListFromFiles(getValue)
+        return if (valuesList.size == 1)
+            valuesList.first()
+        else null
+    }
+
+    private fun getListFromFiles(getValue: (table: FileTable) -> Any?): List<Any> {
+        val fromCurrent = getValue(this)
+        if (fromCurrent != null)
+            return listOf(fromCurrent)
+        return checkImports(getValue)
+    }
+
+    private fun checkImports(check: (table: FileTable) -> Any?): List<Any> {
+        val suitable = mutableListOf<Any>()
+        for (table in imports.values) {
+            val fromFile = check(table)
+            if (fromFile != null)
+                suitable.add(fromFile)
+        }
+        return suitable
+    }
+
 }

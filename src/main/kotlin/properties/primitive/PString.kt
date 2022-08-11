@@ -8,7 +8,6 @@ import properties.EmbeddedFunction
 import properties.Type
 import properties.Variable
 import utils.Utils.castToString
-import utils.Utils.parseAssignment
 import utils.Utils.toProperty
 
 class PString(value: String, parent: Type? = null) : Primitive(value, parent), Indexable {
@@ -52,11 +51,7 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
             val s = PString("", null)
             setFunction(
                 s,
-                EmbeddedFunction(
-                    "substring",
-                    listOf(Node(value = "start")),
-                    listOf(parseAssignment("end = this.size"))
-                ) { token, args ->
+                EmbeddedFunction("substring", listOf("start"), listOf("end = this.size")) { token, args ->
                     val string = castToString(args.getPropertyOrNull("this")!!)
                     val start = getInt(token, "start", args)
                     val end = getInt(token, "end", args)
@@ -65,10 +60,7 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
             )
             setFunction(
                 s,
-                EmbeddedFunction(
-                    "replace",
-                    listOf(Node(value = "oldString"), Node(value = "newString"))
-                ) { token, args ->
+                EmbeddedFunction("replace", listOf("oldString", "newString")) { token, args ->
                     val string = castToString(args.getPropertyOrNull("this")!!)
                     val oldString = getString(token, "oldString", args)
                     val newString = getString(token, "newString", args)
@@ -77,28 +69,28 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
             )
             setFunction(
                 s,
-                EmbeddedFunction("reversed", listOf()) { token, args ->
+                EmbeddedFunction("reversed") { _, args ->
                     val string = castToString(args.getPropertyOrNull("this")!!)
                     string.getPValue().reversed()
                 }
             )
             setFunction(
                 s,
-                EmbeddedFunction("lowercase", listOf()) { token, args ->
+                EmbeddedFunction("lowercase") { _, args ->
                     val string = castToString(args.getPropertyOrNull("this")!!)
                     string.getPValue().lowercase()
                 }
             )
             setFunction(
                 s,
-                EmbeddedFunction("uppercase", listOf()) { token, args ->
+                EmbeddedFunction("uppercase") { _, args ->
                     val string = castToString(args.getPropertyOrNull("this")!!)
                     string.getPValue().uppercase()
                 }
             )
             setFunction(
                 s,
-                EmbeddedFunction("toArray", listOf()) { _, args ->
+                EmbeddedFunction("toArray") { _, args ->
                     val string = castToString(args.getPropertyOrNull("this")!!)
                     string.getPValue().toCharArray().map { it.toString() }
                 }

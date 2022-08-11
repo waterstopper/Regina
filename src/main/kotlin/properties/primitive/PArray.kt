@@ -4,16 +4,13 @@ import evaluation.FunctionFactory.getArray
 import evaluation.FunctionFactory.getIdent
 import evaluation.FunctionFactory.getInt
 import evaluation.FunctionFactory.getString
-import lexer.Parser
 import lexer.PositionalException
 import node.Node
-import node.statement.Assignment
 import properties.EmbeddedFunction
 import properties.Object
 import properties.Type
 import properties.Variable
 import utils.Utils.castToArray
-import utils.Utils.parseAssignment
 import utils.Utils.toInt
 import utils.Utils.toProperty
 import utils.Utils.toVariable
@@ -66,9 +63,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             setFunction(
                 p,
                 EmbeddedFunction(
-                    "add",
-                    listOf(Node(value = "element")),
-                    listOf(parseAssignment("index = this.size"))
+                    "add", listOf("element"), listOf("index = this.size")
                 ) { token, args ->
                     val list = castToArray(args.getPropertyOrNull("this")!!)
                     val argument = getIdent(token, "element", args)
@@ -81,8 +76,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             setFunction(
                 p,
                 EmbeddedFunction(
-                    "remove",
-                    listOf(Node(value = "element")),
+                    "remove", args = listOf("element"),
                 ) { token, args ->
                     val list = castToArray(args.getPropertyOrNull("this")!!)
                     val argument = getIdent(token, "element", args)
@@ -101,7 +95,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             )
             setFunction(
                 p,
-                EmbeddedFunction("removeAt", listOf(Node(value = "index"))) { token, args ->
+                EmbeddedFunction("removeAt", listOf("index")) { token, args ->
                     val list = castToArray(args.getPropertyOrNull("this")!!)
                     val index = getInt(token, "index", args)
                     try {
@@ -115,7 +109,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             )
             setFunction(
                 p,
-                EmbeddedFunction("has", listOf(Node(value = "element"))) { token, args ->
+                EmbeddedFunction("has", listOf("element")) { token, args ->
                     val list = castToArray(args.getPropertyOrNull("this")!!)
                     val element = getIdent(token, "element", args)
                     if (element is Primitive)
@@ -125,10 +119,7 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             )
             setFunction(
                 p,
-                EmbeddedFunction(
-                    "joinToString", listOf(),
-                    listOf(Parser("separator = \", \"").statements().first().toNode() as Assignment)
-                ) { token, args ->
+                EmbeddedFunction("joinToString", namedArgs = listOf("separator = \", \"")) { token, args ->
                     val array = getArray(token, "this", args)
                     val separator = getString(token, "separator", args)
                     array.getPValue().joinToString(separator = separator.getPValue())
@@ -136,20 +127,14 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
             )
             setFunction(
                 p,
-                EmbeddedFunction(
-                    "clear",
-                    listOf(),
-                ) { _, args ->
+                EmbeddedFunction("clear") { _, args ->
                     val list = castToArray(args.getPropertyOrNull("this")!!)
                     list.getPValue().clear()
                 }
             )
             setFunction(
                 p,
-                EmbeddedFunction(
-                    "sort", listOf(),
-                    listOf(Parser("desc = false").statements().first().toNode() as Assignment)
-                ) { token, args ->
+                EmbeddedFunction("sort", listOf(), listOf("desc = false")) { token, args ->
                     val array = getArray(token, "this", args)
                     val desc = getInt(token, "desc", args)
                     val comparator = Comparator<Variable> { a, b -> compareVariables(a, b) }
@@ -158,12 +143,8 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                         array.getPValue().reverse()
                 }
             )
-            setFunction(
-                p,
-                EmbeddedFunction(
-                    "sorted", listOf(),
-                    listOf(Parser("reverse = false").statements().first().toNode() as Assignment)
-                ) { token, args ->
+            setFunction(p,
+                EmbeddedFunction("sorted", namedArgs = listOf("reverse = false")) { token, args ->
                     val array = getArray(token, "this", args)
                     val desc = getInt(token, "reverse", args)
                     val comparator = Comparator<Variable> { a, b -> compareVariables(a, b) }

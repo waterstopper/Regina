@@ -1,5 +1,12 @@
 package properties
 
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import lexer.PositionalException
 import node.Link
 import node.Node
@@ -12,15 +19,22 @@ import table.FileTable
 import table.SymbolTable
 import utils.Utils.toVariable
 
+object AssignmentSerializer : KSerializer<Assignment> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Assignment", PrimitiveKind.LONG)
+    override fun serialize(encoder: Encoder, value: Assignment) = encoder.encodeString(value.name)
+    override fun deserialize(decoder: Decoder): Assignment = Assignment("", "")
+}
+
 /**
  * Is a class. In documentation might be referred as class or type interchangeably.
  *
  * Classes are mutable, meaning assigning same instance to different variables `a` and b` will change `a` if `b` is changed.
  */
+//@Serializable
 open class Type(
     val name: String,
     parent: Type?,
-    val assignments: MutableSet<Assignment>,
+    val assignments: MutableSet<@Serializable(with=AssignmentSerializer::class) Assignment>,
     val fileTable: FileTable,
     var supertype: Type? = null
 ) :

@@ -93,7 +93,7 @@ class CallTest {
             """
             )
         }
-        assertTrue(thrown.message!!.contains("Expected identifier as function parameter"))
+        assertTrue(thrown.message!!.contains("Expected identifier or assignment as function parameter"))
     }
 
     @Test

@@ -1,5 +1,7 @@
 package properties
 
+import kotlinx.serialization.Serializable
+import node.Identifier
 import node.Node
 import node.invocation.Call
 import node.statement.Assignment
@@ -11,7 +13,7 @@ import node.statement.Assignment
  */
 open class Function(
     val name: String,
-    val nonDefaultParams: List<Node>,
+    val nonDefaultParams: List<Identifier>,
     val defaultParams: List<Assignment>,
     val body: Node
 ) {

@@ -173,7 +173,7 @@ open class Link(
         if (type == null || type !is Type)
             type = null
         val tableForEvaluation = SymbolTable(
-            fileTable = if (type is Type) table.getFileFromType(type, children[index])
+            fileTable = if (type is Type) type.fileTable
             else table.getFileTable(),
             variableTable = table.getCurrentType()
         ) // table.changeScope(initialTable.getScope())

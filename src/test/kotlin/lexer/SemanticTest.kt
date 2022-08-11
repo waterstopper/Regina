@@ -149,25 +149,6 @@ class SemanticTest {
     }
 
     @Test
-    fun testInvocationsRemoval() {
-        // TODO
-        val tokens = Parser(
-            """
-           fun main() {
-                a = [1,2,3]
-                a[1].f()
-           } 
-        """
-        ).statements()
-        val withoutInvocation = SemanticAnalyzer("@NoFile", tokens.map { it.toNode() }).analyze()
-        withoutInvocation.forEach {
-            val res = it.traverseUntilOptional { token -> if (token is Invocation) Optional(token) else Optional() }
-            if (res.isGood)
-                println(res::class)
-        }
-    }
-
-    @Test
     fun twoSameImports() {
         val thrown = assertFails {
             eval(

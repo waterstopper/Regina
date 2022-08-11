@@ -1,6 +1,7 @@
 package token
 
 import lexer.Parser
+import lexer.SyntaxException
 import node.Linkable
 import node.Node
 import node.invocation.Invocation
@@ -22,6 +23,21 @@ open class Invocation(
         get() = left
 
     override fun toNode(): Node {
+        checkParamsOrArgsOrder(children.subList(1, children.size))
         return Invocation(symbol, value, position, children.map { it.toNode() })
+    }
+
+    /**
+     * Check that default parameters and named arguments are after other ones
+     */
+    private fun checkParamsOrArgsOrder(params: List<Token>) {
+        var wasAssignment = false
+        for (param in params)
+            when (param) {
+                is Assignment -> wasAssignment = true
+                is TokenIdentifier -> if (wasAssignment)
+                    throw SyntaxException("Default params should be after other", param)
+                else -> if (wasAssignment) throw SyntaxException("Named args should be after other", param)
+            }
     }
 }

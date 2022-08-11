@@ -4,7 +4,6 @@ import evaluation.FunctionFactory.getDouble
 import evaluation.FunctionFactory.getInt
 import properties.EmbeddedFunction
 import properties.Type
-import utils.Utils.parseAssignment
 import utils.Utils.toProperty
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -26,15 +25,15 @@ class PDouble(value: Double, parent: Type?) : PNumber(value, parent) {
                 d,
                 EmbeddedFunction(
                     "round",
-                    listOf(),
-                    listOf(parseAssignment("digits = 0"))
+                    namedArgs = listOf("digits = 0")
                 ) { token, args ->
                     val number = getDouble(token, "this", args)
                     val digits = getInt(token, "digits", args)
                     if (digits.getPValue() < 0) {
                         val divisor = 10.0.pow(-digits.getPValue())
                         (number.getPValue() / divisor).roundToInt() * divisor
-                    } else String.format("%.${digits}f", number.getPValue()).replace(',', '.').toDouble()
+                    } else String.format("%.${digits}f", number.getPValue())
+                        .replace(',', '.').toDouble()
                 }
             )
         }

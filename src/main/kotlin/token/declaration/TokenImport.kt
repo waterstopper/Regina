@@ -1,20 +1,17 @@
 package token.declaration
 
-import node.Declaration
-import node.Node
+import lexer.SyntaxException
+import node.*
+import token.Assignment
 import token.Token
+import token.TokenIdentifier
 
 class TokenImport(
     token: Token
 ) : Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {
 
-    init {
-        this.children.clear()
-        this.children.addAll(children)
-    }
-
     override fun toNode(): Node {
-        return Declaration(symbol, value, position, children.map { it.toNode() })
+        return ImportNode(symbol, value, position, children.map { it.toNode() })
     }
 }
 
@@ -22,13 +19,8 @@ class TokenType(
     token: Token
 ) : Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {
 
-    init {
-        this.children.clear()
-        this.children.addAll(children)
-    }
-
     override fun toNode(): Node {
-        return Declaration(symbol, value, position, children.map { it.toNode() })
+        return TypeNode(symbol, value, position, children.map { it.toNode() })
     }
 }
 
@@ -36,26 +28,25 @@ class TokenObject(
     token: Token
 ) : Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {
 
-    init {
-        this.children.clear()
-        this.children.addAll(children)
-    }
 
     override fun toNode(): Node {
-        return Declaration(symbol, value, position, children.map { it.toNode() })
+        return ObjectNode(symbol, value, position, children.map { it.toNode() })
     }
 }
 
 class TokenFunction(
     token: Token
-) : Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {
-
-    init {
-        this.children.clear()
-        this.children.addAll(children)
-    }
+) : Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std, token.children) {
 
     override fun toNode(): Node {
-        return Declaration(symbol, value, position, children.map { it.toNode() })
+        checkParameters(children[0].children.subList(1, children[0].children.size))
+        return FunctionNode(symbol, value, position, children.map { it.toNode() })
+    }
+
+    private fun checkParameters(parameters: List<Token>) {
+        for (parameter in parameters) {
+            if (parameter !is Assignment && parameter !is TokenIdentifier)
+                throw SyntaxException("Expected identifier or assignment as function parameter", this)
+        }
     }
 }

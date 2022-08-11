@@ -1,7 +1,6 @@
-import evaluation.Evaluation.oldEvaluate
 import lexer.Parser
 import lexer.PositionalException
-import lexer.SemanticAnalyzer
+//import lexer.SemanticAnalyzer
 import node.Node
 import utils.Utils.treeView
 import java.io.File
@@ -27,7 +26,6 @@ fun main() {
             doo()
     """
     ).statements()
-    println(statements.map { it.toNode() }.treeView())
 //    println(Parser("A !is B").statements().treeView())
     // println(Parser("(v-a).b.c[1][2][3].s.r").statements().treeView())
 //    val s = readFile("src/test/resources/testCode.redi")
@@ -35,25 +33,23 @@ fun main() {
 //    SymbolTable.initializeObjects()
 //    println(Evaluation.globalTable)
 //    evaluate(s, "testCode.redi")
-    val s = readFile("src/test/resources/testCode.redi")
-    SemanticAnalyzer.initializeSuperTypes()
+ //   val s = readFile("src/test/resources/testCode.redi")
+   // SemanticAnalyzer.initializeSuperTypes()
     // println(Evaluation.globalTable)
-    oldEvaluate(s, "testCode.redi")
 }
 
-fun readFile(path: String = "", nodePath: Node = Node()): List<Node> {
-    val file = File(if (path == "") nodePath.value else if (path.contains(".")) path else "$path.redi")
-    val text: String
-    try {
-        text = file.readText()
-    } catch (_: FileNotFoundException) {
-        throw PositionalException("no import `${file.name}` found", nodePath)
-    }
-    val statements = Parser(text).statements()
-    statements.map { it.toNode() }.treeView()
-    // println(statements.treeView())
-    return SemanticAnalyzer(parseFilePath(path), statements.map { it.toNode() }).analyze()
-}
+//fun readFile(path: String = "", nodePath: Node = Node()): List<Node> {
+//    val file = File(if (path == "") nodePath.value else if (path.contains(".")) path else "$path.redi")
+//    val text: String
+//    try {
+//        text = file.readText()
+//    } catch (_: FileNotFoundException) {
+//        throw PositionalException("no import `${file.name}` found", nodePath)
+//    }
+//    val statements = Parser(text).statements()
+//    // println(statements.treeView())
+//   // return SemanticAnalyzer(parseFilePath(path), statements.map { it.toNode() }).analyze()
+//}
 
 fun parseFilePath(path: String): String = path.split("/").last()
 

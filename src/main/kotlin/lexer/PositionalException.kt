@@ -1,7 +1,7 @@
 package lexer
 
 import delete.Delete
-import evaluation.Evaluation.clear
+//import evaluation.Evaluation.clear
 import node.Identifier
 import node.Node
 import node.invocation.Invocation
@@ -22,7 +22,7 @@ open class PositionalException(
 ) : Exception() {
     init {
         // TODO why clear table? because it can interrupt evaluation. Cannot do it because try catch in FileTable.getFunctionOrNull
-        clear()
+      //  clear()
     }
 
     override val message: String

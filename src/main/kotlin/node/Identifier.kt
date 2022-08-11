@@ -13,6 +13,7 @@ open class Identifier(
     value: String,
     position: Pair<Int, Int>,
 ) : Node(symbol, value, position), Assignable, Linkable {
+    constructor(value: String) : this(value, value, position = Pair(0, 0))
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         val variable = symbolTable.getIdentifierOrNull(this)

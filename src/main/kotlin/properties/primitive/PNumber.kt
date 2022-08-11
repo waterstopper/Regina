@@ -2,7 +2,6 @@ package properties.primitive
 
 import evaluation.FunctionFactory.getIdent
 import evaluation.FunctionFactory.getNumber
-import node.Node
 import properties.EmbeddedFunction
 import properties.Type
 import utils.Utils.castToNumber
@@ -29,14 +28,14 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
             val n = PNumber(0, null)
             setFunction(
                 n,
-                EmbeddedFunction("abs", listOf()) { _, args ->
+                EmbeddedFunction("abs") { _, args ->
                     val number = castToNumber(args.getPropertyOrNull("this")!!)
                     if (number.getPValue().toDouble() >= 0) number.getPValue() else -number.getPValue()
                 }
             )
             setFunction(
                 n,
-                EmbeddedFunction("min", listOf(Node(value = "other"))) { token, args ->
+                EmbeddedFunction("min", listOf("other")) { token, args ->
                     val (number, other) = unifyPNumbers(
                         args.getPropertyOrNull("this")!!,
                         getIdent(token, "other", args),
@@ -49,7 +48,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
             )
             setFunction(
                 n,
-                EmbeddedFunction("max", listOf(Node(value = "other"))) { token, args ->
+                EmbeddedFunction("max", listOf("other")) { token, args ->
                     val (number, other) = unifyPNumbers(
                         args.getPropertyOrNull("this")!!,
                         getIdent(token, "other", args),
@@ -62,7 +61,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
             )
             setFunction(
                 n,
-                EmbeddedFunction("pow", listOf(Node(value = "deg"))) { token, args ->
+                EmbeddedFunction("pow", listOf("deg")) { token, args ->
                     val number = castToNumber(args.getPropertyOrNull("this")!!)
                     val deg = getNumber(token, "deg", args)
                     number.getPValue().toDouble().pow(deg.getPValue().toDouble())
