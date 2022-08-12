@@ -11,6 +11,13 @@ import properties.Function
 
 /**
  * Stores Dictionary, Array, String, Int, Double values.
+ * 0 : Primitive
+ * 1 : Number
+ * 2 : Int
+ * 3 : Double
+ * 4 : String
+ * 5 : Array
+ * 6 : Dictionary
  *
  * **Array and Dictionary are mutable**, unlike other primitive classes
  */

@@ -6,7 +6,6 @@ import node.Node
 import node.statement.Assignment
 import properties.Type
 import properties.Type.Companion.resolveTree
-import properties.Type.Companion.resolving
 import table.SymbolTable
 import utils.Utils.toProperty
 

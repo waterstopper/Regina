@@ -12,6 +12,7 @@ import properties.primitive.*
 
 object Utils {
     init {
+        println("INI")
         PArray.initializeEmbeddedArrayFunctions()
         PString.initializeEmbeddedStringFunctions()
         PNumber.initializeEmbeddedNumberFunctions()

@@ -33,6 +33,7 @@ object Evaluation {
 //        SemanticAnalyzer.initializeSuperTypes()
         val fileTable = analyzeSemantics(fileName)//globalTable.getMain()
         fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable, resolvingType = false))
+        println()
         //clear()
     }
 

@@ -58,8 +58,8 @@ fun main() {
     log(testing)
     prim = 123.123
     r = prim
-    r.round()
-    log(prim)
+    r = r.round()
+    log(r)
     log(A() is B)
     a = Point(x = 5, y = 3)
     b = a.rotate(90)

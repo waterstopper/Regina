@@ -160,8 +160,6 @@ open class Type(
     }
 
     companion object {
-        var resolving = false
-
         fun resolveTree(root: Type, symbolTable: SymbolTable): Type {
             root.setProperty("parent", PInt(0, root))
             symbolTable.resolvingType = true

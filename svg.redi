@@ -43,6 +43,7 @@ fun add(node, sb) {
         sb.add("<" + added)
         i = 0
         while(i < attributes.size) {
+
             sb.add(attributes[i]["key"] + "=\"" + attributes[i]["value"] + "\"")
             i = i + 1
         }
@@ -50,6 +51,7 @@ fun add(node, sb) {
     }
     if(containers.has(added)) {
         i = 0
+        #stop
         while(i < propertiesArray.size) {
             if(propertiesArray[i]["value"].exportArgs["type"] == "node" \
                 && propertiesArray[i]["value"].exportArgs["inParent"]) {
@@ -62,6 +64,7 @@ fun add(node, sb) {
         sb.add("<" + added + "/>\n")
     }
     i = 0
+
     while(i < propertiesArray.size) {
         if((propertiesArray[i]["value"].properties["exportArgs"] != 0) \
             && propertiesArray[i]["value"].exportArgs["type"] == "node" \

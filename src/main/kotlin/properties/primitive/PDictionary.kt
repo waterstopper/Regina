@@ -2,6 +2,7 @@ package properties.primitive
 
 import evaluation.FunctionFactory.getDictionary
 import evaluation.FunctionFactory.getIdent
+import lexer.PositionalException
 import node.Node
 import properties.EmbeddedFunction
 import properties.Type
@@ -27,8 +28,14 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?) : Pri
 
     companion object {
         fun initializeDictionaryProperties() {
+            println("INIT")
             val p = PDictionary(mutableMapOf(), null)
-            setProperty(p, "size") { pr: Primitive -> (pr as PDictionary).getPValue().size.toProperty() }
+            setProperty(p, "size") { pr: Primitive ->
+                println("SIZE")
+                if(pr !is PDictionary)
+                        throw PositionalException("Expected dictionary")
+                (pr as PDictionary).getPValue().size.toProperty()
+            }
             setProperty(p, "keys") { pr: Primitive ->
                 (pr as PDictionary).getPValue().keys.toMutableList().toProperty()
             }

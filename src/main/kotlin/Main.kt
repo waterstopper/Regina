@@ -6,37 +6,37 @@ import utils.Utils.treeView
 import java.io.File
 import java.io.FileNotFoundException
 
-fun main() {
-//    val other = Parser("a[1](a,b,c)[2]").statements()
-//    println(other.treeView())
-    val statements = Parser(
-        """
-        if(cond)
-        {
-            doThis()
-        }
-        /** err
-        treteefw
-        **/
-        else
-        {
-            doThat()
-        }
-        while(asew)
-            doo()
-    """
-    ).statements()
-//    println(Parser("A !is B").statements().treeView())
-    // println(Parser("(v-a).b.c[1][2][3].s.r").statements().treeView())
-//    val s = readFile("src/test/resources/testCode.redi")
-//    SemanticAnalyzer.initializeSuperTypes()
-//    SymbolTable.initializeObjects()
-//    println(Evaluation.globalTable)
-//    evaluate(s, "testCode.redi")
- //   val s = readFile("src/test/resources/testCode.redi")
-   // SemanticAnalyzer.initializeSuperTypes()
-    // println(Evaluation.globalTable)
-}
+//fun main() {
+////    val other = Parser("a[1](a,b,c)[2]").statements()
+////    println(other.treeView())
+//    val statements = Parser(
+//        """
+//        if(cond)
+//        {
+//            doThis()
+//        }
+//        /** err
+//        treteefw
+//        **/
+//        else
+//        {
+//            doThat()
+//        }
+//        while(asew)
+//            doo()
+//    """
+//    ).statements()
+////    println(Parser("A !is B").statements().treeView())
+//    // println(Parser("(v-a).b.c[1][2][3].s.r").statements().treeView())
+////    val s = readFile("src/test/resources/testCode.redi")
+////    SemanticAnalyzer.initializeSuperTypes()
+////    SymbolTable.initializeObjects()
+////    println(Evaluation.globalTable)
+////    evaluate(s, "testCode.redi")
+// //   val s = readFile("src/test/resources/testCode.redi")
+//   // SemanticAnalyzer.initializeSuperTypes()
+//    // println(Evaluation.globalTable)
+//}
 
 //fun readFile(path: String = "", nodePath: Node = Node()): List<Node> {
 //    val file = File(if (path == "") nodePath.value else if (path.contains(".")) path else "$path.redi")
