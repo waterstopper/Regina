@@ -76,8 +76,8 @@ class SymbolTable(
 //        return valuesList.first()
 //    }
 
-    fun getFileOfValue(node: Node, getValue: (table: FileTable) -> Any?): FileTable =
-        fileTable.getFileOfValue(node, getValue)
+    fun getFileOfFunction(node: Node, function: Function): FileTable =
+        fileTable.getFileOfFunction(node, function)
 //        val inCurrent = getValue(fileTable)
 //        if (inCurrent != null)
 //            return fileTable
@@ -157,7 +157,8 @@ class SymbolTable(
     fun getFunction(node: Node): Function {
         val res = fileTable.getFunctionOrNull(node)//getFromFilesOrNull { it.getFunctionOrNull(node) } as Function?
         if (res == null) {
-            if (variableTable == null) throw PositionalException("Function `${node.value}` not found", node)
+            if (variableTable == null)
+                throw PositionalException("Function `${node.left.value}` not found", node)
             return variableTable!!.getFunction(node)
         }
         return res

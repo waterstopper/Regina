@@ -115,7 +115,6 @@ class CallTest {
             assertFails { eval("fun main(){f(1,a=1)}; fun f(a,b){}") },
             assertFails { eval("fun main(){f(b=1,b=1)}; fun f(a,b){}") })
         for (exception in thrownArr) {
-            println(exception.message)
             assertTrue(exception.message!!.contains("Argument already assigned"))
         }
     }

@@ -41,8 +41,11 @@ class Call(
      */
     override fun evaluate(symbolTable: SymbolTable): Any {
         val function = symbolTable.getFunction(this)
-        val newTable = symbolTable.changeFile(symbolTable.getFileOfValue(left)
-        { it.getFunctionOrNull(this) }).changeScope()
+        if (function.name == "addition")
+            println()
+        val newTable = symbolTable.changeFile(
+            symbolTable.getFileOfFunction(this, function)
+        ).changeScope()
         argumentsToParameters(function, symbolTable, newTable)
         return evaluateFunction(newTable, function)
     }

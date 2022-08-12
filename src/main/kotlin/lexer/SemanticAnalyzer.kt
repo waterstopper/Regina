@@ -7,6 +7,7 @@ import node.Node
 import node.TokenFactory.changeInvocationOnSecondPositionInLink
 import node.TokenFactory.createSpecificInvocation
 import node.invocation.Call
+import node.invocation.Constructor
 import node.invocation.Invocation
 import node.statement.Assignment
 import properties.Function
@@ -15,151 +16,6 @@ import table.FileTable
 import table.SymbolTable
 import utils.Utils.subList
 import java.io.File
-
-/**
- * Performs basic semantic analysis and creates symbol table for future evaluation
- */
-//class SemanticAnalyzer(private val fileName: String, private val nodes: List<Node>) {
-//    val files = mutableMapOf<String, FileTable>()
-//
-//    fun analyze(): List<Node> {
-//        println("Analyzing: `$fileName`")
-//        createAssociations()
-//        changeIdentTokens()
-//        return nodes
-//    }
-//
-//    private fun createAssociations() {
-//        globalTable.addFile(fileName)
-//        globalTable = globalTable.changeFile(fileName)
-//        for (token in nodes)
-//            when (token.symbol) {
-//                "fun" -> globalTable.addFunction(FunctionFactory.createFunction(token))
-//                "class" -> {
-//                    if (declarations[fileName] == null)
-//                        declarations[fileName] = mutableListOf(token as Declaration)
-//                    else declarations[fileName]!!.add(token as Declaration)
-//                    globalTable.addType(token)
-//                }
-//                "object" -> globalTable.addObject(token)
-//                "import" -> {
-//                    if (token !is ImportNode)
-//                        throw PositionalException("")
-//                    if (globalTable.getImportOrNullByFileName(token.left.value) == null) {
-//                        val isNewFile = globalTable.addFile(token.left.value)
-//                        globalTable.addImport(token.left, token.right)
-//                        if (isNewFile) {
-//                            readFile(token.left.value)
-//                            globalTable = globalTable.changeFile(fileName)
-//                        }
-//                    } else throw PositionalException("Same import found above", token.left)
-//                }
-//                else ->
-//                    throw PositionalException("Only class, object or function can be top level declaration", token)
-//            }
-//    }
-//
-//    private fun changeIdentTokens() {
-//        for (token in nodes) {
-//            var table = globalTable.copy()
-//            when (token.symbol) {
-//                "fun" -> table = changeTableForFunctionAnalysis(token, table.changeScope())
-//                "object" -> table = table.changeVariable(globalTable.getObjectOrNull((token as Declaration).name)!!)
-//                "class" -> {
-//                    table = table.changeVariable(globalTable.getTypeOrNull((token as Declaration).name)!!)
-//                    table.addVariable("this", PString("", null))
-//                }
-//            }
-//            changeInvocationType(token, table)
-//        }
-//    }
-//
-//    private fun changeTableForFunctionAnalysis(functionNode: Node, table: SymbolTable): SymbolTable {
-//        val args = functionNode.left.children.subList(1)
-//        for (arg in args)
-//            when (arg) {
-//                is Assignment -> table.addVariableOrNot(arg.left)
-//                is Identifier -> table.addVariableOrNot(arg)
-//                // else -> throw PositionalException("Expected assignment or identifier", arg)
-//            }
-//        return table
-//    }
-//
-//    private fun changeInvocationType(node: Node, symbolTable: SymbolTable) {
-//        when (node) {
-//            is Declaration -> {
-//                for ((index, child) in node.children.withIndex()) {
-//                    if (child is Invocation) {
-//                        if (node.symbol != "fun")
-//                            createSpecificInvocation(child, symbolTable, node, index)
-//                    }
-//                }
-//                if (node.symbol == "fun") {
-//                    for (child in node.children)
-//                        changeInvocationType(child, changeTableForFunctionAnalysis(node, symbolTable.changeScope()))
-//                    return
-//                }
-//            }
-//            is Link -> {
-//                if (node.left is Invocation) createSpecificInvocation(node.left, symbolTable, node, 0)
-//                // the only case in Link when Invocation might be a Constructor
-//                if (node.right is Invocation) {
-//                    if (node.left is Identifier) {
-//                        // symbolTable.addVariableOrNot(token.left)
-//                        changeInvocationOnSecondPositionInLink(symbolTable, node)
-//                    } else node.children[1] = Call(node.right)
-//                }
-//                for ((index, child) in node.children.subList(2).withIndex())
-//                    if (child is Invocation) {
-//                        node.children[index + 2] = Call(child)
-//                    }
-//            }
-//            else -> {
-//                if (node is Assignment) {
-//                    if (node.left !is Assignable)
-//                        throw PositionalException("Left operand is not assignable", node.left)
-//                    symbolTable.addVariableOrNot(node.left)
-//                }
-//                for ((index, child) in node.children.withIndex()) {
-//                    if (child is Invocation) {
-//                        //checkParamsOrArgs(child.children.subList(1), node.symbol != "fun")
-//                        if (node.symbol != "fun")
-//                            createSpecificInvocation(child, symbolTable, node, index)
-//                    }
-//                }
-//            }
-//        }
-//        for (child in node.children)
-//            changeInvocationType(child, symbolTable)
-//    }
-//
-//    companion object {
-//        private var declarations: MutableMap<String, MutableList<Declaration>> = mutableMapOf()
-//
-//        fun initializeSuperTypes() {
-//            val initialFileTable = globalTable.getFileTable()
-//            for ((fileName, tokenList) in declarations) {
-//                val currentTable = globalTable.changeFile(fileName).getFileTable()
-//                for (token in tokenList) {
-//                    if (token.supertype.symbol == "")
-//                        continue
-//                    val supertypeTable = if (token.supertype is Link)
-//                        globalTable.getImport(token.supertype.left)
-//                    else currentTable
-//                    val supertype =
-//                        if (token.supertype is Link) supertypeTable.getType(token.supertype.right)
-//                        else supertypeTable.getType(token.supertype)
-//                    currentTable.getUncopiedType(token.name).supertype = supertype
-//                }
-//            }
-//            globalTable.changeFile(initialFileTable)
-//        }
-//
-//        fun clearAnalyzer() {
-//            declarations = mutableMapOf()
-//        }
-//    }
-//}
 
 fun getNodes(fileName: String): List<Node> {
     val code = File("$fileName.redi").readText()
@@ -199,6 +55,9 @@ fun analyzeSemantics(startingFileName: String, nodes: List<Node> = getNodes(star
     return importGraphCreator.visitedTables.first()
 }
 
+/**
+ * Changes invocations to calls and constructors
+ */
 class Analyzer(fileTable: FileTable) {
     init {
         for (type in fileTable.getTypes().values + fileTable.getObjects()) {
@@ -213,7 +72,6 @@ class Analyzer(fileTable: FileTable) {
     }
 
     private fun analyzeType(type: Type, fileTable: FileTable) {
-        // TODO check type with a parent property or property that is initialized through parent
         val table = SymbolTable(fileTable = fileTable, variableTable = type, resolvingType = false)
         table.addVariable("this", type)
         table.addVariable("parent", type)
@@ -232,7 +90,8 @@ class Analyzer(fileTable: FileTable) {
         for ((index, child) in node.children.withIndex()) {
             when (child) {
                 is Assignment -> symbolTable.addVariableOrNot(child.left)
-                is Invocation -> createSpecificInvocation(child, symbolTable, node, index)
+                is Invocation -> if (isInvocation(child))
+                    createSpecificInvocation(child, symbolTable, node, index)
                 is Link -> changeInvocationsInLink(child, symbolTable, inProperty)
             }
 
@@ -240,11 +99,19 @@ class Analyzer(fileTable: FileTable) {
         for (child in node.children)
             if (child !is Link)
                 changeInvocationType(child, symbolTable)
+            else {
+                for(linkChild in child.children)
+                    changeInvocationType(linkChild, symbolTable)
+            }
+    }
+
+    private fun changeInvocationsInFunctionParameters(function: Function, symbolTable: SymbolTable) {
+
     }
 
     private fun changeInvocationsInLink(node: Link, symbolTable: SymbolTable, inProperty: Boolean = false) {
-        if (node.left is Invocation) createSpecificInvocation(node.left, symbolTable, node, 0)
-        if (node.right is Invocation) {
+        if (isInvocation(node.left)) createSpecificInvocation(node.left, symbolTable, node, 0)
+        if (isInvocation(node.right)) {
             // the only case in Link when Invocation might be a Constructor
             if (node.left is Identifier)
                 changeInvocationOnSecondPositionInLink(symbolTable, node, inProperty)
@@ -254,15 +121,19 @@ class Analyzer(fileTable: FileTable) {
             }
         }
         for ((index, child) in node.children.subList(2).withIndex())
-            if (child is Invocation)
+            if (isInvocation(child))
                 node.children[index + 2] = Call(child)
     }
+
+    private fun isInvocation(node: Node) = node is Invocation && node !is Call && node !is Constructor
 
     private fun addFunctionParametersToTable(function: Function, table: SymbolTable): SymbolTable {
         for (param in function.nonDefaultParams)
             table.addVariableOrNot(param)
-        for (defaultParam in function.defaultParams)
+        for (defaultParam in function.defaultParams) {
+            changeInvocationType(defaultParam, table)
             table.addVariableOrNot(defaultParam.left)
+        }
         return table
     }
 }

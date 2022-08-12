@@ -80,9 +80,11 @@ class FileTable(
         it.objects.find { obj -> obj.name == name }
     } as Object?
 
-    fun getFunctionOrNull(node: Node): Function? = getFromFilesOrNull {
-        Function.getFunctionOrNull(node as Call, it.functions)
-    } as Function?
+    fun getFunctionOrNull(node: Node): Function? {
+        return getFromFilesOrNull { fileTable ->
+            Function.getFunctionOrNull(node as Call, fileTable.functions)
+        } as Function?
+    }
 
     fun getFunction(node: Node): Function =
         getFunctionOrNull(node) ?: throw PositionalException("Function not found in `$fileName`", node)
@@ -145,13 +147,13 @@ class FileTable(
     fun getTypes(): MutableMap<String, Type> = types.associateBy { it.name }.toMutableMap()
     fun getObjects() = objects
     fun getFunctions() = functions
-    fun getFileOfValue(node: Node, getValue: (table: FileTable) -> Any?): FileTable {
-        val inCurrent = getValue(this)
+    fun getFileOfFunction(node: Node, function:Function): FileTable {
+        val inCurrent = functions.find { it == function }
         if (inCurrent != null)
             return this
         val suitable = mutableListOf<FileTable>()
         for (table in imports.values) {
-            val fromFile = getValue(table)
+            val fromFile = table.functions.find{it == function}
             if (fromFile != null)
                 suitable.add(table)
         }
@@ -178,8 +180,8 @@ class FileTable(
 
     private fun checkImports(check: (table: FileTable) -> Any?): List<Any> {
         val suitable = mutableListOf<Any>()
-        for (table in imports.values) {
-            val fromFile = check(table)
+        for (fileTable in imports.values) {
+            val fromFile = check(fileTable)
             if (fromFile != null)
                 suitable.add(fromFile)
         }
