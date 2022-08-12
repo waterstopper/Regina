@@ -1,7 +1,6 @@
 package lexer
 
 import delete.Delete
-//import evaluation.Evaluation.clear
 import node.Identifier
 import node.Node
 import node.invocation.Invocation

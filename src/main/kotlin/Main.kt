@@ -1,6 +1,5 @@
 import lexer.Parser
 import lexer.PositionalException
-//import lexer.SemanticAnalyzer
 import node.Node
 import utils.Utils.treeView
 import java.io.File

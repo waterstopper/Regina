@@ -28,7 +28,6 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?) : Pri
 
     companion object {
         fun initializeDictionaryProperties() {
-            println("INIT")
             val p = PDictionary(mutableMapOf(), null)
             setProperty(p, "size") { pr: Primitive ->
                 (pr as PDictionary).getPValue().size.toProperty()

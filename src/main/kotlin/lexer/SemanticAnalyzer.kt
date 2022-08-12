@@ -1,6 +1,5 @@
 package lexer
 
-//import readFile
 import node.Identifier
 import node.Link
 import node.Node
