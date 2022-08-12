@@ -31,9 +31,6 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?) : Pri
             println("INIT")
             val p = PDictionary(mutableMapOf(), null)
             setProperty(p, "size") { pr: Primitive ->
-                println("SIZE")
-                if(pr !is PDictionary)
-                        throw PositionalException("Expected dictionary")
                 (pr as PDictionary).getPValue().size.toProperty()
             }
             setProperty(p, "keys") { pr: Primitive ->

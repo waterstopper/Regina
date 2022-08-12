@@ -52,20 +52,20 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         "this" -> this
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
-        else -> properties[getIndex()][name]?.let { it(this) }
+        else -> getAllProperties()[getIndex()][name]?.let { it(this) }
             ?: (if (getIndex() in 2..3)
-                properties[1][name]?.let { it(this) } ?: properties[0][name]?.let { it(this) }
-            else properties[0][name]?.let { it(this) })
+                getAllProperties()[1][name]?.let { it(this) } ?: getAllProperties()[0][name]?.let { it(this) }
+            else getAllProperties()[0][name]?.let { it(this) })
     }
 
     override fun getProperty(node: Node): Property = when (node.value) {
         "this" -> this
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
-        else -> properties[getIndex()][node.value]?.let { it(this) }
+        else -> getAllProperties()[getIndex()][node.value]?.let { it(this) }
             ?: (if (getIndex() in 2..3)
-                properties[1][node.value]?.let { it(this) } ?: properties[0][node.value]?.let { it(this) }
-            else properties[0][node.value]?.let { it(this) })
+                getAllProperties()[1][node.value]?.let { it(this) } ?: getAllProperties()[0][node.value]?.let { it(this) }
+            else getAllProperties()[0][node.value]?.let { it(this) })
             ?: throw NotFoundException(node, variable = this)
     }
 
@@ -73,10 +73,10 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
      * Does not include "this"
      */
     override fun getProperties(): PDictionary {
-        val res = properties[0]
+        val res = getAllProperties()[0].toMutableMap()
         if (getIndex() in 2..3)
-            res.putAll(properties[1])
-        res.putAll(properties[getIndex()])
+            res.putAll(getAllProperties()[1])
+        res.putAll(getAllProperties()[getIndex()])
         return PDictionary(res.mapValues { it.value(this) }.toMutableMap(), null)
     }
 
@@ -100,8 +100,9 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
             functions[primitive.getIndex()].add(embeddedFunction)
         }
 
-        val properties = List(7) { mutableMapOf<String, (s: Primitive) -> Property>() }
-        val functions = List(7) { mutableSetOf<Function>() }
+        private val properties = List(7) { mutableMapOf<String, (s: Primitive) -> Property>() }
+        fun getAllProperties() = properties.map { it.toMutableMap() }
+        private val functions = List(7) { mutableSetOf<Function>() }
         fun createPrimitive(value: Any, parent: Type? = null, node: Node = Node()): Primitive {
             return when (value) {
                 is String -> PString(value, parent)
