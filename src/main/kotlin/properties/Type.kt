@@ -164,14 +164,14 @@ open class Type(
 
         fun resolveTree(root: Type, symbolTable: SymbolTable): Type {
             root.setProperty("parent", PInt(0, root))
-            resolving = true
+            symbolTable.resolvingType = true
             do {
                 val (current, parent) = bfs(root) ?: break
                 val stack = mutableListOf<Pair<Type, Assignment>>()
                 stack.add(Pair(parent, current))
                 processAssignment(symbolTable.changeVariable(parent), stack)
             } while (true)
-            resolving = false
+            symbolTable.resolvingType = false
             return root
         }
 

@@ -17,7 +17,7 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
             return properties[node.value]!!
         val assignment = assignments.find { it.left.value == node.value }
         if (assignment != null) {
-            processAssignment(SymbolTable(fileTable = fileTable), mutableListOf(Pair(this, assignment)))
+            processAssignment(SymbolTable(fileTable = fileTable, resolvingType = false), mutableListOf(Pair(this, assignment)))
             return properties[node.value]!!
         }
         return PInt(0, null)
@@ -27,8 +27,8 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
         if (properties[name] != null)
             return properties[name]!!
         val assignment = assignments.find { it.left.value == name }
-        if (assignment != null) {
-            processAssignment(SymbolTable(fileTable = fileTable), mutableListOf(Pair(this, assignment)))
+        if (assignment != null) { // TODO is resolvingType really false? Whst if it happens inside type property and object property has type as property?
+            processAssignment(SymbolTable(fileTable = fileTable, resolvingType = false), mutableListOf(Pair(this, assignment)))
             return properties[name]!!
         }
         return null

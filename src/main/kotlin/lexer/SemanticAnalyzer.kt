@@ -162,7 +162,7 @@ import java.io.File
 //}
 
 fun getNodes(fileName: String): List<Node> {
-    val code = File(fileName).readText()
+    val code = File("$fileName.redi").readText()
     return Parser(code).statements().map { it.toNode() }
 }
 
@@ -205,19 +205,22 @@ class Analyzer(fileTable: FileTable) {
             analyzeType(type, fileTable)
         }
         for (function in fileTable.getFunctions()) {
-            val table = addFunctionParametersToTable(function, SymbolTable(fileTable = fileTable))
+            val table = addFunctionParametersToTable(
+                function, SymbolTable(fileTable = fileTable, resolvingType = false)
+            )
             changeInvocationType(function.body, table)
         }
     }
 
     private fun analyzeType(type: Type, fileTable: FileTable) {
         // TODO check type with a parent property or property that is initialized through parent
-        val table = SymbolTable(fileTable = fileTable)
+        val table = SymbolTable(fileTable = fileTable, variableTable = type, resolvingType = false)
         table.addVariable("this", type)
+        table.addVariable("parent", type)
         for (assignment in type.assignments)
             table.addVariableOrNot(assignment.left)
         for (assignment in type.assignments)
-            changeInvocationType(assignment, table.copy())
+            changeInvocationType(assignment, table.copy(), inProperty = true)
 
         for (function in type.functions) {
             val functionTable = addFunctionParametersToTable(function, table.copy())
@@ -225,12 +228,12 @@ class Analyzer(fileTable: FileTable) {
         }
     }
 
-    private fun changeInvocationType(node: Node, symbolTable: SymbolTable) {
+    private fun changeInvocationType(node: Node, symbolTable: SymbolTable, inProperty: Boolean = false) {
         for ((index, child) in node.children.withIndex()) {
             when (child) {
                 is Assignment -> symbolTable.addVariableOrNot(child.left)
                 is Invocation -> createSpecificInvocation(child, symbolTable, node, index)
-                is Link -> changeInvocationsInLink(child, symbolTable)
+                is Link -> changeInvocationsInLink(child, symbolTable, inProperty)
             }
 
         }
@@ -239,12 +242,12 @@ class Analyzer(fileTable: FileTable) {
                 changeInvocationType(child, symbolTable)
     }
 
-    private fun changeInvocationsInLink(node: Link, symbolTable: SymbolTable) {
+    private fun changeInvocationsInLink(node: Link, symbolTable: SymbolTable, inProperty: Boolean = false) {
         if (node.left is Invocation) createSpecificInvocation(node.left, symbolTable, node, 0)
         if (node.right is Invocation) {
             // the only case in Link when Invocation might be a Constructor
             if (node.left is Identifier)
-                changeInvocationOnSecondPositionInLink(symbolTable, node)
+                changeInvocationOnSecondPositionInLink(symbolTable, node, inProperty)
             else {
                 node.children[1] = Call(node.right)
                 return changeInvocationType(node.left, symbolTable)

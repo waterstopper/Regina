@@ -86,7 +86,11 @@ object TokenFactory {
         return upperNode.children[index] as Invocation
     }
 
-    fun changeInvocationOnSecondPositionInLink(symbolTable: SymbolTable, link: Link): Invocation {
+    fun changeInvocationOnSecondPositionInLink(
+        symbolTable: SymbolTable,
+        link: Link,
+        inProperty: Boolean = false
+    ): Invocation {
         // a weak check
         if (symbolTable.getAssignmentOrNull(link.left.value) != null
             || link.left.value == "this"
@@ -96,10 +100,13 @@ object TokenFactory {
             link.children[1] = Call(link.right)
             return link.children[1] as Call
         }
-        val fileTable = symbolTable.getImportOrNull(link.left.value) ?: throw PositionalException(
+        val fileTable = symbolTable.getImportOrNull(link.left.value) ?: if (!inProperty) throw PositionalException(
             "Variable or import not found",
             link.left
-        )
+        ) else {
+            link.children[1] = Call(link.right)
+            return link.children[1] as Call
+        }
         if (fileTable.getFunctionOrNull(Call(link.right)) != null)
             link.children[1] = Call(link.right)
         else if (fileTable.getTypeOrNull(link.right.left.value) != null)

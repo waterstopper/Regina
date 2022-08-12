@@ -14,13 +14,13 @@ object Evaluation {
      * Enabling training wheels will run code slower but will give meaningful feedback if something is wrong.
      */
     var trainingWheels = true
-    var globalTable = SymbolTable()
+    var globalTable = SymbolTable(resolvingType = false)
 
     fun eval(code: String) {
 //        val statements = SemanticAnalyzer("@NoFile", Parser(code).statements().map { it.toNode() }).analyze()
 //        SemanticAnalyzer.initializeSuperTypes() // TODO do before analyzing file, but after imports.
         val fileTable = analyzeSemantics("@NoFile", Parser(code).statements().map { it.toNode() })//globalTable.getMain()
-        fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable))
+        fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable, resolvingType = false))
 //        for (stat in statements)
 //            stat.evaluate(symbolTable) // TODO here use some default symbol table
       //  clear()
@@ -32,7 +32,7 @@ object Evaluation {
 //
 //        SemanticAnalyzer.initializeSuperTypes()
         val fileTable = analyzeSemantics(fileName)//globalTable.getMain()
-        fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable))
+        fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable, resolvingType = false))
         //clear()
     }
 

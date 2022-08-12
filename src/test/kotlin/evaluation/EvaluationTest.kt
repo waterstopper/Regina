@@ -11,6 +11,6 @@ internal class EvaluationTest {
         //  val text = File("src/test/resources/testCode").readText()
         //val s = readFile("src/test/resources/testCode.redi")
         //SemanticAnalyzer.initializeSuperTypes()
-        evaluate("src/test/resources/testCode.redi")
+        evaluate("src/test/resources/testCode")
     }
 }

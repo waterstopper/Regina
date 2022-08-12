@@ -7,12 +7,12 @@ import kotlin.test.Test
 class LibTest {
     // @Test
     fun testMath() {
-        evaluate("src/test/resources/std/mathTest.redi")
+        evaluate("src/test/resources/std/mathTest")
     }
 
     @Test
     fun testGeometry() {
-        evaluate("src/test/resources/std/geometry2DTest.redi")
+        evaluate("src/test/resources/std/geometry2DTest")
     }
 
     //  @Test

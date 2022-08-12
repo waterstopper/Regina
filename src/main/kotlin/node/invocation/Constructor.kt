@@ -29,7 +29,7 @@ class Constructor(
 
     private fun evaluateType(type: Type, symbolTable: SymbolTable): Any {
         resolveArguments(type, symbolTable)
-        return if (resolving) type else resolveTree(type, symbolTable.changeVariable(type).changeScope())
+        return if (symbolTable.resolvingType) type else resolveTree(type, symbolTable.changeVariable(type).changeScope())
     }
 
     private fun resolveArguments(type: Type, symbolTable: SymbolTable) {

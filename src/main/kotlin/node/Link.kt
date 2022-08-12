@@ -175,7 +175,8 @@ open class Link(
         val tableForEvaluation = SymbolTable(
             fileTable = if (type is Type) type.fileTable
             else table.getFileTable(),
-            variableTable = table.getCurrentType()
+            variableTable = table.getCurrentType(),
+            resolvingType = table.resolvingType
         ) // table.changeScope(initialTable.getScope())
         (children[index] as Call).argumentsToParameters(function, initialTable, tableForEvaluation)
         val functionResult = (children[index] as Call).evaluateFunction(tableForEvaluation, function)

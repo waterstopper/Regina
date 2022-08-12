@@ -209,4 +209,43 @@ class TypeTest {
         """
         )
     }
+
+    @Test
+    fun testInvocationInParent() {
+        eval("""
+            fun main() {
+                a = A()
+                test(a.b.one == 1)
+            }
+            class A {
+                b = B()
+                
+                fun get1() {return 1}
+            }
+            class B {
+                one = parent.get1()
+            }
+        """)
+    }
+
+    @Test
+    fun testNotCreatedInvocation() {
+        eval("""
+            fun main() {
+                a = A()
+                test(a.b.one == 1)
+            }
+            class A {
+                b = B()
+                b.c = C()
+                fun get1() {return 1}
+            }
+            class B {
+                one = c.func()
+            }
+            class C {
+                fun func(){return 1}
+            }
+        """)
+    }
 }

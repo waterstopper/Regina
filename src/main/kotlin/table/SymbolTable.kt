@@ -12,7 +12,8 @@ class SymbolTable(
     // during recursive evaluation multiple symbol tables are used, hence need different scopes, files and types
     private var scopeTable: ScopeTable? = ScopeTable(),
     private var variableTable: Variable? = null,
-    private var fileTable: FileTable = FileTable("")
+    private var fileTable: FileTable = FileTable(""),
+    var resolvingType: Boolean
 ) {
     companion object { // import a.b.c as imported
         // imported.A() <- process
@@ -98,21 +99,28 @@ class SymbolTable(
     fun getCurrentType() = variableTable
 
     fun changeScope(): SymbolTable {
-        return SymbolTable(variableTable = variableTable, fileTable = fileTable)
+        return SymbolTable(
+            variableTable = variableTable,
+            fileTable = fileTable,
+            resolvingType = resolvingType
+        )
     }
-
-    fun changeScope(scopeTable: ScopeTable?): SymbolTable =
-        SymbolTable(scopeTable = scopeTable?.copy(), variableTable = variableTable, fileTable = fileTable)
 
     fun changeFile(fileTable: FileTable): SymbolTable {
         return SymbolTable(
             scopeTable?.copy(), variableTable,
-            fileTable
+            fileTable,
+            resolvingType = resolvingType
         )
     }
 
     fun changeVariable(type: Variable) =
-        SymbolTable(scopeTable?.copy(), type, if (type is Type) type.fileTable else fileTable)
+        SymbolTable(
+            scopeTable?.copy(),
+            type,
+            if (type is Type) type.fileTable else fileTable,
+            resolvingType = resolvingType
+        )
 
     fun addFile(fileName: String): Boolean {
         if (imports[FileTable(fileName)] == null) {
@@ -162,6 +170,7 @@ class SymbolTable(
         fileTable.getTypeOrNull(node.value)//getFromFilesOrNull { it.getTypeOrNull(node.value) } as Type?
 
     fun getFunctionOrNull(node: Node): Function? = fileTable.getFunctionOrNull(node)
+        ?: variableTable?.getFunctionOrNull(node)
 //        getFromFilesOrNull { it.getFunctionOrNull(node) } as Function?
 //            ?: if (variableTable != null) variableTable!!.getFunctionOrNull(node) else null
 
@@ -199,7 +208,14 @@ class SymbolTable(
         return null
     }
 
-    fun copy() = SymbolTable(scopeTable?.copy() ?: ScopeTable(), variableTable, fileTable)
+    fun copy() =
+        SymbolTable(
+            scopeTable?.copy() ?: ScopeTable(),
+            variableTable,
+            fileTable,
+            resolvingType = resolvingType
+        )
+
     fun addVariableOrNot(node: Node) = scopeTable?.addVariable(node.value, "".toVariable(node))
 
     override fun toString(): String {

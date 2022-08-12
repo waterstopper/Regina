@@ -8,7 +8,7 @@ class Point {
     fun crossProduct(other) { return x * other.y - y * other.x }
     fun scale(coeff) { return Point(x=x * coeff, y=y * coeff) }
 
-    // angle in degrees
+    // angle in degrees // TODO invocation in function args
     fun rotate(angle, pivot = Point()) {
         s = sin(toRadians(angle))
         c = cos(toRadians(angle))
