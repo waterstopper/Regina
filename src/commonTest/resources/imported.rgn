@@ -1,0 +1,16 @@
+import src.commonTest.resources.same as same
+
+class A {}
+
+fun getFileName() {
+    return "imported"
+}
+
+fun addition(a, b) {
+    get()
+    test(same.addition(a,b) \
+        == a + b + 1)
+    log(getFileName() \
+        == "imported")
+    return a + b
+}

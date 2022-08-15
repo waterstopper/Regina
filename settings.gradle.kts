@@ -1,2 +1,3 @@
-rootProject.name = "Metagen"
+
+rootProject.name = "regina-interpreter"
 
