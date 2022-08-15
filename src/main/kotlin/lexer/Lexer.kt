@@ -257,7 +257,7 @@ class Lexer() {
         position = Pair(position.first + step, position.second)
     }
 
-    private fun moveAndAppend(sb: java.lang.StringBuilder) {
+    private fun moveAndAppend(sb: StringBuilder) {
         sb.append(source[index])
         move()
     }

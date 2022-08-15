@@ -161,6 +161,6 @@ class SymbolTable(
                 res.append("\t$fieldName:$fieldValue\n")
         if (res.isEmpty())
             return ""
-        return res.deleteCharAt(res.lastIndex).toString()
+        return res.deleteAt(res.lastIndex).toString()
     }
 }

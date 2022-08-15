@@ -1,19 +1,26 @@
 package lexer
 
 import evaluation.FunctionFactory
+import lexer.PathBuilder.getFullPath
+import lexer.PathBuilder.getNodes
 import node.*
 import properties.Type
 import table.FileTable
 
-class ImportGraphCreator(mainFileName: String, startingNodes: List<Node>) {
+class ImportGraphCreator(
+    private val mainFileName: String,
+    private val startingNodes: List<Node>,
+    private val roots: List<String>
+) {
     val visitedTables = mutableListOf<FileTable>()
     val supertypes = mutableMapOf<Type, Node?>()
     private val imports = mutableMapOf<String, FileTable>()
     private val importStack = mutableListOf<FileTable>()
 
-    init {
+    fun createGraph() {
         visitedTables.add(FileTable(mainFileName))
         addDeclarationsToFileTable(visitedTables.first(), startingNodes)
+
         while (importStack.isNotEmpty()) {
             val nextFileTable = importStack.removeLast()
             visitedTables.add(nextFileTable)
@@ -24,7 +31,7 @@ class ImportGraphCreator(mainFileName: String, startingNodes: List<Node>) {
     private fun addDeclarationsToFileTable(fileTable: FileTable, nodes: List<Node>) {
         for (node in nodes)
             when (node) {
-                is ImportNode -> fileTable.addImport(node, getFileTableByName(node.fileName))
+                is ImportNode -> fileTable.addImport(node, getFileTableByName(getFullPath(node.fileName, roots)))
                 is FunctionNode -> fileTable.addFunction(FunctionFactory.createFunction(node))
                 is TypeNode -> {
                     val type = fileTable.addType(node)
@@ -41,12 +48,5 @@ class ImportGraphCreator(mainFileName: String, startingNodes: List<Node>) {
             importStack.add(imports[name]!!)
         }
         return imports[name]!!
-    }
-
-    fun clearAll() {
-        visitedTables.clear()
-        supertypes.clear()
-        imports.clear()
-        importStack.clear()
     }
 }

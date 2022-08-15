@@ -1,3 +1,15 @@
+/**
+    exportArgs:
+        export: Bool = true - export or not
+        type: String = "element" - "attribute" or "element"
+        inParent: String = false - nest element inside parent element,
+            if both instances' type is "element"
+        name: String - name of exported attribute/element
+        value: Any - value of attribute node
+        attributes - Dictionary<String, Any> - all attributes are
+            added from dictionary to element
+
+*/
 object usedValues {
     containers = ["group", "svg"]
 }

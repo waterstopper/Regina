@@ -153,9 +153,9 @@ class SemanticTest {
         val thrown = assertFails {
             eval(
                 """
-            import geometry2D as geom
+            import std.geometry2D as geom
             fun main() {}
-            import geometry2D as g
+            import std.geometry2D as g
         """
             )
         }

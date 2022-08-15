@@ -1,10 +1,6 @@
 package node
 
 import lexer.PositionalException
-import lexer.SyntaxException
-import token.Assignment
-import token.Token
-import token.TokenIdentifier
 
 open class Declaration(
     symbol: String,
@@ -55,10 +51,10 @@ class ImportNode(
     position: Pair<Int, Int>,
     children: List<Node>
 ) : Declaration(symbol, value, position, children.toMutableList()) {
-    val fileName: String
-        get() = children[0].value
+    val fileName: Node
+        get() = children[0]
     val importName: String
-        get() = if (children.size <= 1) children[0].value else children[1].value
+        get() = right.value
 }
 
 class FunctionNode(
@@ -80,12 +76,10 @@ class TypeNode(
     val superTypeNode: Node?
         get() = if (children[1].value != "") children[1] else null
 }
+
 class ObjectNode(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
     children: List<Node>
-) : Declaration(symbol, value, position, children.toMutableList()) {
-    val functionName: String
-        get() = children[0].value
-}
+) : Declaration(symbol, value, position, children.toMutableList())

@@ -14,13 +14,13 @@ object Evaluation {
     var trainingWheels = true
     var globalTable = SymbolTable(resolvingType = false)
 
-    fun eval(code: String) {
-        val fileTable = analyzeSemantics("@NoFile", Parser(code).statements().map { it.toNode() })
+    fun eval(code: String, roots: List<String> = mutableListOf("")) {
+        val fileTable = analyzeSemantics("@NoFile", roots, Parser(code).statements().map { it.toNode() })
         fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable, resolvingType = false))
     }
 
-    fun evaluate(fileName: String) {
-        val fileTable = analyzeSemantics(fileName)
+    fun evaluate(fileName: String, roots: List<String> = mutableListOf("")) {
+        val fileTable = analyzeSemantics(fileName, roots = roots)
         fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable, resolvingType = false))
     }
 }

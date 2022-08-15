@@ -5,17 +5,17 @@ import evaluation.Evaluation.evaluate
 import kotlin.test.Test
 
 class LibTest {
-    // @Test
+    @Test
     fun testMath() {
-        evaluate("src/test/resources/std/mathTest")
+        evaluate("src/test/resources/std/mathTest.rgn")
     }
 
     @Test
     fun testGeometry() {
-        evaluate("src/test/resources/std/geometry2DTest")
+        evaluate("src/test/resources/std/geometry2DTest.rgn")
     }
 
-    //  @Test
+    @Test
     fun testIO() {
         eval(
             """

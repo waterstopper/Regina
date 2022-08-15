@@ -1,4 +1,4 @@
-import geometry2D
+import std.geometry2D as geometry2D
 
 fun main() {
     testPoint()

@@ -26,7 +26,7 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
     }
 
     override fun toString(): String {
-        return "\"$value\""
+        return value.toString()
     }
 
     override fun checkIndexType(index: Variable): Boolean {

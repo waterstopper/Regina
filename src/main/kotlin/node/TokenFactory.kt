@@ -30,6 +30,7 @@ object TokenFactory {
         }
     }
 
+
     fun copy(node: Node, childrenStart: Int = 0, childrenNumber: Int = node.children.size): Node {
         // TODO check that children of token shouldn't be copied
         if (node is Assignment) {
@@ -43,12 +44,14 @@ object TokenFactory {
             return res
         }
         // used for Link
-        return node::class.constructors.toMutableList()[1].call(
-            node.symbol,
-            node.value,
-            node.position,
-            node.children.subList(childrenStart, childrenStart + childrenNumber)
-        )
+        if (node is Link)
+            return Link(
+                node.symbol,
+                node.value,
+                node.position,
+                node.children.subList(childrenStart, childrenStart + childrenNumber)
+            )
+        else throw PositionalException("Expected assignment or link", node)
     }
 
     fun createOperator(

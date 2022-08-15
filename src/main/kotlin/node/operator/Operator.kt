@@ -63,7 +63,7 @@ open class Operator(
             if (this.size != other.size)
                 return false
             var res = true
-            this.forEach { key, value ->
+            this.forEach { (key, value) ->
                 if (!other.contains(key)) res = false
                 else if (!value!!.eq(other[key]!!)) res = false
             }

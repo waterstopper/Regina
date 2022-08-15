@@ -323,5 +323,5 @@ object RegistryFactory {
                 throw SyntaxException("Each folder should be represented as identifier", ident)
     }
 
-    private fun checkIdentifierInImport(node: Token): Boolean = node is Identifier || node.children.size == 0
+    private fun checkIdentifierInImport(node: Token): Boolean = node is TokenIdentifier || node.children.size == 0
 }

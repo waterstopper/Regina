@@ -1,5 +1,6 @@
 package lexer
 
+import lexer.PathBuilder.getNodes
 import node.Identifier
 import node.Link
 import node.Node
@@ -15,11 +16,6 @@ import table.FileTable
 import table.SymbolTable
 import utils.Utils.subList
 import java.io.File
-
-fun getNodes(fileName: String): List<Node> {
-    val code = File("$fileName.redi").readText()
-    return Parser(code).statements().map { it.toNode() }
-}
 
 fun initializeSuperTypes(superTypes: Map<Type, Node?>) {
     for ((type, node) in superTypes) {
@@ -46,8 +42,13 @@ fun initializeSuperTypes(superTypes: Map<Type, Node?>) {
     }
 }
 
-fun analyzeSemantics(startingFileName: String, nodes: List<Node> = getNodes(startingFileName)): FileTable {
-    val importGraphCreator = ImportGraphCreator(startingFileName, nodes)
+fun analyzeSemantics(
+    startingFileName: String,
+    roots: List<String>,
+    nodes: List<Node> = getNodes(startingFileName)
+): FileTable {
+    val importGraphCreator = ImportGraphCreator(startingFileName, nodes, roots)
+    importGraphCreator.createGraph()
     initializeSuperTypes(importGraphCreator.supertypes)
     for (fileTable in importGraphCreator.visitedTables)
         Analyzer(fileTable)
@@ -99,7 +100,7 @@ class Analyzer(fileTable: FileTable) {
             if (child !is Link)
                 changeInvocationType(child, symbolTable)
             else {
-                for(linkChild in child.children)
+                for (linkChild in child.children)
                     changeInvocationType(linkChild, symbolTable)
             }
     }
