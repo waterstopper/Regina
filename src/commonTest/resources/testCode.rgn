@@ -48,6 +48,7 @@ class DoubleSegment {
 }
 
 fun main() {
+    a = imported.A()
     s = Segment()
     attributes = array(s.exportArgs["attributes"])
     log([1,2,3].has(1))

@@ -4,7 +4,6 @@ import TokenArray
 import TokenDictionary
 import TokenNumber
 import node.Identifier
-import node.Link
 import node.Linkable
 import node.invocation.Invocation
 import node.operator.Index

@@ -5,10 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertTrue
 
-class A {
-    val a = A()
-}
-
 class TypeTest {
     @Test
     fun testBidirectionalPropertyResolving() {
@@ -212,7 +208,8 @@ class TypeTest {
 
     @Test
     fun testInvocationInParent() {
-        eval("""
+        eval(
+            """
             fun main() {
                 a = A()
                 test(a.b.one == 1)
@@ -225,12 +222,14 @@ class TypeTest {
             class B {
                 one = parent.get1()
             }
-        """)
+        """
+        )
     }
 
     @Test
     fun testNotCreatedInvocation() {
-        eval("""
+        eval(
+            """
             fun main() {
                 a = A()
                 test(a.b.one == 1)
@@ -245,6 +244,22 @@ class TypeTest {
             }
             class C {
                 fun func(){return 1}
+            }
+        """
+        )
+    }
+
+    @Test
+    fun createFromTypeFunction() {
+        eval("""
+            fun main() {
+                a = A()
+                b = type(a)()
+                test(b is A)
+            }
+            
+            class A {
+                p = 1
             }
         """)
     }

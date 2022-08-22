@@ -18,7 +18,8 @@ class ImportGraphCreator(
     private val importStack = mutableListOf<FileTable>()
 
     fun createGraph() {
-        visitedTables.add(FileTable(mainFileName))
+        visitedTables.add(FileTable(mainFileName, imports.size + 1))
+        imports[mainFileName] = visitedTables.last()
         addDeclarationsToFileTable(visitedTables.first(), startingNodes)
 
         while (importStack.isNotEmpty()) {
@@ -44,7 +45,7 @@ class ImportGraphCreator(
 
     private fun getFileTableByName(name: String): FileTable {
         if (imports[name] == null) {
-            imports[name] = FileTable(name)
+            imports[name] = FileTable(name, imports.size + 1)
             importStack.add(imports[name]!!)
         }
         return imports[name]!!

@@ -1,5 +1,7 @@
 package properties
 
+import DebugType
+import References
 import lexer.PositionalException
 import node.Link
 import node.Node
@@ -23,6 +25,7 @@ open class Type(
     parent: Type?,
     val assignments: MutableSet<Assignment>,
     val fileTable: FileTable,
+    val index: Int,
     var supertype: Type? = null
 ) :
     Property(parent) {
@@ -57,6 +60,15 @@ open class Type(
         return null
     }
 
+    fun getAllInstances(): Set<Type> {
+        val res = mutableSetOf(this)
+        properties.values.forEach {
+            if (it is Type)
+                res.addAll(it.getAllInstances())
+        }
+        return res
+    }
+
     private fun getInheritedFunctions(): Set<RFunction> {
         if (supertype != null)
             return supertype!!.functions + supertype!!.getInheritedFunctions()
@@ -78,6 +90,19 @@ open class Type(
     override fun getProperties() =
         PDictionary(properties.mapKeys { (key, _) -> key.toVariable() }.toMutableMap(), this)
 
+    override fun toDebugClass(references: References): Any {
+        if (references.types[toString()] != null)
+            return Pair("type", toString())
+        val res = DebugType(
+            properties.toMutableMap().map {
+                it.key to (if (it == this) Pair("type", toString())
+                else it.value.toDebugClass(references))
+            }.toMap().toMutableMap()
+        )
+        references.types[toString()] = res
+        return Pair("type", toString())
+    }
+
     override fun getPropertyOrNull(name: String) = when (name) {
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
@@ -98,7 +123,12 @@ open class Type(
     }
 
     override fun toString(): String {
-        val res = StringBuilder(name)
+        if (index == 0)
+            return name
+        val fileLetter = if (fileTable.fileName.contains("/"))
+            fileTable.fileName.split("/").last().first()
+        else fileTable.fileName.first()
+        val res = StringBuilder("$name-$fileLetter${fileTable.index}$index")
 //        if (supertype != null) {
 //            res.append(":")
 //            if (supertype!!.fileName != fileName)
@@ -126,6 +156,8 @@ open class Type(
     }
 
     fun copy(): Type {
+        fileTable.numberInstances += 1
+        val index = fileTable.numberInstances
         val copy =
             Type(
                 name = name,
@@ -133,7 +165,8 @@ open class Type(
                 assignments = (assignments + getInheritedAssignments()).map { TokenFactory.copy(it) as Assignment }
                     .toMutableSet(),
                 fileTable = fileTable,
-                supertype = supertype
+                supertype = supertype,
+                index = index
             )
         copy.assignments.forEach { it.parent = this }
         copy.functions.addAll(this.functions)
@@ -141,7 +174,7 @@ open class Type(
     }
 
     override fun equals(other: Any?): Boolean = this === other
-// StackOverFlow on js if it's uncommented
+// StackOverFlow on js test if it's uncommented
 //    override fun hashCode(): Int {
 //        println("Hash")
 //        return super.hashCode()

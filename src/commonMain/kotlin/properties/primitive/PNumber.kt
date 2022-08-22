@@ -1,5 +1,6 @@
 package properties.primitive
 
+import References
 import evaluation.FunctionFactory
 import evaluation.FunctionFactory.getIdent
 import evaluation.FunctionFactory.getNumber
@@ -25,6 +26,10 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
 
     override fun hashCode(): Int {
         return getPValue().toDouble().hashCode()
+    }
+
+    override fun toDebugClass(references: References): Any {
+        TODO("Not yet implemented")
     }
 
     companion object {

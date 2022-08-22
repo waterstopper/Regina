@@ -93,7 +93,6 @@ class Analyzer(fileTable: FileTable) {
                     createSpecificInvocation(child, symbolTable, node, index)
                 is Link -> changeInvocationsInLink(child, symbolTable, inProperty)
             }
-
         }
         for (child in node.children)
             if (child !is Link)

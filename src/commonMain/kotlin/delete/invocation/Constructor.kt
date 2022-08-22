@@ -15,7 +15,10 @@ class Constructor(val type: Type, val args: List<Assignment>, position: Pair<Int
 
     private fun evaluateType(type: Type, symbolTable: SymbolTable): Any {
         resolveArguments(type, symbolTable)
-        return if (symbolTable.resolvingType) type else Type.resolveTree(type, symbolTable.changeVariable(type).changeScope())
+        return if (symbolTable.resolvingType) type else Type.resolveTree(
+            type,
+            symbolTable.changeVariable(type).changeScope()
+        )
     }
 
     private fun resolveArguments(type: Type, symbolTable: SymbolTable) {

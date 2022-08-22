@@ -1,9 +1,8 @@
 package node.operator
 
-import isDouble
-import isInt
 import lexer.PositionalException
 import node.Node
+import properties.Object
 import properties.Type
 import properties.primitive.*
 import table.SymbolTable
@@ -36,8 +35,9 @@ class TypeOperator(
                 if (checked is Primitive)
                     return false
                 val type = right.evaluate(symbolTable)
-                if (checked is Type && type is Type &&
-                    checked.assignments.isEmpty() &&
+                if (checked is Type && checked !is Object
+                    && type is Type && type !is Object
+                    && checked.assignments.isEmpty() &&
                     type.getProperties().getPValue().isEmpty()
                 )
                     return checked.inherits(type)

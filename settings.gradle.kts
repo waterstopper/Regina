@@ -1,3 +1,3 @@
 
-rootProject.name = "regina-interpreter"
+rootProject.name = "regina_interpreter"
 

@@ -61,6 +61,7 @@ class BlockTest {
         val thrown = assertFails { eval("object A") }
         assertTrue(thrown.message!!.contains("Expected a block start"))
     }
+
     @Test
     fun failBlockWithinBlock() {
         val thrown = assertFails {

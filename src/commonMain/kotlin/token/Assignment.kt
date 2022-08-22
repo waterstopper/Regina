@@ -20,6 +20,6 @@ class Assignment(
     }
 
     override fun toNode(): Node {
-        return Assignment(symbol, value, position, children.map{it.toNode()}.toMutableList())
+        return Assignment(symbol, value, position, children.map { it.toNode() }.toMutableList())
     }
 }

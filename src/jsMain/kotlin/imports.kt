@@ -607,8 +607,9 @@ class StringBuilder {
     )
 }
 
-fun addMathTest(){
-    write("src/commonTest/resources/std/mathTest.rgn", """
+fun addMathTest() {
+    write(
+        "src/commonTest/resources/std/mathTest.rgn", """
         import std.math as math
 
 fun main() {
@@ -653,11 +654,13 @@ fun roundArr(array) {
     return array
 }
 
-    """)
+    """
+    )
 }
 
 fun addGeometryTest() {
-    write("src/commonTest/resources/std/geometry2DTest.rgn", """
+    write(
+        "src/commonTest/resources/std/geometry2DTest.rgn", """
         import std.geometry2D as geometry2D
 
         fun main() {
@@ -694,11 +697,13 @@ fun addGeometryTest() {
             log(rotated)
         }
 
-    """)
+    """
+    )
 }
 
 fun addGenericTest() {
-    write("src/commonTest/resources/testCode.rgn", """
+    write(
+        "src/commonTest/resources/testCode.rgn", """
         import src.commonTest.resources.imported as imported
         import std.svg as svg
         import std.math as math
@@ -993,8 +998,10 @@ fun addGenericTest() {
         	}
         	stack.add(res.properties !is Value)
         }
-    """)
-    write("src/commonTest/resources/imported.rgn", """
+    """
+    )
+    write(
+        "src/commonTest/resources/imported.rgn", """
         import src.commonTest.resources.same as same
 
 class A {}
@@ -1011,8 +1018,10 @@ fun addition(a, b) {
         == "imported")
     return a + b
 }
-    """)
-    write("src/commonTest/resources/same.rgn", """
+    """
+    )
+    write(
+        "src/commonTest/resources/same.rgn", """
         fun getFileName() {
             return "same"
         }
@@ -1026,5 +1035,6 @@ fun addition(a, b) {
         fun get() {
             log("from Same")
         }
-    """)
+    """
+    )
 }

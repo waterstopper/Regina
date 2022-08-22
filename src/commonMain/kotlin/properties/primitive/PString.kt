@@ -1,5 +1,6 @@
 package properties.primitive
 
+import References
 import evaluation.FunctionFactory.getInt
 import evaluation.FunctionFactory.getString
 import isInt
@@ -20,6 +21,9 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
         if ((index as Int) < 0 || index >= getPValue().length)
             throw PositionalException("Index out of bounds", node)
         return getPValue()[index]
+    }
+    override fun toDebugClass(references: References): Any {
+        return getPValue()
     }
 
     override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node) {

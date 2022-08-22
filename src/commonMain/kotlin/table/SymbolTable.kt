@@ -5,14 +5,13 @@ import lexer.PositionalException
 import node.Node
 import node.statement.Assignment
 import properties.*
-import properties.RFunction
 import utils.Utils.toVariable
 
 class SymbolTable(
     // during recursive evaluation multiple symbol tables are used, hence need different scopes, files and types
     private var scopeTable: ScopeTable? = ScopeTable(),
     private var variableTable: Variable? = null,
-    private var fileTable: FileTable = FileTable(""),
+    private var fileTable: FileTable,
     var resolvingType: Boolean
 ) {
     companion object { // import a.b.c as imported
@@ -21,7 +20,7 @@ class SymbolTable(
         val globalFile = initializeGlobal()
 
         private fun initializeGlobal(): FileTable {
-            val res = FileTable("@global")
+            val res = FileTable("@global", 0)
             for (i in initializeEmbedded())
                 res.addFunction(i.value)
             return res
@@ -91,6 +90,8 @@ class SymbolTable(
     fun getTypeOrNull(node: Node): Type? =
         fileTable.getTypeOrNull(node.value)
 
+    fun getUncopiedTypeOrNull(node: Node): Type? = fileTable.getUncopiedType(node)
+
     fun getFunctionOrNull(node: Node): RFunction? = fileTable.getFunctionOrNull(node)
         ?: variableTable?.getFunctionOrNull(node)
 
@@ -146,6 +147,25 @@ class SymbolTable(
                 )
         }
         return res.toString()
+    }
+
+    fun getDictionaryFromTable(): Map<String, Any> {
+        val res = mutableMapOf<Any, Any>()
+        val maps = mutableMapOf<String, MutableMap<Any, Any>>()
+        scopeTable?.getVariables()?.forEach { (name, variable) ->
+            if (variable is Type)
+                maps["instances"]!![name] = variable.toString()
+            else maps["primitives"]!![name] = variable
+        }
+        val allInstances = mutableSetOf<Type>()
+        for (instance in maps["instances"]!!.values) {
+            allInstances.addAll((instance as Type).getAllInstances())
+        }
+        res["allInstances"] = allInstances
+        res["scope"] = maps
+        if (variableTable is Type)
+            res["this"] = variableTable as Type
+        return maps
     }
 
     fun toDebugString(): String {

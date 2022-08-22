@@ -11,16 +11,26 @@ import table.SymbolTable
  * Object is a [singleton][https://en.wikipedia.org/wiki/Singleton_pattern] Type
  */
 class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileTable) :
-    Type(name, null, assignments, fileTable) {
+    Type(name, null, assignments, fileTable, 0) {
     override fun getProperty(node: Node): Property {
         if (properties[node.value] != null)
             return properties[node.value]!!
         val assignment = assignments.find { it.left.value == node.value }
         if (assignment != null) {
-            processAssignment(SymbolTable(fileTable = fileTable, resolvingType = false), mutableListOf(Pair(this, assignment)))
+            processAssignment(
+                SymbolTable(fileTable = fileTable, resolvingType = false),
+                mutableListOf(Pair(this, assignment))
+            )
             return properties[node.value]!!
         }
         return PInt(0, null)
+    }
+
+    override fun toString(): String {
+        val fileLetter = if (fileTable.fileName.contains("/"))
+            fileTable.fileName.split("/").last().first()
+        else fileTable.fileName.first()
+        return "$name-Object"
     }
 
     override fun getPropertyOrNull(name: String): Property? {
@@ -28,7 +38,10 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
             return properties[name]!!
         val assignment = assignments.find { it.left.value == name }
         if (assignment != null) { // TODO is resolvingType really false? Whst if it happens inside type property and object property has type as property?
-            processAssignment(SymbolTable(fileTable = fileTable, resolvingType = false), mutableListOf(Pair(this, assignment)))
+            processAssignment(
+                SymbolTable(fileTable = fileTable, resolvingType = false),
+                mutableListOf(Pair(this, assignment))
+            )
             return properties[name]!!
         }
         return null

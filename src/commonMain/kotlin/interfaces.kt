@@ -1,3 +1,6 @@
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
+
 expect object FileSystem {
     fun read(path: String): String
     fun write(path: String, content: String)
@@ -6,13 +9,17 @@ expect object FileSystem {
 }
 
 expect fun readLine(): String
-expect fun round(num:Double, digits: Int): Double
-//expect fun String.format()
+expect fun round(num: Double, digits: Int): Double
 
-expect fun runTest(block: suspend () -> Unit)
+expect fun preload(fileNames: List<String>)
 
-expect fun preload(fileNames:List<String>)
+expect fun isInt(num: Any): Boolean
 
-expect fun isInt(num:Any):Boolean
+expect fun isDouble(num: Any): Boolean
 
-expect fun isDouble(num: Any):Boolean
+@OptIn(ExperimentalJsExport::class)
+@JsExport
+data class Message(val type:String, val content:Any)
+
+expect fun sendMessage(m:Message)
+

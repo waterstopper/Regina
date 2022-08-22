@@ -85,7 +85,7 @@ object TokenFactory {
             upperNode.children[index] = Call(nodeIdentifier)
         else if (symbolTable.getTypeOrNull(nodeIdentifier.left) != null)
             upperNode.children[index] = Constructor(nodeIdentifier)
-        else throw PositionalException("No class and function found", nodeIdentifier.left)
+        else upperNode.children[index] = Constructor(nodeIdentifier)//throw PositionalException("No class and function found", nodeIdentifier.left)
         return upperNode.children[index] as Invocation
     }
 

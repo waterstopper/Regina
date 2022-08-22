@@ -21,7 +21,7 @@ open class PositionalException(
 ) : Exception() {
     init {
         // TODO why clear table? because it can interrupt evaluation. Cannot do it because try catch in FileTable.getFunctionOrNull
-      //  clear()
+        //  clear()
     }
 
     override val message: String
@@ -34,12 +34,16 @@ open class PositionalException(
     }
 }
 
-open class SyntaxException(val errorMessage: String, val token: Token, val position: Pair<Int, Int> = Pair(0, 0)) :
+open class SyntaxException(
+    private val errorMessage: String,
+    val token: Token,
+    val position: Pair<Int, Int> = Pair(0, 0)
+) :
     Exception() {
     override val message: String
         get() = "`${token.value}` $errorMessage at ${getPosition()}"
 
-    protected fun getPosition(): String {
+    private fun getPosition(): String {
         return if (token.value != "")
             "${token.position.second},${token.position.first}-${token.position.first + token.value.length - 1}"
         else "${position.second},${position.first}-${position.first}"
@@ -54,7 +58,7 @@ class RuntimeError(errorMessage: String, private val delete: Delete) : Positiona
 class NotFoundException(
     node: Node = Node(),
     fileName: String = "",
-    file: FileTable = FileTable(""),
+    file: FileTable = FileTable("", -1),
     val variable: Variable? = null
 ) :
     PositionalException("", node, file = if (fileName == "") file.fileName else fileName) {

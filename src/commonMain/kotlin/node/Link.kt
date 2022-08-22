@@ -9,8 +9,8 @@ import node.invocation.Constructor
 import node.invocation.Invocation
 import node.operator.Index
 import node.statement.Assignment
-import properties.RFunction
 import properties.Object
+import properties.RFunction
 import properties.Type
 import properties.Variable
 import properties.primitive.Primitive
@@ -62,7 +62,7 @@ open class Link(
                 checkNextVariable(index = index, table = table, initialTable = symbolTable, currentVariable!!)
             if (isResolved.value !is Variable)
                 throw PositionalException("Link not resolved", children[index])
-            currentVariable = isResolved.value as Variable
+            currentVariable = isResolved.value
             table = table.changeVariable(currentVariable)
             index++
         }
@@ -188,7 +188,8 @@ open class Link(
         val (_, currentParent, _, index) = safeEvaluate(
             parent ?: Type(
                 "@Fictive",
-                null, mutableSetOf(), symbolTable.getImport(Node(value = "@global"))
+                null, mutableSetOf(), symbolTable.getImport(Node(value = "@global")),
+                index = -1
             ),
             symbolTable
         )

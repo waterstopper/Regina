@@ -17,7 +17,7 @@ class Assignment(
     init {
         this.children.clear()
         this.children.addAll(children)
-        if(left !is Assignable)
+        if (left !is Assignable)
             throw PositionalException("Left operand is not assignable", left)
     }
 

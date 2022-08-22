@@ -22,13 +22,20 @@ class Constructor(
     }
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        val type = symbolTable.getType(left)
+        val type = if (left is Identifier) symbolTable.getType(left) else left.evaluate(symbolTable)
+        if (type !is Type)
+            throw PositionalException("Expected type", left)
+        if(type.index == 0)
+            return evaluateType(type.copy(), symbolTable)
         return evaluateType(type, symbolTable)
     }
 
     private fun evaluateType(type: Type, symbolTable: SymbolTable): Any {
         resolveArguments(type, symbolTable)
-        return if (symbolTable.resolvingType) type else resolveTree(type, symbolTable.changeVariable(type).changeScope())
+        return if (symbolTable.resolvingType) type else resolveTree(
+            type,
+            symbolTable.changeVariable(type).changeScope()
+        )
     }
 
     private fun resolveArguments(type: Type, symbolTable: SymbolTable) {

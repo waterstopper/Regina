@@ -33,9 +33,11 @@ object PathBuilder {
         }
         if (candidates.size > 1)
             throw PositionalException(
-                "Impossible to import ${ if (importName is Link) importName.children.joinToString(
-                    separator = "/"
-                ) else importName.value}. Found ${candidates.size} files: " +
+                "Impossible to import ${
+                    if (importName is Link) importName.children.joinToString(
+                        separator = "/"
+                    ) else importName.value
+                }. Found ${candidates.size} files: " +
                         candidates.joinToString(separator = ", "), importName
             )
         return candidates.first()

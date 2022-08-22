@@ -1,5 +1,7 @@
 package evaluation
 
+import FileSystem
+import Message
 import lexer.ExpectedTypeException
 import lexer.PositionalException
 import node.Identifier
@@ -7,8 +9,10 @@ import node.Node
 import node.statement.Assignment
 import properties.EmbeddedFunction
 import properties.RFunction
+import properties.Type
 import properties.primitive.*
 import readLine
+import sendMessage
 import table.SymbolTable
 import utils.Utils.toInt
 import utils.Utils.toVariable
@@ -85,13 +89,15 @@ object FunctionFactory {
     fun initializeEmbedded(): MutableMap<String, RFunction> {
         val res = mutableMapOf<String, RFunction>()
         res["log"] = EmbeddedFunction("log", listOf("x"))
-        { token, args -> println(getIdent(token, "x", args)) }
+        { token, args ->
+            sendMessage(Message("log", getIdent(token, "x", args)))
+        }
         res["except"] = EmbeddedFunction("except", listOf("x"))
         { token, args ->
             // TODO check that instances work properly. e.g. except(a())
             throw PositionalException(getIdent(token, "x", args).toString(), token)
         }
-        res["input"] = EmbeddedFunction("input", listOf()) { _, _ -> readLine() ?: "" }
+        res["input"] = EmbeddedFunction("input", listOf()) { _, _ -> readLine() }
         res["write"] = EmbeddedFunction("write", listOf("content", "path")) { token, args ->
             val fileName = getIdent(token, "path", args)
             val content = getIdent(token, "content", args)
@@ -217,6 +223,22 @@ object FunctionFactory {
                     val diff = abs(first - second)
                     val norm = min(abs(first) + abs(second), Float.MAX_VALUE.toDouble())
                     (diff < max(absTh, epsilon * norm)).toInt()
+                }
+            }
+        res["type"] =
+            EmbeddedFunction(
+                "type", listOf("instance"),
+            ) { token, args ->
+                val instance = getIdent(token, "instance", args)
+                when (instance) {
+                    is PInt -> "Int"
+                    is PDouble -> "Double"
+                    is PString -> "String"
+                    is PArray -> "Array"
+                    is PDictionary -> "Dictionary"
+                    is Type -> instance.fileTable.getUncopiedType(Node(value = instance.name))
+                        ?: throw PositionalException("Class not found", token)
+                    else -> throw PositionalException("Unsupported type", token)
                 }
             }
         return res

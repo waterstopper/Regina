@@ -36,7 +36,16 @@ class TokenObject(
 
 class TokenFunction(
     token: Token
-) : Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std, token.children) {
+) : Token(
+    token.symbol,
+    token.value,
+    token.position,
+    token.bindingPower,
+    token.nud,
+    token.led,
+    token.std,
+    token.children
+) {
 
     override fun toNode(): Node {
         checkParameters(children[0].children.subList(1, children[0].children.size))

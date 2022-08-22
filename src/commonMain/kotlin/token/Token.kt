@@ -19,6 +19,6 @@ open class Token(
         get() = children[1]
 
     open fun toNode(): Node {
-       return Node(symbol = symbol, value = value, children = children.map { it.toNode() }.toMutableList())
+        return Node(symbol = symbol, value = value, children = children.map { it.toNode() }.toMutableList())
     }
 }

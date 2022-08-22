@@ -12,7 +12,6 @@ object Evaluation {
      * Enabling training wheels will run code slower but will give meaningful feedback if something is wrong.
      */
     var trainingWheels = true
-    var globalTable = SymbolTable(resolvingType = false)
 
     fun eval(code: String, roots: List<String> = mutableListOf("")) {
         val fileTable = analyzeSemantics("@NoFile", roots, Parser(code).statements().map { it.toNode() })

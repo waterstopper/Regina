@@ -9,19 +9,21 @@ import node.ImportNode
 import node.Node
 import node.invocation.Call
 import node.statement.Assignment
-import properties.RFunction
 import properties.Object
+import properties.RFunction
 import properties.Type
 import table.SymbolTable.Companion.globalFile
 
 //@Serializable
 class FileTable(
-    val fileName: String
+    val fileName: String,
+    val index: Int
 ) {
     private val types: MutableSet<Type> = mutableSetOf()
     private val objects: MutableSet<Object> = mutableSetOf()
     private val functions: MutableSet<RFunction> = mutableSetOf()
     private val imports: MutableMap<String, FileTable> = mutableMapOf()
+    var numberInstances: Int = 0
 
     init {
         imports["@global"] = globalFile
@@ -31,7 +33,8 @@ class FileTable(
         val name = node.left.value
 
         val (assignments, functions) = createAssignmentsAndFunctions(node.children[2])
-        val added = Type(name, null, assignments, this)
+        // copied types get index 0
+        val added = Type(name, null, assignments, this, 0)
         added.functions.addAll(functions)
         if (types.find { it.name == name } != null)
             throw PositionalException("Two classes with same name in `$fileName`", node)
@@ -73,8 +76,7 @@ class FileTable(
     fun getType(node: Node): Type = getTypeOrNull(node.value)
         ?: throw NotFoundException(node)
 
-    fun getUncopiedType(node: Node): Type = types.find { it.name == node.value }
-        ?: throw throw NotFoundException(node)
+    fun getUncopiedType(node: Node): Type? = types.find { it.name == node.value }
 
     fun getObjectOrNull(name: String): Object? = getFromFilesOrNull {
         it.objects.find { obj -> obj.name == name }
@@ -147,13 +149,13 @@ class FileTable(
     fun getTypes(): MutableMap<String, Type> = types.associateBy { it.name }.toMutableMap()
     fun getObjects() = objects
     fun getFunctions() = functions
-    fun getFileOfFunction(node: Node, function:RFunction): FileTable {
+    fun getFileOfFunction(node: Node, function: RFunction): FileTable {
         val inCurrent = functions.find { it == function }
         if (inCurrent != null)
             return this
         val suitable = mutableListOf<FileTable>()
         for (table in imports.values) {
-            val fromFile = table.functions.find{it == function}
+            val fromFile = table.functions.find { it == function }
             if (fromFile != null)
                 suitable.add(table)
         }

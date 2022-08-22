@@ -91,8 +91,10 @@ class SemanticTest {
 
     @Test
     fun failFunctionAndClassNotFound() {
-        val notFoundInFile = assertFails { eval("fun main() { notFound() } ") }
-        assertTrue(notFoundInFile.message!!.contains("No class and function found"))
+        // removed because by adding `type()` function, it is almost
+        // impossible to say if an expression cannot be a constructor
+//        val notFoundInFile = assertFails { eval("fun main() { notFound() } ") }
+//        assertTrue(notFoundInFile.message!!.contains("No class and function found"))
 
         val notFoundInPrimitive = assertFails { eval("fun main() {a=1;a.notFound()}") }
         assertTrue(notFoundInPrimitive.message!!.contains("does not contain function"))

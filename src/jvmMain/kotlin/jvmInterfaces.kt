@@ -1,4 +1,3 @@
-import kotlinx.coroutines.runBlocking
 import java.io.File
 import kotlin.math.floor
 
@@ -25,14 +24,15 @@ actual fun readLine(): String {
     return readLine()
 }
 
-actual fun round(num:Double, digits: Int): Double {
+actual fun round(num: Double, digits: Int): Double {
     return String.format("%.${digits}f", num).replace(',', '.').toDouble()
 }
-
-actual fun runTest(block: suspend () -> Unit) = runBlocking { block() }
 
 actual fun preload(fileNames: List<String>) {
 }
 
 actual fun isInt(num: Any): Boolean = num is Number && num.toDouble() == floor(num.toDouble())
 actual fun isDouble(num: Any): Boolean = num is Number && num.toDouble() != floor(num.toDouble())
+actual fun sendMessage(m: Message) {
+    println(m)
+}

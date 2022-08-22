@@ -21,22 +21,26 @@ class Parser() {
         var t = lexer.next()
         var left = t.nud?.let { it(t, this) }
             ?: throw PositionalException(
-                "Expected variable or prefix operator", position = t.position, length = 1
+                "Expected variable or prefix operator", position = t.position, length = t.value.length
             )
         while (rbp < lexer.peek().bindingPower) {
             t = lexer.next()
             left = t.led?.let { it(t, this, left) } ?: throw PositionalException(
-                "Expected infix or suffix operator", position = t.position, length = 1
+                "Expected infix or suffix operator", position = t.position, length = t.value.length
             )
         }
         return left
     }
 
     fun advance(symbol: String): Token {
-        var token = lexer.next()
+        val token = lexer.next()
         if (token.symbol == symbol)
             return token
-        throw PositionalException("Expected $symbol", position = token.position, length = 1)
+        throw PositionalException(
+            "Expected $symbol",
+            position = token.position,
+            length = token.symbol.length
+        )
     }
 
     fun advanceSeparator() {
@@ -58,7 +62,11 @@ class Parser() {
         if (token.std != null) {
             token = lexer.next()
             return token.std?.let { it(token, this) }
-                ?: throw PositionalException("Expected statement", position = token.position, length = 1)
+                ?: throw PositionalException(
+                    "Expected statement",
+                    position = token.position,
+                    length = token.value.length
+                )
         }
         token = expression(0)
         val peeked = lexer.peek()
@@ -76,9 +84,17 @@ class Parser() {
                 res.children.add(statement())
                 return res
             }
-            throw PositionalException("Expected a block start '{'", position = token.position)
+            throw PositionalException(
+                "Expected a block start '{'",
+                position = token.position,
+                length = token.value.length
+            )
         }
         return token.std?.let { it(token, this) }
-            ?: throw PositionalException("Expected statement", position = token.position)
+            ?: throw PositionalException(
+                "Expected statement",
+                position = token.position,
+                length = token.value.length
+            )
     }
 }

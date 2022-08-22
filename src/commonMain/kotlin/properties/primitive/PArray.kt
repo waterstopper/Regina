@@ -1,5 +1,7 @@
 package properties.primitive
 
+import DebugArray
+import References
 import evaluation.FunctionFactory.getArray
 import evaluation.FunctionFactory.getIdent
 import evaluation.FunctionFactory.getInt
@@ -25,6 +27,15 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
         if ((index as Int) < 0 || index >= getPValue().size)
             throw PositionalException("Index out of bounds", node)
         return getPValue()[index]
+    }
+
+    override fun toDebugClass(references: References): Any {
+        val id = hashCode()
+        if (references.arrays[id] != null)
+            return Pair("array", id)
+        val res = DebugArray(getPValue().map { if (it == this) Pair("array", id) else it.toDebugClass(references) })
+        references.arrays[id] = res
+        return Pair("array", id)
     }
 
     override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node) {
@@ -149,8 +160,8 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
                     val array = getArray(token, "this", args)
                     val desc = getInt(token, "reverse", args)
                     val comparator = Comparator<Variable> { a, b -> compareVariables(a, b) }
-                    val res = array.getPValue().sortedWith(comparator)
-                    if (desc.getPValue() != 0) res.reversed() else res
+                    val res = array.getPValue().sortedWith(comparator).toMutableList()
+                    if (desc.getPValue() != 0) res.reversed().toMutableList() else res
                 }
             )
         }

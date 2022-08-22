@@ -19,6 +19,6 @@ class TypeOperator(
 ) : Operator(symbol, value, position, bindingPower, nud, led, std) {
 
     override fun toNode(): Node {
-        return TypeOperator(symbol, value, position, children.map{it.toNode()}.toMutableList())
+        return TypeOperator(symbol, value, position, children.map { it.toNode() }.toMutableList())
     }
 }

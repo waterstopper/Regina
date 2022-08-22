@@ -47,4 +47,22 @@ class ObjectTest {
         }
         assertTrue(thrown.message!!.contains("Object cannot be inherited"))
     }
+
+    @Test
+    fun testRecursive() {
+        eval("""
+            fun main() {
+                test(A.b.a.b.a.b == B)
+            }
+            
+            object A {
+                b = B
+            }
+            object B {
+                a = A
+            }
+            
+            class A {}
+        """)
+    }
 }

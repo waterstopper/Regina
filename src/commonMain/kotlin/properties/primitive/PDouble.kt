@@ -1,17 +1,15 @@
 package properties.primitive
 
-import evaluation.FunctionFactory.getDouble
-import evaluation.FunctionFactory.getInt
-import properties.EmbeddedFunction
+import References
 import properties.Type
-import round
 import utils.Utils.toProperty
-import kotlin.math.pow
-import kotlin.math.roundToInt
 
 class PDouble(value: Double, parent: Type?) : PNumber(value, parent) {
     override fun getIndex() = 3
     override fun getPValue() = value as Double
+    override fun toDebugClass(references: References): Any {
+        return getPValue()
+    }
 
     companion object {
         fun initializeDoubleProperties() {

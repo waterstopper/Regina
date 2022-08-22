@@ -14,8 +14,13 @@ class PArrayTest {
             a = []
             a.add(a, 0)
             a.add([1,2])
+            b = a.sorted()
+            log(b)
+            b.add(A())
+            log(str(b))
+            log(str(a))
             test(str(a)=="[this, [1, 2]]")
-            test(a[0][0][1]==[1,2])
+            test(a[0][0][1]==[1, 2])
             a.removeAt(0)
             test(a==[[1,2]])
             a.remove([1,2])
@@ -29,6 +34,11 @@ class PArrayTest {
             a.clear()
             test(a == [])
         }
+        
+        class A {
+            iter = if(parent == 0) 0 else parent.iter + 1
+            next = if(iter < 5) A() else 0
+        }
         """
         )
     }
@@ -37,18 +47,28 @@ class PArrayTest {
     fun testArrayEquals() {
         eval(
             """
-            fun main() {
+        fun main() {
             aInst = A()
-           a = [aInst]
-           b = [aInst]
-           test(a == b)
-           a[0].s = 1
-           test(b[0].s == 1)
-           test(a == b)
-           }
-           class A{
+            a = [aInst]
+            b = [aInst]
+            test(a == b)
+            a[0].s = 1
+            test(b[0].s == 1)
+            test(a == b)
+            
+            c = [A()]
+            c[0].b = B()
+            c[0].b.a = c[0]
+            d = c.sorted()
+            c.add(c[0].b)
+            d.add(c[0].b)
+            test(c == d)
+        }
+        class A {
             a = 0
-           }
+        }
+        
+        class B {}
         """
         )
     }
@@ -60,8 +80,8 @@ class PArrayTest {
            fun main() {
                a = Obj
                arr = [3, 2, 1]
-               test(str([Obj,Cls(),[],1,2,{1:2}, ZObj,[1,2], {}, 0.1, Zcls()].sorted()) \
-                    == "[0.1, 1, 2, [], [1, 2], {}, {1=2}, Cls, Zcls, Obj, ZObj]")
+               test(str([Obj,type(Cls()),[],1,2,{1:2}, ZObj,[1,2], {}, 0.1, type(Zcls())].sorted()) \
+                    == "[0.1, 1, 2, [], [1, 2], {}, {1=2}, Cls, Zcls, Obj-Object, ZObj-Object]")
                test(arr.sorted() == [1,2,3])
            }
          object Obj {}

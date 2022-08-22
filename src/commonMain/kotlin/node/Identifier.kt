@@ -1,7 +1,9 @@
 package node
 
 import lexer.NotFoundException
+import lexer.PositionalException
 import node.statement.Assignment
+import properties.Object
 import properties.Type
 import properties.primitive.Primitive
 import table.SymbolTable
@@ -17,7 +19,7 @@ open class Identifier(
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         val variable = symbolTable.getIdentifierOrNull(this)
-            ?: return symbolTable.getTypeOrNull(this) ?: throw NotFoundException(
+            ?: return symbolTable.getUncopiedTypeOrNull(this) ?: throw NotFoundException(
                 this,
                 file = symbolTable.getFileTable()
             )
@@ -30,6 +32,8 @@ open class Identifier(
         if (parent != null && assignment.isProperty) {
             parent.setProperty(this.value, value.toProperty(assignment.right, parent))
             if (parent.getProperty(this) is Type) {
+                if ((parent.getProperty(this) as Type).index == 0 && parent.getProperty(this) !is Object)
+                    throw PositionalException("Cannot assign class reference as a property. Use instance instead", this)
                 (parent.getProperty(this) as Type).parent = parent
                 (parent.getProperty(this) as Type).setProperty("parent", parent)
             }

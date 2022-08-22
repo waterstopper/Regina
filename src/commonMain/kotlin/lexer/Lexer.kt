@@ -105,12 +105,13 @@ class Lexer() {
             return MetaToken(
                 res.toString(),
                 res.toString(),
-                Pair(position.first - res.toString().length, position.second)
+                Pair(position.first - res.length, position.second)
             )
         }
         throw PositionalException(
             "No such meta token",
-            position = Pair(position.first - res.toString().length, position.second)
+            position = Pair(position.first - res.length, position.second),
+            length = res.length
         )
     }
 
@@ -124,7 +125,11 @@ class Lexer() {
                 res.append(escapes[source[index]])
                 move()
             } else if (isLineSeparator() || index == source.lastIndex)
-                throw Exception("Unterminated string at ${position.second}:${position.first}")
+                throw PositionalException(
+                    "Unterminated string at ${position.second}:${position.first}",
+                    position = Pair(position.first - res.length, position.second),
+                    length = res.length
+                )
             else moveAndAppend(res)
         }
         moveAndAppend(res)
@@ -201,15 +206,16 @@ class Lexer() {
             }
             return true
         } else if (index < source.lastIndex && source[index] == '/' && source[index + 1] == '*') {
+            val startingPosition = position
             move(2)
             if (index + 1 >= source.length)
-                throw PositionalException("Unterminated comment", position = position)
+                throw PositionalException("Unterminated comment", position = startingPosition, length = 2)
             while (!(source[index] == '*' && source[index + 1] == '/')) {
                 if (isLineSeparator())
                     toNextLine()
                 else move()
                 if (index >= source.lastIndex)
-                    throw PositionalException("Unterminated comment", position = position)
+                    throw PositionalException("Unterminated comment", position = startingPosition , length = 2)
             }
             move(2)
             return true
