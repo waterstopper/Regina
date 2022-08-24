@@ -1,7 +1,9 @@
 package properties.primitive
 
 import DebugArray
+import NestableDebug
 import References
+import elementToDebug
 import evaluation.FunctionFactory.getArray
 import evaluation.FunctionFactory.getIdent
 import evaluation.FunctionFactory.getInt
@@ -18,7 +20,9 @@ import utils.Utils.toInt
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
-class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, parent), Indexable {
+class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primitive(value, parent),
+    Indexable,
+    NestableDebug {
     override fun getIndex() = 5
     override fun getPValue() = value as MutableList<Variable>
     override fun get(index: Any, node: Node): Any {
@@ -30,13 +34,18 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
     }
 
     override fun toDebugClass(references: References): Any {
-        val id = hashCode()
-        if (references.arrays[id] != null)
-            return Pair("array", id)
-        val res = DebugArray(getPValue().map { if (it == this) Pair("array", id) else it.toDebugClass(references) })
-        references.arrays[id] = res
-        return Pair("array", id)
+        val id = getDebugId()
+        references.queue.remove(id)
+        if (references.arrays[id.second] != null)
+            return id
+        val res = DebugArray(getPValue().map {
+            if (it == this) id else elementToDebug(it, references)
+        })
+        references.arrays[id.second as Int] = res
+        return id
     }
+
+    override fun getDebugId(): Pair<String, Any> = Pair("array", id)
 
     override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node) {
         getPValue()[(index as PInt).getPValue()] = value.toVariable(nodeIndex)
@@ -66,12 +75,12 @@ class PArray(value: MutableList<Variable>, parent: Type?) : Primitive(value, par
 
     companion object {
         fun initializeArrayProperties() {
-            val p = PArray(mutableListOf(), null)
+            val p = PArray(mutableListOf(), null, arrayId++)
             setProperty(p, "size") { pr: Primitive -> (pr as PArray).getPValue().size.toProperty() }
         }
 
         fun initializeEmbeddedArrayFunctions() {
-            val p = PArray(mutableListOf(), null)
+            val p = PArray(mutableListOf(), null, arrayId++)
             setFunction(
                 p,
                 EmbeddedFunction(

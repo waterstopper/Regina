@@ -1,17 +1,20 @@
 package table
 
+import Message
 import evaluation.FunctionFactory
 import lexer.ExpectedTypeException
 import lexer.NotFoundException
 import lexer.PositionalException
 import node.Identifier
 import node.ImportNode
+import node.Meta
 import node.Node
 import node.invocation.Call
 import node.statement.Assignment
 import properties.Object
 import properties.RFunction
 import properties.Type
+import sendMessage
 import table.SymbolTable.Companion.globalFile
 
 //@Serializable
@@ -117,7 +120,9 @@ class FileTable(
                 functions.add(
                     FunctionFactory.createFunction(a)
                 )
-            else throw ExpectedTypeException(listOf(Assignment::class, RFunction::class), a)
+            else if (a is Meta) {
+                // skip sendMessage(Message("breakpoint", a.position.first))
+            } else throw ExpectedTypeException(listOf(Assignment::class, RFunction::class), a)
         }
 
         return Pair(res, functions)

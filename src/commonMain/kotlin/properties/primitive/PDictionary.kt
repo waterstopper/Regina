@@ -1,7 +1,9 @@
 package properties.primitive
 
 import DebugDictionary
+import NestableDebug
 import References
+import elementToDebug
 import evaluation.FunctionFactory.getDictionary
 import evaluation.FunctionFactory.getIdent
 import node.Node
@@ -11,7 +13,9 @@ import properties.Variable
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
-class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?) : Primitive(value, parent), Indexable {
+class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var id: Int) : Primitive(value, parent),
+    Indexable,
+    NestableDebug {
     override fun getIndex() = 6
     override fun getPValue() = value as MutableMap<Any, Variable>
 
@@ -23,8 +27,17 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?) : Pri
         getPValue()[index.toVariable(nodeIndex)] = value.toVariable(nodeValue)
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (other !is PDictionary) return false
+        if (getPValue() == other.getPValue())
+            return true
+        return false
+    }
+
+    override fun hashCode(): Int = getPValue().hashCode()
+
     override fun toString(): String {
-        if(getPValue().isEmpty())
+        if (getPValue().isEmpty())
             return "{}"
         val res = StringBuilder("{")
         for ((key, value) in getPValue()) {
@@ -35,26 +48,29 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?) : Pri
             res.append(if (value == this) "this" else value)
             res.append(", ")
         }
-        res.deleteRange(res.lastIndex - 1, res.length)
+        res.deleteAt(res.lastIndex)
+        res.deleteAt(res.lastIndex)
         res.append("}")
         return res.toString()
     }
 
     override fun toDebugClass(references: References): Any {
-        val id = hashCode()
-        if (references.dictionaries[id] != null)
-            return Pair("dictionary", id)
+        val id = getDebugId()
+        references.queue.remove(id)
+        if (references.dictionaries[id.second] != null)
+            return id
         val res = DebugDictionary(getPValue().map {
-            val key = if (it.key is Variable) (if (it.key == this) Pair("dictionary", id)
-            else (it.key as Variable).toDebugClass(references))
-            else it.key
-            val value = if (it.value == this) Pair("dictionary", id)
-            else it.value.toDebugClass(references)
-            key to value
+            when (it.key) {
+                is Variable -> if (it.key == this) id else elementToDebug(it.key as Variable, references)
+                else -> it.key
+            } to if (it.value == this) id else elementToDebug(it.value, references)
+
         }.toMap().toMutableMap())
-        references.dictionaries[id] = res
-        return Pair("dictionary", id)
+        references.dictionaries[id.second as Int] = res
+        return id
     }
+
+    override fun getDebugId(): Pair<String, Any> = Pair("dictionary", id)
 
     override fun checkIndexType(index: Variable): Boolean {
         return true
@@ -62,7 +78,7 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?) : Pri
 
     companion object {
         fun initializeDictionaryProperties() {
-            val p = PDictionary(mutableMapOf(), null)
+            val p = PDictionary(mutableMapOf(), null, -1)
             setProperty(p, "size") { pr: Primitive ->
                 (pr as PDictionary).getPValue().size.toProperty()
             }
@@ -75,11 +91,11 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?) : Pri
         }
 
         fun initializeDictionaryFunctions() {
-            val p = PDictionary(mutableMapOf(), null)
+            val p = PDictionary(mutableMapOf(), null, -1)
             setFunction(p, EmbeddedFunction("remove", listOf("key")) { token, args ->
                 val dict = getDictionary(token, "this", args)
                 val key = getIdent(token, "key", args)
-                dict.getPValue().remove(key)?.toVariable(token) ?: PInt(0, null)
+                dict.getPValue().remove(key) ?: PInt(0, null)
             })
         }
     }

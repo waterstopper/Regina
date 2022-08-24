@@ -25,11 +25,11 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
     }
 
     override fun hashCode(): Int {
-        return getPValue().toDouble().hashCode()
+        return getPValue().hashCode()
     }
 
     override fun toDebugClass(references: References): Any {
-        TODO("Not yet implemented")
+        throw Exception("class is not instantiable")
     }
 
     companion object {

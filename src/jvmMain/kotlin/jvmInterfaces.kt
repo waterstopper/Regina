@@ -21,7 +21,7 @@ actual object FileSystem {
 }
 
 actual fun readLine(): String {
-    return readLine()
+    return kotlin.io.readLine() ?: ""
 }
 
 actual fun round(num: Double, digits: Int): Double {

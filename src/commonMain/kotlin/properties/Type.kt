@@ -1,7 +1,9 @@
 package properties
 
 import DebugType
+import NestableDebug
 import References
+import elementToDebug
 import lexer.PositionalException
 import node.Link
 import node.Node
@@ -10,6 +12,7 @@ import node.invocation.Call
 import node.statement.Assignment
 import properties.primitive.PDictionary
 import properties.primitive.PInt
+import properties.primitive.Primitive
 import table.FileTable
 import table.SymbolTable
 import utils.Utils.toVariable
@@ -28,7 +31,7 @@ open class Type(
     val index: Int,
     var supertype: Type? = null
 ) :
-    Property(parent) {
+    Property(parent), NestableDebug {
     protected val properties = mutableMapOf<String, Property>()
     val functions = mutableSetOf<RFunction>()
 
@@ -88,20 +91,25 @@ open class Type(
         ?: throw PositionalException("Class `$name` does not contain function", node)
 
     override fun getProperties() =
-        PDictionary(properties.mapKeys { (key, _) -> key.toVariable() }.toMutableMap(), this)
+        PDictionary(
+            properties.mapKeys { (key, _) -> key.toVariable() }.toMutableMap(),
+            this,
+            Primitive.dictionaryId++
+        )
 
     override fun toDebugClass(references: References): Any {
-        if (references.types[toString()] != null)
-            return Pair("type", toString())
-        val res = DebugType(
-            properties.toMutableMap().map {
-                it.key to (if (it == this) Pair("type", toString())
-                else it.value.toDebugClass(references))
-            }.toMap().toMutableMap()
-        )
-        references.types[toString()] = res
-        return Pair("type", toString())
+        val id = getDebugId()
+        references.queue.remove(id)
+        if (references.types[id.second] != null)
+            return id
+        val res = DebugType(properties.map {
+            it.key to if (it.value == this) id else elementToDebug(it.value, references)
+        }.toMap().toMutableMap())
+        references.types[id.second as String] = res
+        return id
     }
+
+    override fun getDebugId(): Pair<String, Any> = Pair("type", toString())
 
     override fun getPropertyOrNull(name: String) = when (name) {
         "parent" -> getParentOrNull()
@@ -125,6 +133,8 @@ open class Type(
     override fun toString(): String {
         if (index == 0)
             return name
+        if (fileTable.fileName.isEmpty())
+            throw Exception("Empty fileTable name")
         val fileLetter = if (fileTable.fileName.contains("/"))
             fileTable.fileName.split("/").last().first()
         else fileTable.fileName.first()

@@ -1,8 +1,10 @@
 package lexer
 
+import Message
 import lexer.PathBuilder.getNodes
 import node.Identifier
 import node.Link
+import node.Meta
 import node.Node
 import node.TokenFactory.changeInvocationOnSecondPositionInLink
 import node.TokenFactory.createSpecificInvocation
@@ -12,6 +14,7 @@ import node.invocation.Invocation
 import node.statement.Assignment
 import properties.RFunction
 import properties.Type
+import sendMessage
 import table.FileTable
 import table.SymbolTable
 import utils.Utils.subList
@@ -92,6 +95,7 @@ class Analyzer(fileTable: FileTable) {
                 is Invocation -> if (isInvocation(child))
                     createSpecificInvocation(child, symbolTable, node, index)
                 is Link -> changeInvocationsInLink(child, symbolTable, inProperty)
+                is Meta -> sendMessage(Message("breakpoint", child.position))
             }
         }
         for (child in node.children)

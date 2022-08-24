@@ -27,11 +27,10 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
     }
 
     override fun toString(): String {
-        val fileLetter = if (fileTable.fileName.contains("/"))
-            fileTable.fileName.split("/").last().first()
-        else fileTable.fileName.first()
         return "$name-Object"
     }
+
+    override fun getDebugId(): Pair<String, Any> = Pair("object", toString())
 
     override fun getPropertyOrNull(name: String): Property? {
         if (properties[name] != null)

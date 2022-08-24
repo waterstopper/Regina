@@ -1,10 +1,12 @@
 package lexer
 
+import Message
 import evaluation.FunctionFactory
 import lexer.PathBuilder.getFullPath
 import lexer.PathBuilder.getNodes
 import node.*
 import properties.Type
+import sendMessage
 import table.FileTable
 
 class ImportGraphCreator(
@@ -39,6 +41,9 @@ class ImportGraphCreator(
                     supertypes[type] = node.superTypeNode
                 }
                 is ObjectNode -> fileTable.addObject(node)
+                is Meta -> {
+                    // skip sendMessage(Message("breakpoint", node.position.first))
+                }
                 else -> throw PositionalException("Only class, object or function can be top level declaration", node)
             }
     }

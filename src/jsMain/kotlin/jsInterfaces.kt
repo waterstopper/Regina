@@ -46,7 +46,7 @@ object JSSetter {
     var sendMessage: ((Message) -> Unit)? = null
 }
 
-actual fun readLine(): String = readLine()
+actual fun readLine(): String = ""
 
 // https://stackoverflow.com/a/48764436
 actual fun round(num: Double, digits: Int): Double = js(

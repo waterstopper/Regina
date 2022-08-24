@@ -1,5 +1,6 @@
 package table
 
+import References
 import evaluation.FunctionFactory.initializeEmbedded
 import lexer.PositionalException
 import node.Node
@@ -149,23 +150,20 @@ class SymbolTable(
         return res.toString()
     }
 
-    fun getDictionaryFromTable(): Map<String, Any> {
+    fun getDictionaryFromTable(): MutableMap<Any, Any> {
+        // TODO call stack exceeded
+        val references = References()
         val res = mutableMapOf<Any, Any>()
-        val maps = mutableMapOf<String, MutableMap<Any, Any>>()
         scopeTable?.getVariables()?.forEach { (name, variable) ->
-            if (variable is Type)
-                maps["instances"]!![name] = variable.toString()
-            else maps["primitives"]!![name] = variable
+            res[name] = variable.toDebugClass(references)
         }
-        val allInstances = mutableSetOf<Type>()
-        for (instance in maps["instances"]!!.values) {
-            allInstances.addAll((instance as Type).getAllInstances())
-        }
-        res["allInstances"] = allInstances
-        res["scope"] = maps
         if (variableTable is Type)
-            res["this"] = variableTable as Type
-        return maps
+            res["@this"] = variableTable!!.toDebugClass(references)
+        while(references.queue.isNotEmpty()){
+            references.queue.values.last().toDebugClass(references)
+        }
+        res["@references"] = references
+        return res
     }
 
     fun toDebugString(): String {

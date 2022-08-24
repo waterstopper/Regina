@@ -78,7 +78,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         if (getIndex() in 2..3)
             res.putAll(getAllProperties()[1])
         res.putAll(getAllProperties()[getIndex()])
-        return PDictionary(res.mapValues { it.value(this) }.toMutableMap(), null)
+        return PDictionary(res.mapValues { it.value(this) }.toMutableMap(), null, dictionaryId++)
     }
 
     override fun getFunction(node: Node): RFunction = getFunctionOrNull(node)
@@ -93,6 +93,10 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
     private fun formatClassName() = this::class.toString().split('.').last().substring(1)
 
     companion object {
+        // used for debugging ids. hashCode() as id will give stack overflow on recursive arrays or dictionaries
+        var dictionaryId = 0
+        var arrayId = 0
+
         fun setProperty(primitive: Primitive, name: String, property: (s: Primitive) -> Property) {
             properties[primitive.getIndex()][name] = property
         }
@@ -107,13 +111,13 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         fun createPrimitive(value: Any, parent: Type? = null, node: Node = Node()): Primitive {
             return when (value) {
                 is String -> PString(value, parent)
-                is List<*> -> PArray(value as MutableList<Variable>, parent)
+                is List<*> -> PArray(value as MutableList<Variable>, parent, arrayId++)
                 is Number -> {
                     if (isInt(value))
                         PInt(value.toInt(), parent)
                     else PDouble(value.toDouble(), parent)
                 }
-                is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent)
+                is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent, dictionaryId++)
                 else -> throw PositionalException(
                     "Cannot create variable of type `${value::class}`", node
                 )
@@ -123,13 +127,13 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         fun createPrimitive(value: Any, parent: Type? = null, delete: Delete): Primitive {
             return when (value) {
                 is String -> PString(value, parent)
-                is List<*> -> PArray(value as MutableList<Variable>, parent)
+                is List<*> -> PArray(value as MutableList<Variable>, parent, arrayId++)
                 is Number -> {
                     if (isInt(value))
                         PInt(value as Int, parent)
                     else PDouble(value as Double, parent)
                 }
-                is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent)
+                is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent, dictionaryId++)
                 else -> throw RuntimeError(
                     "Cannot create variable of type `${value::class}`", delete
                 )

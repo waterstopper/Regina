@@ -90,7 +90,7 @@ object FunctionFactory {
         val res = mutableMapOf<String, RFunction>()
         res["log"] = EmbeddedFunction("log", listOf("x"))
         { token, args ->
-            sendMessage(Message("log", getIdent(token, "x", args)))
+            sendMessage(Message("log", getIdent(token, "x", args).toString()))
         }
         res["except"] = EmbeddedFunction("except", listOf("x"))
         { token, args ->
@@ -165,7 +165,8 @@ object FunctionFactory {
                                 PString("key", null) to it.key.toVariable(token),
                                 PString("value", null) to it.value.toVariable(token)
                             ),
-                            null
+                            null,
+                            Primitive.dictionaryId++
                         )
                     }
                 is PString -> argument.getPValue().map { it.toString().toVariable() }

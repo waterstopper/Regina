@@ -12,9 +12,10 @@ class Meta(
     position: Pair<Int, Int>,
 ) : Node(symbol, value, position) {
     override fun evaluate(symbolTable: SymbolTable): Any {
-        sendMessage(Message("debug", symbolTable.getDictionaryFromTable())) // TODO to debug string
-        println(symbolTable.toDebugString())
+        val content = symbolTable.getDictionaryFromTable()
+        content["@position"] = position
+        sendMessage(Message("debug", content))
         readLine()
-        return PInt(0, null)//super.evaluate(symbolTable)
+        return PInt(0, null)
     }
 }
