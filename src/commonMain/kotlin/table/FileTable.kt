@@ -113,6 +113,8 @@ class FileTable(
         val functions = mutableListOf<RFunction>()
         for (a in node.children) {
             if (a is Assignment) {
+                if(a.right is Assignment)
+                    throw PositionalException("Double assignments are not allowed in class", a)
                 if (!res.add(a))
                     throw PositionalException("Same property found above", a)
                 a.isProperty = true

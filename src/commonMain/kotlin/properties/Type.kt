@@ -109,7 +109,7 @@ open class Type(
         return id
     }
 
-    override fun getDebugId(): Pair<String, Any> = Pair("type", toString())
+    override fun getDebugId(): Pair<String, Any> = Pair("Type", toString())
 
     override fun getPropertyOrNull(name: String) = when (name) {
         "parent" -> getParentOrNull()

@@ -70,7 +70,7 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
         return id
     }
 
-    override fun getDebugId(): Pair<String, Any> = Pair("dictionary", id)
+    override fun getDebugId(): Pair<String, Any> = Pair("Dictionary", id)
 
     override fun checkIndexType(index: Variable): Boolean {
         return true

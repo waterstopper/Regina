@@ -2,16 +2,14 @@ package lexer
 
 import Message
 import lexer.PathBuilder.getNodes
-import node.Identifier
-import node.Link
-import node.Meta
-import node.Node
+import node.*
 import node.TokenFactory.changeInvocationOnSecondPositionInLink
 import node.TokenFactory.createSpecificInvocation
 import node.invocation.Call
 import node.invocation.Constructor
 import node.invocation.Invocation
 import node.statement.Assignment
+import node.statement.Block
 import properties.RFunction
 import properties.Type
 import sendMessage
@@ -91,7 +89,11 @@ class Analyzer(fileTable: FileTable) {
     private fun changeInvocationType(node: Node, symbolTable: SymbolTable, inProperty: Boolean = false) {
         for ((index, child) in node.children.withIndex()) {
             when (child) {
-                is Assignment -> symbolTable.addVariableOrNot(child.left)
+                is Assignment -> {
+                    if(node !is Invocation && node !is Block && node !is Assignment)
+                        throw PositionalException("unexpected assignment ${node.value}, ${node::class}", child)
+                    symbolTable.addVariableOrNot(child.left)
+                }
                 is Invocation -> if (isInvocation(child))
                     createSpecificInvocation(child, symbolTable, node, index)
                 is Link -> changeInvocationsInLink(child, symbolTable, inProperty)
@@ -105,10 +107,6 @@ class Analyzer(fileTable: FileTable) {
                 for (linkChild in child.children)
                     changeInvocationType(linkChild, symbolTable)
             }
-    }
-
-    private fun changeInvocationsInFunctionParameters(function: RFunction, symbolTable: SymbolTable) {
-
     }
 
     private fun changeInvocationsInLink(node: Link, symbolTable: SymbolTable, inProperty: Boolean = false) {

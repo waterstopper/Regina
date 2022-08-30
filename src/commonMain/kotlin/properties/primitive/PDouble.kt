@@ -8,7 +8,7 @@ class PDouble(value: Double, parent: Type?) : PNumber(value, parent) {
     override fun getIndex() = 3
     override fun getPValue() = value as Double
     override fun toDebugClass(references: References): Any {
-        return getPValue()
+        return Pair("Double", getPValue())
     }
 
     companion object {

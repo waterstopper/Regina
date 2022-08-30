@@ -1,6 +1,8 @@
 package token
 
 import lexer.Parser
+import lexer.PositionalException
+import node.Identifier
 import node.Node
 import node.statement.Assignment
 
@@ -20,6 +22,10 @@ class Assignment(
     }
 
     override fun toNode(): Node {
-        return Assignment(symbol, value, position, children.map { it.toNode() }.toMutableList())
+        val nodeChildren = children.map { it.toNode() }.toMutableList()
+        if(nodeChildren.first() is Identifier)
+            if(nodeChildren.first().value == "this")
+                throw PositionalException("this is not assignable", nodeChildren.first())
+        return Assignment(symbol, value, position, nodeChildren)
     }
 }

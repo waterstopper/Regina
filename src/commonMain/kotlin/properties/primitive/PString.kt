@@ -23,7 +23,7 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
         return getPValue()[index]
     }
     override fun toDebugClass(references: References): Any {
-        return getPValue()
+        return Pair("String", getPValue())
     }
 
     override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node) {

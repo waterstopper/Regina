@@ -45,7 +45,7 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
         return id
     }
 
-    override fun getDebugId(): Pair<String, Any> = Pair("array", id)
+    override fun getDebugId(): Pair<String, Any> = Pair("Array", id)
 
     override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node) {
         getPValue()[(index as PInt).getPValue()] = value.toVariable(nodeIndex)
