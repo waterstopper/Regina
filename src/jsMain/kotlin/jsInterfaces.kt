@@ -6,21 +6,11 @@ actual object FileSystem {
 
     actual fun read(path: String): String {
         return fileSystem[path] ?: throw PositionalException("File not found $path")
-//        if (JSSetter.readText == null) {
-//            val res = window.fetch("https://alex5041.github.io/").await().text().await()
-//            println(res)
-//            return res//localStorage.getItem(path) ?: throw Exception("`$path` not found in file system")
-//        } else {
-//            return JSSetter.readText!!(path)
-//        }
     }
 
     actual fun write(path: String, content: String) {
         sendMessage(Message("write", Pair(path, content)))
         fileSystem[path] = content
-//        if (JSSetter.writeText == null)
-//            localStorage.setItem(path, content)
-//        else JSSetter.writeText!!(path, content)
     }
 
     fun addFile(name: String, content: String) {

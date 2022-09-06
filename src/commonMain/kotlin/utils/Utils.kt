@@ -5,12 +5,17 @@ import isDouble
 import isInt
 import lexer.Parser
 import lexer.PositionalException
+import node.Identifier
 import node.Node
+import node.invocation.Invocation
+import node.operator.Index
 import node.statement.Assignment
 import properties.Property
+import properties.RFunction
 import properties.Type
 import properties.Variable
 import properties.primitive.*
+import kotlin.reflect.KClass
 
 object Utils {
     init {
@@ -113,5 +118,21 @@ object Utils {
         if (num !is PNumber)
             throw PositionalException("Expected number")
         return num
+    }
+
+    fun mapToString(mapped: KClass<*>): String {
+        return when (mapped) {
+            RFunction::class -> "Function"
+            PInt::class -> "Int"
+            PDouble::class -> "Double"
+            PNumber::class -> "Number"
+            PString::class -> "String"
+            PArray::class -> "Array"
+            PDictionary::class -> "Dictionary"
+            Identifier::class -> "Identifier"
+            Invocation::class -> "Invocation"
+            Index::class -> "Index"
+            else -> mapped.toString().split(".").last()
+        }
     }
 }

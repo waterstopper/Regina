@@ -263,4 +263,19 @@ class TypeTest {
             }
         """)
     }
+
+    @Test
+    fun testLinkedSupertype() {
+        eval("""
+            import std.svg as svg
+            import std.geometry2D as geom
+
+            fun main() {
+            	s=Stem()
+            }
+
+            class Stem:Segment {
+            }
+        """)
+    }
 }

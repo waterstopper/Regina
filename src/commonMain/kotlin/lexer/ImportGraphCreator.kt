@@ -1,23 +1,21 @@
 package lexer
 
-import Message
 import evaluation.FunctionFactory
 import lexer.PathBuilder.getFullPath
 import lexer.PathBuilder.getNodes
 import node.*
 import properties.Type
-import sendMessage
 import table.FileTable
 
 class ImportGraphCreator(
-    private val mainFileName: String,
-    private val startingNodes: List<Node>,
-    private val roots: List<String>
+    val mainFileName: String,
+    val startingNodes: List<Node>,
+    val roots: List<String>
 ) {
     val visitedTables = mutableListOf<FileTable>()
     val supertypes = mutableMapOf<Type, Node?>()
-    private val imports = mutableMapOf<String, FileTable>()
-    private val importStack = mutableListOf<FileTable>()
+    val imports = mutableMapOf<String, FileTable>()
+    val importStack = mutableListOf<FileTable>()
 
     fun createGraph() {
         visitedTables.add(FileTable(mainFileName, imports.size + 1))
@@ -31,7 +29,7 @@ class ImportGraphCreator(
         }
     }
 
-    private fun addDeclarationsToFileTable(fileTable: FileTable, nodes: List<Node>) {
+    fun addDeclarationsToFileTable(fileTable: FileTable, nodes: List<Node>) {
         for (node in nodes)
             when (node) {
                 is ImportNode -> fileTable.addImport(node, getFileTableByName(getFullPath(node.fileName, roots)))

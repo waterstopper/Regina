@@ -2,7 +2,10 @@ package lexer
 
 import Message
 import lexer.PathBuilder.getNodes
-import node.*
+import node.Identifier
+import node.Link
+import node.Meta
+import node.Node
 import node.TokenFactory.changeInvocationOnSecondPositionInLink
 import node.TokenFactory.createSpecificInvocation
 import node.invocation.Call
@@ -21,9 +24,12 @@ fun initializeSuperTypes(superTypes: Map<Type, Node?>) {
     for ((type, node) in superTypes) {
         if (node == null)
             continue
+        var localSuperType: Type? = null
         val superType = when (node) {
             is Identifier -> superTypes.filter { (t, _) ->
-                t.fileTable == type.fileTable && t.name == node.value
+                if (t.fileTable == type.fileTable && t.name == node.value)
+                    localSuperType = t
+                t.name == node.value
             }
             is Link -> {
                 if (node.children.size != 2)
@@ -36,9 +42,13 @@ fun initializeSuperTypes(superTypes: Map<Type, Node?>) {
             }
             else -> throw PositionalException("Expected identifier or link", node)
         }
-        if (superType.size != 1)
-            throw PositionalException("One super type not found", node)
-        type.supertype = superType.keys.first()
+        if (localSuperType != null)
+            type.supertype = localSuperType
+        else {
+            if (superType.size != 1)
+                throw PositionalException("One super type not found", node)
+            type.supertype = superType.keys.first()
+        }
     }
 }
 
@@ -90,7 +100,7 @@ class Analyzer(fileTable: FileTable) {
         for ((index, child) in node.children.withIndex()) {
             when (child) {
                 is Assignment -> {
-                    if(node !is Invocation && node !is Block && node !is Assignment)
+                    if (node !is Invocation && node !is Block && node !is Assignment)
                         throw PositionalException("unexpected assignment ${node.value}, ${node::class}", child)
                     symbolTable.addVariableOrNot(child.left)
                 }

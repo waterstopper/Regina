@@ -15,6 +15,7 @@ import properties.Type
 import properties.Variable
 import properties.primitive.Primitive
 import table.SymbolTable
+import utils.Utils.mapToString
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
@@ -253,7 +254,10 @@ open class Link(
     ): Pair<Type?, Assignment?> {
         val (currentVariable, currentParent, assignment, index) = safeEvaluate(parent, symbolTable)
         if (currentParent != null && currentParent !is Type)
-            throw PositionalException("Expected type", children[index - 1])
+            throw PositionalException(
+                "Expected class instance, got ${mapToString(currentParent::class)}",
+                children[index - 1]
+            )
         // left hand-side can be assigned if last link child is not assigned
         if (forLValue && index == children.lastIndex)
             return Pair(parent, null)

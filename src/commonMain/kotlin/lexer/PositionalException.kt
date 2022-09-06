@@ -10,6 +10,7 @@ import properties.Variable
 import properties.primitive.*
 import table.FileTable
 import token.Token
+import utils.Utils.mapToString
 import kotlin.reflect.KClass
 
 open class PositionalException(
@@ -85,22 +86,6 @@ class TokenExpectedTypeException(
                 )
             }" else "") + " ${token.position}"
         }
-
-    private fun mapToString(mapped: KClass<*>): String {
-        return when (mapped) {
-            RFunction::class -> "Function"
-            PInt::class -> "Int"
-            PDouble::class -> "Double"
-            PNumber::class -> "Number"
-            PString::class -> "String"
-            PArray::class -> "Array"
-            PDictionary::class -> "Dictionary"
-            Identifier::class -> "Identifier"
-            Invocation::class -> "Invocation"
-            Index::class -> "Index"
-            else -> mapped.toString().split(".").last()
-        }
-    }
 }
 
 

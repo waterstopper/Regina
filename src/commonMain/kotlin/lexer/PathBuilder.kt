@@ -22,7 +22,6 @@ object PathBuilder {
         }
         val candidates = checkFiles(path, roots)
         if (candidates.isEmpty()) {
-
             throw PositionalException(
                 "File not found ${
                     if (importName is Link) importName.children.joinToString(
