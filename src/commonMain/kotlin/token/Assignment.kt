@@ -21,11 +21,11 @@ class Assignment(
         this.children.addAll(children)
     }
 
-    override fun toNode(): Node {
-        val nodeChildren = children.map { it.toNode() }.toMutableList()
+    override fun toNode(filePath: String): Node {
+        val nodeChildren = children.map { it.toNode(filePath) }.toMutableList()
         if(nodeChildren.first() is Identifier)
             if(nodeChildren.first().value == "this")
-                throw PositionalException("this is not assignable", nodeChildren.first())
+                throw PositionalException("this is not assignable", "", nodeChildren.first()) // TODO filepath is empty
         return Assignment(symbol, value, position, nodeChildren)
     }
 }

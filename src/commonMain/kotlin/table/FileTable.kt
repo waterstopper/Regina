@@ -1,6 +1,5 @@
 package table
 
-import Message
 import evaluation.FunctionFactory
 import lexer.ExpectedTypeException
 import lexer.NotFoundException
@@ -14,12 +13,11 @@ import node.statement.Assignment
 import properties.Object
 import properties.RFunction
 import properties.Type
-import sendMessage
 import table.SymbolTable.Companion.globalFile
 
 //@Serializable
 class FileTable(
-    val fileName: String,
+    val filePath: String,
     val index: Int
 ) {
     private val types: MutableSet<Type> = mutableSetOf()
@@ -40,7 +38,7 @@ class FileTable(
         val added = Type(name, null, assignments, this, 0)
         added.functions.addAll(functions)
         if (types.find { it.name == name } != null)
-            throw PositionalException("Two classes with same name in `$fileName`", node)
+            throw PositionalException("Two classes with same name in `$filePath`", filePath, node)
         types.add(added)
         for (assignment in added.assignments)
             assignment.parent = added
@@ -49,11 +47,11 @@ class FileTable(
 
     fun addObject(node: Node) {
         if (node.left !is Identifier)
-            throw PositionalException("Object cannot be inherited", node)
+            throw PositionalException("Object cannot be inherited", filePath, node)
         val name = node.left.value
         val (assignments, functions) = createAssignmentsAndFunctions(node.right)
         if (objects.find { it.name == name } != null)
-            throw PositionalException("Two objects with same name", node)
+            throw PositionalException("Two objects with same name", filePath, node)
         objects.add(Object(name, assignments, this))
         objects.last().functions.addAll(functions)
     }
@@ -62,13 +60,14 @@ class FileTable(
         val res = functions.add(function)
         if (!res)
             throw PositionalException(
-                "Two functions with same signature (name and number of non-default parameters) `$function` in $fileName"
+                "Two functions with same signature (name and number of non-default parameters) `$function` in $filePath",
+                filePath
             )
     }
 
     fun addImport(importNode: ImportNode, fileTable: FileTable) {
         if (imports.filter { it.value == fileTable }.isNotEmpty())
-            throw PositionalException("Same import found above", importNode)
+            throw PositionalException("Same import found above", filePath, importNode)
         imports[importNode.importName] = fileTable
     }
 
@@ -92,19 +91,19 @@ class FileTable(
     }
 
     fun getFunction(node: Node): RFunction =
-        getFunctionOrNull(node) ?: throw PositionalException("Function not found in `$fileName`", node)
+        getFunctionOrNull(node) ?: throw PositionalException("Function not found in `$filePath`", filePath, node)
 
     fun getImportOrNull(importName: String) = imports[importName]
-    fun getImportOrNullByFileName(fileName: String) = imports.values.find { it.fileName == fileName }
-    fun getImport(node: Node) = imports[node.value] ?: throw PositionalException("File not found", node)
+    fun getImportOrNullByFileName(fileName: String) = imports.values.find { it.filePath == fileName }
+    fun getImport(node: Node) = imports[node.value] ?: throw PositionalException("File not found", filePath, node)
 
 
     fun getMain(): RFunction {
         val mains = functions.filter { it.name == "main" }
         if (mains.isEmpty())
-            throw PositionalException("main not found in `$fileName`")
+            throw PositionalException("main not found in `$filePath`", filePath)
         if (mains.size > 1)
-            throw PositionalException("Found 2 or more main functions in `$fileName`")
+            throw PositionalException("Found 2 or more main functions in `$filePath`", filePath)
         return mains.first()
     }
 
@@ -113,18 +112,18 @@ class FileTable(
         val functions = mutableListOf<RFunction>()
         for (a in node.children) {
             if (a is Assignment) {
-                if(a.right is Assignment)
-                    throw PositionalException("Double assignments are not allowed in class", a)
+                if (a.right is Assignment)
+                    throw PositionalException("Double assignments are not allowed in class", filePath, a)
                 if (!res.add(a))
-                    throw PositionalException("Same property found above", a)
+                    throw PositionalException("Same property found above", filePath, a)
                 a.isProperty = true
             } else if (a.symbol == "fun")
                 functions.add(
-                    FunctionFactory.createFunction(a)
+                    FunctionFactory.createFunction(a, this)
                 )
             else if (a is Meta) {
                 // skip sendMessage(Message("breakpoint", a.position.first))
-            } else throw ExpectedTypeException(listOf(Assignment::class, RFunction::class), a)
+            } else throw ExpectedTypeException(listOf(Assignment::class, RFunction::class), filePath, a)
         }
 
         return Pair(res, functions)
@@ -133,15 +132,15 @@ class FileTable(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is FileTable) return false
-        if (fileName != other.fileName) return false
+        if (filePath != other.filePath) return false
         return true
     }
 
-    override fun hashCode(): Int = fileName.hashCode()
+    override fun hashCode(): Int = filePath.hashCode()
 
-    override fun toString(): String = fileName
+    override fun toString(): String = filePath
     fun stringNotation(): String {
-        val res = StringBuilder(fileName)
+        val res = StringBuilder(filePath)
         if (types.isNotEmpty())
             res.append("\n")
         for (type in types)
@@ -169,7 +168,7 @@ class FileTable(
         return when (suitable.size) {
             0 -> this // if function is in class //throw PositionalException("File with `${token.value}` not found", token)
             1 -> suitable.first()
-            else -> throw PositionalException("`${node}` is found in files: $suitable. Specify file.", node)
+            else -> throw PositionalException("`${node}` is found in files: $suitable. Specify file.", filePath, node)
         }
     }
 

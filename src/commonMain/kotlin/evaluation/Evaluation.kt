@@ -14,7 +14,10 @@ object Evaluation {
     var trainingWheels = true
 
     fun eval(code: String, roots: List<String> = mutableListOf("")) {
-        val fileTable = analyzeSemantics("@NoFile", roots, Parser(code).statements().map { it.toNode() })
+        val fileTable =
+            analyzeSemantics("@NoFile",
+                roots,
+                Parser(code, "@NoFile").statements().map { it.toNode("@NoFile") })
         fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable, resolvingType = false))
     }
 

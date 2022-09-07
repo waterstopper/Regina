@@ -35,6 +35,20 @@ class TypeTest {
     }
 
     @Test
+    fun noProperty() {
+        eval("""
+            fun main() {
+                q = A()
+                log(q.a)
+                q.a = 1
+                test(q.a == 1)
+            }
+            
+            class A{}
+        """)
+    }
+
+    @Test
     fun sameProperty() {
         val thrown = assertFails {
             eval(
@@ -187,7 +201,7 @@ class TypeTest {
             """
             fun main() {
                 a = A()
-            //    log(a.c)
+                log(a.c)
                 log(a.b)
                 log(a.p)
             }
@@ -265,7 +279,7 @@ class TypeTest {
     }
 
     @Test
-    fun testLinkedSupertype() {
+    fun testNonLinkedSupertype() {
         eval("""
             import std.svg as svg
             import std.geometry2D as geom

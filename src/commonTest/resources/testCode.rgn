@@ -155,9 +155,9 @@ fun checkLink() {
 
     test(imported.getFileName() == "imported")
 
-    //a = A()
-    //a.s = 10
-    //test(a.s == 10)
+    a = A()
+    a.s = 10
+    test(a.s == 10)
     //test(a.t == 0)
     b = 2
 }

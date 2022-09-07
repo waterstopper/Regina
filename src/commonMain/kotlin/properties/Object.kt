@@ -46,8 +46,8 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
         return null
     }
 
-    override fun getFunction(node: Node) = getFunctionOrNull(node)
-        ?: throw PositionalException("Object `$name` does not contain function", node)
+    override fun getFunction(node: Node, fileTable: FileTable) = getFunctionOrNull(node)
+        ?: throw PositionalException("Object `$name` does not contain function", fileTable.filePath, node)
 
     override fun equals(other: Any?) = this === other
 }

@@ -1,13 +1,12 @@
 package properties.primitive
 
-import delete.Delete
 import isInt
 import lexer.NotFoundException
 import lexer.PositionalException
-import lexer.RuntimeError
 import node.Node
 import node.invocation.Call
 import properties.*
+import table.FileTable
 
 /**
  * Stores Dictionary, Array, String, Int, Double values.
@@ -81,8 +80,8 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         return PDictionary(res.mapValues { it.value(this) }.toMutableMap(), null, dictionaryId++)
     }
 
-    override fun getFunction(node: Node): RFunction = getFunctionOrNull(node)
-        ?: throw PositionalException("${formatClassName()} does not contain function", node)
+    override fun getFunction(node: Node, fileTable: FileTable): RFunction = getFunctionOrNull(node)
+        ?: throw PositionalException("${formatClassName()} does not contain function", fileTable.filePath, node)
 
     override fun getFunctionOrNull(node: Node): RFunction? = RFunction.getFunctionOrNull(
         node as Call,
@@ -119,23 +118,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
                 }
                 is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent, dictionaryId++)
                 else -> throw PositionalException(
-                    "Cannot create variable of type `${value::class}`", node
-                )
-            }
-        }
-
-        fun createPrimitive(value: Any, parent: Type? = null, delete: Delete): Primitive {
-            return when (value) {
-                is String -> PString(value, parent)
-                is List<*> -> PArray(value as MutableList<Variable>, parent, arrayId++)
-                is Number -> {
-                    if (isInt(value))
-                        PInt(value as Int, parent)
-                    else PDouble(value as Double, parent)
-                }
-                is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent, dictionaryId++)
-                else -> throw RuntimeError(
-                    "Cannot create variable of type `${value::class}`", delete
+                    "Cannot create variable of type `${value::class}`", "", node
                 )
             }
         }

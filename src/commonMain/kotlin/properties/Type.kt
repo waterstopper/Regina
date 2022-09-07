@@ -51,8 +51,6 @@ open class Type(
     }
 
     fun removeAssignment(assignment: Assignment) = assignments.remove(assignment)
-    fun removeAssignment(assignment: delete.Assignment) {//assignments.remove(assignment) TODO
-    }
 
     fun removeAssignment(node: Node): Assignment? {
         for (a in assignments)
@@ -87,8 +85,8 @@ open class Type(
     override fun getFunctionOrNull(node: Node): RFunction? =
         RFunction.getFunctionOrNull(node as Call, functions + getInheritedFunctions())
 
-    override fun getFunction(node: Node) = getFunctionOrNull(node)
-        ?: throw PositionalException("Class `$name` does not contain function", node)
+    override fun getFunction(node: Node, fileTable: FileTable) = getFunctionOrNull(node)
+        ?: throw PositionalException("Class `$name` does not contain function", fileTable.filePath, node)
 
     override fun getProperties() =
         PDictionary(
@@ -133,11 +131,11 @@ open class Type(
     override fun toString(): String {
         if (index == 0)
             return name
-        if (fileTable.fileName.isEmpty())
+        if (fileTable.filePath.isEmpty())
             throw Exception("Empty fileTable name")
-        val fileLetter = if (fileTable.fileName.contains("/"))
-            fileTable.fileName.split("/").last().first()
-        else fileTable.fileName.first()
+        val fileLetter = if (fileTable.filePath.contains("/"))
+            fileTable.filePath.split("/").last().first()
+        else fileTable.filePath.first()
         val res = StringBuilder("$name-$fileLetter${fileTable.index}$index")
 //        if (supertype != null) {
 //            res.append(":")

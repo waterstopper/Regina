@@ -17,7 +17,7 @@ class TokenDictionary(node: Token) : Token(
 //        this.children.addAll(children)
 //    }
 
-    override fun toNode(): Node {
-        return NodeDictionary(Node(symbol, value, position, children.map { it.toNode() }.toMutableList()))
+    override fun toNode(filePath: String): Node {
+        return NodeDictionary(Node(symbol, value, position, children.map { it.toNode(filePath) }.toMutableList()))
     }
 }

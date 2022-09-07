@@ -48,7 +48,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
                     val (number, other) = unifyPNumbers(
                         args.getPropertyOrNull("this")!!,
                         getIdent(token, "other", args),
-                        token
+                        token, args.getFileTable().filePath
                     )
                     if (isInt(number))
                         (number as Int).coerceAtMost(other as Int)
@@ -61,7 +61,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
                     val (number, other) = unifyPNumbers(
                         args.getPropertyOrNull("this")!!,
                         getIdent(token, "other", args),
-                        token
+                        token, args.getFileTable().filePath
                     )
                     if (isInt(number))
                         (number as Int).coerceAtLeast(other as Int)

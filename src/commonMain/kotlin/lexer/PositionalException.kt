@@ -1,30 +1,18 @@
 package lexer
 
-import delete.Delete
-import node.Identifier
 import node.Node
-import node.invocation.Invocation
-import node.operator.Index
-import properties.RFunction
 import properties.Variable
-import properties.primitive.*
-import table.FileTable
 import token.Token
 import utils.Utils.mapToString
 import kotlin.reflect.KClass
 
 open class PositionalException(
     protected val errorMessage: String,
+    private val fileName: String,
     protected val node: Node = Node(),
     protected val position: Pair<Int, Int> = Pair(0, 0),
     protected val length: Int = 1,
-    private val file: String = ""
 ) : Exception() {
-    init {
-        // TODO why clear table? because it can interrupt evaluation. Cannot do it because try catch in FileTable.getFunctionOrNull
-        //  clear()
-    }
-
     override val message: String
         get() = "`${node.value}` $errorMessage at ${getPosition()}"
 
@@ -37,6 +25,7 @@ open class PositionalException(
 
 open class SyntaxException(
     private val errorMessage: String,
+    val fileName: String,
     val token: Token,
     val position: Pair<Int, Int> = Pair(0, 0)
 ) :
@@ -51,18 +40,12 @@ open class SyntaxException(
     }
 }
 
-class RuntimeError(errorMessage: String, private val delete: Delete) : PositionalException(errorMessage) {
-    override val message: String
-        get() = "$errorMessage at ${delete.position}"
-}
-
 class NotFoundException(
     node: Node = Node(),
     fileName: String = "",
-    file: FileTable = FileTable("", -1),
     val variable: Variable? = null
 ) :
-    PositionalException("", node, file = if (fileName == "") file.fileName else fileName) {
+    PositionalException("", fileName, node) {
     override val message: String
         get() =
             "Not found " + (variable?.toString() ?: node.value) + " at ${getPosition()}"
@@ -70,10 +53,11 @@ class NotFoundException(
 
 class TokenExpectedTypeException(
     private val classes: List<KClass<*>>,
+    fileName: String,
     token: Token,
     private val value: Any? = null,
     private val expectedMultiple: Boolean = false
-) : SyntaxException("", token) {
+) : SyntaxException("", fileName, token) {
     override val message: String
         get() {
             return "Expected " + classes.joinToString(
@@ -91,10 +75,11 @@ class TokenExpectedTypeException(
 
 class ExpectedTypeException(
     private val classes: List<KClass<*>>,
+    fileName: String,
     node: Node,
     private val value: Any? = null,
     private val expectedMultiple: Boolean = false
-) : PositionalException("", node) {
+) : PositionalException("", fileName, node) {
     override val message: String
         get() {
             return "Expected " + classes.joinToString(
@@ -107,20 +92,5 @@ class ExpectedTypeException(
                 )
             }" else "") + " ${node.position}"
         }
-
-    private fun mapToString(mapped: KClass<*>): String {
-        return when (mapped) {
-            RFunction::class -> "Function"
-            PInt::class -> "Int"
-            PDouble::class -> "Double"
-            PNumber::class -> "Number"
-            PString::class -> "String"
-            PArray::class -> "Array"
-            PDictionary::class -> "Dictionary"
-            Identifier::class -> "Identifier"
-            Invocation::class -> "Invocation"
-            Index::class -> "Index"
-            else -> mapped.toString().split(".").last()
-        }
-    }
 }
+

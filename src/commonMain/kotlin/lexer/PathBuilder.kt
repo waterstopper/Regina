@@ -3,14 +3,15 @@ package lexer
 import FileSystem
 import node.Link
 import node.Node
+import table.FileTable
 
 object PathBuilder {
     fun getNodes(fileName: String): List<Node> {
         val code = FileSystem.read(fileName)
-        return Parser(code).statements().map { it.toNode() }
+        return Parser(code, fileName).statements().map { it.toNode(fileName) }
     }
 
-    fun getFullPath(importName: Node, roots: List<String>): String {
+    fun getFullPath(importName: Node, roots: List<String>, fileTable: FileTable): String {
         val path = when (importName) {
             is Link -> {
                 val res = StringBuilder()
@@ -27,7 +28,7 @@ object PathBuilder {
                     if (importName is Link) importName.children.joinToString(
                         separator = "/"
                     ) else importName.value
-                }", importName
+                }", fileTable.filePath, importName
             )
         }
         if (candidates.size > 1)
@@ -37,7 +38,7 @@ object PathBuilder {
                         separator = "/"
                     ) else importName.value
                 }. Found ${candidates.size} files: " +
-                        candidates.joinToString(separator = ", "), importName
+                        candidates.joinToString(separator = ", "), fileTable.filePath, importName
             )
         return candidates.first()
     }

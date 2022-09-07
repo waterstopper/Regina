@@ -13,19 +13,17 @@ import token.Token
  * 1. ";" is replaced by \n
  * 2. ternary operator and functions follow kotlin style
  */
-class Lexer() {
+class Lexer(val source: String = "", val filePath: String) {
 
-    private var source: String = ""
     private val operators = "!@$%^*-+=?.,:;\"&|/(){}[]><\n\r"
     private val escapes = mutableMapOf('"' to '\"', '\\' to '\\', 'b' to '\b', 'n' to '\n', 'r' to '\r', 't' to '\t')
-    private var registry: Registry = getRegistry()
+    private var registry: Registry = getRegistry(filePath)
     private var index: Int = 0
     var position: Pair<Int, Int> = Pair(0, 0)
     private val nodes = mutableListOf<Token>()
     private var tokenIndex = -1
 
-    constructor(source: String = "") : this() {
-        this.source = source
+    init {
         addTokens()
     }
 
@@ -54,7 +52,7 @@ class Lexer() {
     fun moveAfterSeparator() {
         tokenIndex++
         if (nodes[tokenIndex].symbol != "(SEP)" && nodes[tokenIndex].symbol != "(EOF)")
-            throw SyntaxException("Expected separator", nodes[tokenIndex])
+            throw SyntaxException("Expected separator", filePath, nodes[tokenIndex])
     }
 
     fun peek(): Token {
@@ -77,7 +75,12 @@ class Lexer() {
             index++
             consumeWhitespaceAndComments()
             if (!isLineSeparator())
-                throw PositionalException("Expected new line after \\", position = position, length = 1)
+                throw PositionalException(
+                    "Expected new line after \\",
+                    position = position,
+                    length = 1,
+                    fileName = filePath
+                )
             else index = moveAfterLineSeparator()
             consumeWhitespaceAndComments()
             position = Pair(0, position.second + 1)
@@ -92,7 +95,7 @@ class Lexer() {
             nextOperator()
         else if (source[index] == '#')
             nextMeta()
-        else throw PositionalException("Invalid character", position = position, length = 1)
+        else throw PositionalException("Invalid character", position = position, length = 1, fileName = filePath)
     }
 
     private fun nextMeta(): Token {
@@ -111,7 +114,7 @@ class Lexer() {
         throw PositionalException(
             "No such meta token",
             position = Pair(position.first - res.length, position.second),
-            length = res.length
+            length = res.length, fileName = filePath
         )
     }
 
@@ -128,7 +131,7 @@ class Lexer() {
                 throw PositionalException(
                     "Unterminated string at ${position.second}:${position.first}",
                     position = Pair(position.first - res.length, position.second),
-                    length = res.length
+                    length = res.length, fileName = filePath
                 )
             else moveAndAppend(res)
         }
@@ -174,14 +177,17 @@ class Lexer() {
             if (ind < source.length && registry.defined(source.substring(index..ind))) {
                 val value = source.substring(index..ind)
                 val operator = registry.operator(value, value, Pair(position.first - value.length, position.second))
-                if (operator.symbol == "(SEP)" && operator.value != ";") {
+                if (operator.symbol == "(SEP)"
+                    && (operator.value.contains("\n")
+                            || operator.value.contains("\r"))
+                ) {
                     toNextLine()
                 } else for (i in index..ind)
                     move()
                 return operator
             }
         }
-        throw PositionalException("Invalid operator", position = position)
+        throw PositionalException("Invalid operator", position = position, fileName = filePath)
     }
 
     private fun consumeWhitespaceAndComments(): Boolean {
@@ -190,7 +196,7 @@ class Lexer() {
         while (whitespace || comments) {
             whitespace = consumeWhitespace()
             comments = consumeComments()
-            if (comments)
+            if (comments) // TODO here (COMMENT)
                 addToken(registry.token("(SEP)", "//", position))
             iter++
         }
@@ -209,13 +215,23 @@ class Lexer() {
             val startingPosition = position
             move(2)
             if (index + 1 >= source.length)
-                throw PositionalException("Unterminated comment", position = startingPosition, length = 2)
+                throw PositionalException(
+                    "Unterminated comment",
+                    position = startingPosition,
+                    length = 2,
+                    fileName = filePath
+                )
             while (!(source[index] == '*' && source[index + 1] == '/')) {
                 if (isLineSeparator())
                     toNextLine()
                 else move()
                 if (index >= source.lastIndex)
-                    throw PositionalException("Unterminated comment", position = startingPosition , length = 2)
+                    throw PositionalException(
+                        "Unterminated comment",
+                        position = startingPosition,
+                        length = 2,
+                        fileName = filePath
+                    )
             }
             move(2)
             return true

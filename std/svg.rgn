@@ -48,6 +48,8 @@ class Attribute {
 
 fun add(node, sb) {
     containers = ["group, svg"]
+    log(node)
+    #stop
     added = node.exportArgs["exported"]
     propertiesArray = array(node.properties)
     attributes = array(node.exportArgs["attributes"])

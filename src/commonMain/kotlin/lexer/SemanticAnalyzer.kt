@@ -33,20 +33,24 @@ fun initializeSuperTypes(superTypes: Map<Type, Node?>) {
             }
             is Link -> {
                 if (node.children.size != 2)
-                    throw PositionalException("Expected imported file name and type name", node)
+                    throw PositionalException(
+                        "Expected imported file name and type name",
+                        type.fileTable.filePath,
+                        node
+                    )
                 val importedFileTable = type.fileTable.getImportOrNull(node.left.value)
-                    ?: throw  PositionalException("Import not found", node.left)
+                    ?: throw  PositionalException("Import not found", type.fileTable.filePath, node.left)
                 superTypes.filter { (t, _) ->
                     t.fileTable == importedFileTable && t.name == node.right.value
                 }
             }
-            else -> throw PositionalException("Expected identifier or link", node)
+            else -> throw PositionalException("Expected identifier or link", type.fileTable.filePath, node)
         }
         if (localSuperType != null)
             type.supertype = localSuperType
         else {
             if (superType.size != 1)
-                throw PositionalException("One super type not found", node)
+                throw PositionalException("One super type not found", type.fileTable.filePath, node)
             type.supertype = superType.keys.first()
         }
     }
@@ -101,7 +105,10 @@ class Analyzer(fileTable: FileTable) {
             when (child) {
                 is Assignment -> {
                     if (node !is Invocation && node !is Block && node !is Assignment)
-                        throw PositionalException("unexpected assignment ${node.value}, ${node::class}", child)
+                        throw PositionalException(
+                            "unexpected assignment ${node.value}, ${node::class}",
+                            symbolTable.getFileTable().filePath, child
+                        )
                     symbolTable.addVariableOrNot(child.left)
                 }
                 is Invocation -> if (isInvocation(child))

@@ -42,7 +42,7 @@ class TokenIndex(
         this.children.addAll(children)
     }
 
-    override fun toNode(): Node {
-        return Index(symbol, value, position, children.map { it.toNode() })
+    override fun toNode(filePath: String): Node {
+        return Index(symbol, value, position, children.map { it.toNode(filePath) })
     }
 }

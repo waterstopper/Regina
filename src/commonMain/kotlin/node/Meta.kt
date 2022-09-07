@@ -14,7 +14,7 @@ class Meta(
     override fun evaluate(symbolTable: SymbolTable): Any {
         val content = symbolTable.getDictionaryFromTable()
         content["@position"] = position
-        content["@file"] = symbolTable.getFileTable().fileName
+        content["@file"] = symbolTable.getFileTable().filePath
         sendMessage(Message("debug", content))
         readLine()
         return PInt(0, null)

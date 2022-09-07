@@ -77,7 +77,7 @@ open class Node(
      * Each parent token defines how its children should be evaluated/
      */
     open fun evaluate(symbolTable: SymbolTable): Any {
-        throw PositionalException("Not implemented", this)
+        throw PositionalException("Not implemented", symbolTable.getFileTable().filePath,this)
     }
 
     /**

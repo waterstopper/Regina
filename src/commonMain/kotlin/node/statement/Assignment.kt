@@ -18,7 +18,7 @@ class Assignment(
         this.children.clear()
         this.children.addAll(children)
         if (left !is Assignable)
-            throw PositionalException("Left operand is not assignable", left)
+            throw PositionalException("Left operand is not assignable", "",left) // TODO filepath is empty
     }
 
     var parent: Type? = null

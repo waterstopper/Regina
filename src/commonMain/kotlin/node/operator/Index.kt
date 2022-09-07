@@ -49,8 +49,12 @@ class Index(
         val indexed = left.evaluate(symbolTable).toVariable(left)
         val index = right.evaluate(symbolTable)
         return when (indexed) {
-            is Indexable -> indexed[index, right]
-            else -> throw ExpectedTypeException(listOf(PArray::class, PDictionary::class, PString::class), this, this)
+            is Indexable -> indexed[index, right, symbolTable.getFileTable()]
+            else -> throw ExpectedTypeException(
+                listOf(PArray::class, PDictionary::class, PString::class),
+                symbolTable.getFileTable().filePath,
+                this
+            )
         }
     }
 
@@ -59,22 +63,34 @@ class Index(
         val index = right.evaluate(symbolTable).toVariable(right)
         if (indexable is Indexable && indexable.checkIndexType(index))
             return Pair(indexable, index)
-        throw ExpectedTypeException(listOf(PArray::class, Number::class), this, expectedMultiple = true)
+        throw ExpectedTypeException(
+            listOf(PArray::class, Number::class),
+            symbolTable.getFileTable().filePath,
+            this,
+            expectedMultiple = true
+        )
     }
 
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
         if (parent == null || parent.getProperty(getPropertyName()) == PInt(0, parent)) {
             val (arr, ind) = getIndexableAndIndex(symbolTable)
-            arr.set(ind, value.toVariable(assignment.right), left, right)
+            arr.set(ind, value.toVariable(assignment.right), left, right, symbolTable.getFileTable())
             return
         }
         val property = parent.getProperty(getPropertyName())
         if (property !is Indexable)
-            throw ExpectedTypeException(listOf(PArray::class, PDictionary::class, PString::class), left, property)
+            throw ExpectedTypeException(
+                listOf(PArray::class, PDictionary::class, PString::class),
+                symbolTable.getFileTable().filePath,
+                left,
+                property
+            )
         val index = right.evaluate(symbolTable)
         if (!isInt(index))
-            throw PositionalException("Index is not integer", this)
-        property.set(index, right.evaluate(symbolTable).toVariable(right), left, right)
+            throw PositionalException("Index is not integer", symbolTable.getFileTable().filePath, this)
+        property.set(
+            index, right.evaluate(symbolTable).toVariable(right), left, right, symbolTable.getFileTable()
+        )
     }
 
     override fun getFirstUnassigned(parent: Type, symbolTable: SymbolTable): Pair<Type, Assignment?> {

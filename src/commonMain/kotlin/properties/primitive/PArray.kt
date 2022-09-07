@@ -15,6 +15,7 @@ import properties.EmbeddedFunction
 import properties.Object
 import properties.Type
 import properties.Variable
+import table.FileTable
 import utils.Utils.castToArray
 import utils.Utils.toInt
 import utils.Utils.toProperty
@@ -25,11 +26,11 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
     NestableDebug {
     override fun getIndex() = 5
     override fun getPValue() = value as MutableList<Variable>
-    override fun get(index: Any, node: Node): Any {
+    override fun get(index: Any, node: Node, fileTable: FileTable): Any {
         if (!isInt(index))
-            throw PositionalException("Expected integer as index", node)
+            throw PositionalException("Expected integer as index", fileTable.filePath, node)
         if ((index as Int) < 0 || index >= getPValue().size)
-            throw PositionalException("Index out of bounds", node)
+            throw PositionalException("Index out of bounds", fileTable.filePath, node)
         return getPValue()[index]
     }
 
@@ -47,7 +48,7 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
 
     override fun getDebugId(): Pair<String, Any> = Pair("Array", id)
 
-    override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node) {
+    override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node, fileTable: FileTable) {
         getPValue()[(index as PInt).getPValue()] = value.toVariable(nodeIndex)
     }
 
@@ -90,7 +91,11 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
                     val argument = getIdent(token, "element", args)
                     val index = getInt(token, "index", args)
                     if (index.getPValue() < 0 || index.getPValue() > list.getPValue().size)
-                        throw PositionalException("Index out of bounds", token.children[1])
+                        throw PositionalException(
+                            "Index out of bounds",
+                            args.getFileTable().filePath,
+                            token.children[1]
+                        )
                     list.getPValue().add(index.getPValue(), argument)
                 }
             )
@@ -123,7 +128,8 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
                         list.getPValue().removeAt(index.getPValue())
                     } catch (e: IndexOutOfBoundsException) {
                         throw PositionalException(
-                            "index ${index.getPValue()} out of bounds for length ${list.getPValue().size}"
+                            "index ${index.getPValue()} out of bounds for length ${list.getPValue().size}",
+                            args.getFileTable().filePath
                         )
                     }
                 }
@@ -200,7 +206,7 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
                 is PArray -> compareValues((primitive as PArray).getPValue().size, variable.getPValue().size)
                 is PDictionary -> compareValues((primitive as PDictionary).getPValue().size, variable.getPValue().size)
                 is PString -> compareValues((primitive as PString).getPValue(), variable.getPValue())
-                else -> throw PositionalException("Non-comparable primitive")
+                else -> throw PositionalException("Non-comparable primitive", "")
             }
         }
     }

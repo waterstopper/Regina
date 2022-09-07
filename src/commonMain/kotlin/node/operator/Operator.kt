@@ -17,14 +17,18 @@ open class Operator(
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         return when (value) {
-            "+" -> left.evaluate(symbolTable).plus(right.evaluate(symbolTable), this)
+            "+" -> left.evaluate(symbolTable).plus(right.evaluate(symbolTable), this, symbolTable)
             "==" -> left.evaluate(symbolTable).eq(right.evaluate(symbolTable)).toInt()
             "!=" -> left.evaluate(symbolTable).neq(right.evaluate(symbolTable)).toInt()
-            else -> throw PositionalException("Operator `$value` not implemented", this)
+            else -> throw PositionalException(
+                "Operator `$value` not implemented",
+                symbolTable.getFileTable().filePath,
+                this
+            )
         }
     }
 
-    private fun Any.plus(other: Any, node: Node): Any {
+    private fun Any.plus(other: Any, node: Node, symbolTable: SymbolTable): Any {
         if (this is MutableList<*>) {
             return if (other is MutableList<*>) {
                 val res = this.toMutableList()
@@ -43,7 +47,11 @@ open class Operator(
             if (isInt(this) && isInt(other))
                 return this.toInt() + other.toInt()
             return this.toDouble() + other.toDouble()
-        } else throw PositionalException("Operator not applicable to operands", node)
+        } else throw PositionalException(
+            "Operator not applicable to operands",
+            symbolTable.getFileTable().filePath,
+            node
+        )
     }
 
     private fun Any.eq(other: Any): Boolean {

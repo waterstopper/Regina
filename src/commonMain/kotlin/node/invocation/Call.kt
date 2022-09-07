@@ -6,6 +6,7 @@ import node.statement.Assignment
 import properties.EmbeddedFunction
 import properties.RFunction
 import properties.Variable
+import table.FileTable
 import table.SymbolTable
 import utils.Utils.toVariable
 
@@ -54,16 +55,20 @@ class Call(
     fun argumentsToParameters(function: RFunction, argTable: SymbolTable, paramTable: SymbolTable) {
         val assigned = mutableMapOf<String, Variable>()
         for ((index, arg) in unnamedArgs.withIndex()) {
-            val paramName = getParamName(index, function)
+            val paramName = getParamName(index, function, argTable.getFileTable())
             if (assigned[paramName] != null)
-                throw PositionalException("Argument already assigned", arg)
+                throw PositionalException("Argument already assigned", argTable.getFileTable().filePath, arg)
             assigned[paramName] = arg.evaluate(argTable).toVariable(arg)
         }
         for (nArg in namedArgs) {
             if (!function.hasParam(nArg.name))
-                throw PositionalException("Parameter with name `${nArg.name}` absent", nArg)
+                throw PositionalException(
+                    "Parameter with name `${nArg.name}` absent",
+                    argTable.getFileTable().filePath,
+                    nArg
+                )
             if (assigned[nArg.name] != null)
-                throw PositionalException("Argument already assigned", nArg)
+                throw PositionalException("Argument already assigned", argTable.getFileTable().filePath, nArg)
             assigned[nArg.name] = nArg.right.evaluate(argTable).toVariable(nArg)
         }
         for (defaultParam in function.defaultParams)
@@ -71,7 +76,7 @@ class Call(
                 assigned[defaultParam.name] = defaultParam.right.evaluate(paramTable).toVariable(defaultParam)
         for (param in function.nonDefaultParams)
             if (assigned[param.value] == null)
-                throw PositionalException("Parameter not assigned", param, file = paramTable.getFileTable().fileName)
+                throw PositionalException("Parameter not assigned", paramTable.getFileTable().filePath, param)
         for (i in assigned)
             paramTable.addVariable(i.key, i.value)
         // TODO exceptions only to calls, not to params
@@ -79,10 +84,10 @@ class Call(
 //            paramTable.addVariable(function.params[index].value, arg.evaluate(argTable).toVariable(arg))
     }
 
-    private fun getParamName(index: Int, function: RFunction): String {
+    private fun getParamName(index: Int, function: RFunction, fileTable: FileTable): String {
         return if (function.nonDefaultParams.lastIndex < index) {
             if (function.nonDefaultParams.size + function.defaultParams.lastIndex < index)
-                throw PositionalException("More arguments than parameters", children[index])
+                throw PositionalException("More arguments than parameters", fileTable.filePath, children[index])
             else function.defaultParams[index - function.nonDefaultParams.size].name
         } else function.nonDefaultParams[index].value
     }

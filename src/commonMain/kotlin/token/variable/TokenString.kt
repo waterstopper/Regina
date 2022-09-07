@@ -19,7 +19,7 @@ class TokenString(
     std: ((token: Token, parser: Parser) -> Token)?
 ) : Token(symbol, value, position, bindingPower, nud, led, std) {
 
-    override fun toNode(): Node {
+    override fun toNode(filePath: String): Node {
         return NodeString(symbol, value, position)
     }
 }

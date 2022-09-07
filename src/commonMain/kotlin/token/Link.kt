@@ -44,7 +44,7 @@ open class Link(
         }
     }
 
-    override fun toNode(): Node {
-        return Link(symbol, value, position, children.map { it.toNode() })
+    override fun toNode(filePath: String): Node {
+        return Link(symbol, value, position, children.map { it.toNode(filePath) })
     }
 }

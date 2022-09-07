@@ -10,8 +10,8 @@ class TokenImport(
     token: Token
 ) : Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {
 
-    override fun toNode(): Node {
-        return ImportNode(symbol, value, position, children.map { it.toNode() })
+    override fun toNode(filePath: String): Node {
+        return ImportNode(symbol, value, position, children.map { it.toNode(filePath) })
     }
 }
 
@@ -19,8 +19,8 @@ class TokenType(
     token: Token
 ) : Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {
 
-    override fun toNode(): Node {
-        return TypeNode(symbol, value, position, children.map { it.toNode() })
+    override fun toNode(filePath: String): Node {
+        return TypeNode(symbol, value, position, children.map { it.toNode(filePath) })
     }
 }
 
@@ -29,8 +29,8 @@ class TokenObject(
 ) : Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {
 
 
-    override fun toNode(): Node {
-        return ObjectNode(symbol, value, position, children.map { it.toNode() })
+    override fun toNode(filePath: String): Node {
+        return ObjectNode(symbol, value, position, children.map { it.toNode(filePath) })
     }
 }
 
@@ -47,15 +47,15 @@ class TokenFunction(
     token.children
 ) {
 
-    override fun toNode(): Node {
-        checkParameters(children[0].children.subList(1, children[0].children.size))
-        return FunctionNode(symbol, value, position, children.map { it.toNode() })
+    override fun toNode(filePath: String): Node {
+        checkParameters(children[0].children.subList(1, children[0].children.size), filePath)
+        return FunctionNode(symbol, value, position, children.map { it.toNode(filePath) })
     }
 
-    private fun checkParameters(parameters: List<Token>) {
+    private fun checkParameters(parameters: List<Token>, filePath: String) {
         for (parameter in parameters) {
             if (parameter !is Assignment && parameter !is TokenIdentifier)
-                throw SyntaxException("Expected identifier or assignment as function parameter", this)
+                throw SyntaxException("Expected identifier or assignment as function parameter", filePath, this)
         }
     }
 }

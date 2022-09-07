@@ -25,15 +25,18 @@ class ImportGraphCreator(
         while (importStack.isNotEmpty()) {
             val nextFileTable = importStack.removeLast()
             visitedTables.add(nextFileTable)
-            addDeclarationsToFileTable(nextFileTable, getNodes(nextFileTable.fileName))
+            addDeclarationsToFileTable(nextFileTable, getNodes(nextFileTable.filePath))
         }
     }
 
     fun addDeclarationsToFileTable(fileTable: FileTable, nodes: List<Node>) {
         for (node in nodes)
             when (node) {
-                is ImportNode -> fileTable.addImport(node, getFileTableByName(getFullPath(node.fileName, roots)))
-                is FunctionNode -> fileTable.addFunction(FunctionFactory.createFunction(node))
+                is ImportNode -> fileTable.addImport(
+                    node,
+                    getFileTableByName(getFullPath(node.fileName, roots, fileTable))
+                )
+                is FunctionNode -> fileTable.addFunction(FunctionFactory.createFunction(node, fileTable))
                 is TypeNode -> {
                     val type = fileTable.addType(node)
                     supertypes[type] = node.superTypeNode
@@ -42,7 +45,10 @@ class ImportGraphCreator(
                 is Meta -> {
                     // skip sendMessage(Message("breakpoint", node.position.first))
                 }
-                else -> throw PositionalException("Only class, object or function can be top level declaration", node)
+                else -> throw PositionalException(
+                    "Only class, object or function can be top level declaration",
+                    fileTable.filePath, node
+                )
             }
     }
 

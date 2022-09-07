@@ -5,7 +5,7 @@ actual object FileSystem {
     var fileSystem = mutableMapOf<String, String>()
 
     actual fun read(path: String): String {
-        return fileSystem[path] ?: throw PositionalException("File not found $path")
+        return fileSystem[path] ?: throw PositionalException("File not found $path", "")
     }
 
     actual fun write(path: String, content: String) {

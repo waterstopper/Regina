@@ -55,14 +55,14 @@ open class Link(
         var table = symbolTable.copy()
         var (index, currentVariable) = checkFirstVariable(0, symbolTable.copy(), symbolTable)
         if (currentVariable == null)
-            throw NotFoundException(left, file = symbolTable.getFileTable())
+            throw NotFoundException(left, symbolTable.getFileTable().filePath)
         table = table.changeVariable(currentVariable)
         index++
         while (index < children.size) {
             val isResolved =
                 checkNextVariable(index = index, table = table, initialTable = symbolTable, currentVariable!!)
             if (isResolved.value !is Variable)
-                throw PositionalException("Link not resolved", children[index])
+                throw PositionalException("Link not resolved", symbolTable.getFileTable().filePath, children[index])
             currentVariable = isResolved.value
             table = table.changeVariable(currentVariable)
             index++
@@ -84,7 +84,7 @@ open class Link(
                     table = table,
                     initialTable = initialTable,
                     currentVariable = variable,
-                    function = variable.getFunction((children[index] as Call))
+                    function = variable.getFunction((children[index] as Call),table.getFileTable())
                 ).first
             )
             is Identifier -> {
@@ -93,7 +93,7 @@ open class Link(
                     if (assignment != null)
                         return Optional(assignment)
                 }
-                val property = variable.getPropertyOrNull(children[index].value) ?: Optional()
+                val property = variable.getProperty(children[index])
                 return Optional(property)
             }
             is Index -> {
@@ -102,10 +102,10 @@ open class Link(
                     indexToken = indexToken.left
                 variable.getPropertyOrNull(indexToken.value)
                     ?: if (variable is Type) (return Optional(variable.getAssignment(indexToken)))
-                    else throw PositionalException("Property not found", indexToken)
+                    else throw PositionalException("Property not found", table.getFileTable().filePath, indexToken)
                 return Optional((children[index] as Index).evaluateIndex(table).toVariable(right.right))
             }
-            else -> throw PositionalException("Unexpected token", children[index])
+            else -> throw PositionalException("Unexpected token", table.getFileTable().filePath, children[index])
         }
     }
 
@@ -144,7 +144,7 @@ open class Link(
             // unary minus, (1+2).max(...)
             else -> {
                 if (!canBeFile)
-                    throw PositionalException("Unexpected token", children[index])
+                    throw PositionalException("Unexpected token", table.getFileTable().filePath, children[index])
                 return Pair(index, children[index].evaluate(table).toVariable(children[index]))
             }
         }
@@ -195,7 +195,7 @@ open class Link(
             symbolTable
         )
         if (currentParent !is Type || index != children.lastIndex)
-            throw PositionalException("Link not resolved")
+            throw PositionalException("Link not resolved", symbolTable.getFileTable().filePath)
         currentParent.setProperty(children[children.lastIndex].value, value.toProperty(assignment.right))
     }
 
@@ -212,7 +212,7 @@ open class Link(
             return Tuple4(
                 null, parent,
                 parent.getAssignment(left)
-                    ?: throw PositionalException("Assignment not found", left),
+                    ?: throw PositionalException("Assignment not found", symbolTable.getFileTable().filePath, left),
                 index
             )
         table = table.changeVariable(currentVariable)
@@ -256,6 +256,7 @@ open class Link(
         if (currentParent != null && currentParent !is Type)
             throw PositionalException(
                 "Expected class instance, got ${mapToString(currentParent::class)}",
+                symbolTable.getFileTable().filePath,
                 children[index - 1]
             )
         // left hand-side can be assigned if last link child is not assigned
@@ -265,7 +266,7 @@ open class Link(
         if (currentVariable == null && assignment == null && index < children.size) {
             return Pair(
                 parent, parent.getLinkedAssignment(this, 0)
-                    ?: throw PositionalException("Assignment not found")
+                    ?: throw PositionalException("Assignment not found", symbolTable.getFileTable().filePath)
             )
         }
         return Pair(currentParent as Type?, assignment)

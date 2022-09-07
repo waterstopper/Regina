@@ -51,7 +51,7 @@ object TokenFactory {
                 node.position,
                 node.children.subList(childrenStart, childrenStart + childrenNumber)
             )
-        else throw PositionalException("Expected assignment or link", node)
+        else throw PositionalException("Expected assignment or link", "", node)
     }
 
     fun createOperator(
@@ -85,7 +85,8 @@ object TokenFactory {
             upperNode.children[index] = Call(nodeIdentifier)
         else if (symbolTable.getTypeOrNull(nodeIdentifier.left) != null)
             upperNode.children[index] = Constructor(nodeIdentifier)
-        else upperNode.children[index] = Constructor(nodeIdentifier)//throw PositionalException("No class and function found", nodeIdentifier.left)
+        else upperNode.children[index] =
+            Constructor(nodeIdentifier)//throw PositionalException("No class and function found", nodeIdentifier.left)
         return upperNode.children[index] as Invocation
     }
 
@@ -105,6 +106,7 @@ object TokenFactory {
         }
         val fileTable = symbolTable.getImportOrNull(link.left.value) ?: if (!inProperty) throw PositionalException(
             "Variable or import not found",
+            symbolTable.getFileTable().filePath,
             link.left
         ) else {
             link.children[1] = Call(link.right)
@@ -114,7 +116,11 @@ object TokenFactory {
             link.children[1] = Call(link.right)
         else if (fileTable.getTypeOrNull(link.right.left.value) != null)
             link.children[1] = Constructor(link.right)
-        else throw PositionalException("No class and function found in `${fileTable.fileName}`", link.right)
+        else throw PositionalException(
+            "No class and function found in `${fileTable.filePath}`",
+            symbolTable.getFileTable().filePath,
+            link.right
+        )
         return link.children[1] as Invocation
     }
 }

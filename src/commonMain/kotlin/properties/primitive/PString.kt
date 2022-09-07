@@ -9,25 +9,26 @@ import node.Node
 import properties.EmbeddedFunction
 import properties.Type
 import properties.Variable
+import table.FileTable
 import utils.Utils.castToString
 import utils.Utils.toProperty
 
 class PString(value: String, parent: Type? = null) : Primitive(value, parent), Indexable {
     override fun getIndex() = 4
     override fun getPValue() = value as String
-    override fun get(index: Any, node: Node): Any {
+    override fun get(index: Any, node: Node, fileTable: FileTable): Any {
         if (!isInt(index))
-            throw PositionalException("Expected integer", node)
+            throw PositionalException("Expected integer",fileTable.filePath, node)
         if ((index as Int) < 0 || index >= getPValue().length)
-            throw PositionalException("Index out of bounds", node)
+            throw PositionalException("Index out of bounds", fileTable.filePath,node)
         return getPValue()[index]
     }
     override fun toDebugClass(references: References): Any {
         return Pair("String", getPValue())
     }
 
-    override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node) {
-        throw PositionalException("Set is not implemented for String", nodeValue)
+    override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node, fileTable: FileTable) {
+        throw PositionalException("Set is not implemented for String",fileTable.filePath, nodeValue)
     }
 
     override fun toString(): String {

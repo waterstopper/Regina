@@ -13,6 +13,7 @@ import properties.Type
 import properties.primitive.*
 import readLine
 import sendMessage
+import table.FileTable
 import table.SymbolTable
 import utils.Utils.toInt
 import utils.Utils.toVariable
@@ -23,9 +24,9 @@ object FunctionFactory {
     private var randomSeed = 42
     private var rnd = Random(randomSeed)
 
-    fun createFunction(node: Node): RFunction {
+    fun createFunction(node: Node, fileTable: FileTable): RFunction {
         if (node.left.value != "(")
-            throw PositionalException("Expected parentheses after function name", node.left)
+            throw PositionalException("Expected parentheses after function name", fileTable.filePath, node.left)
         val withoutDefault = mutableListOf<Identifier>()
         val withDefault = mutableListOf<Assignment>()
         for (i in 1..node.left.children.lastIndex) {
@@ -47,42 +48,42 @@ object FunctionFactory {
     fun getDictionary(node: Node, name: String, args: SymbolTable): PDictionary {
         val dictionary = getIdent(node, name, args)
         if (dictionary !is PDictionary)
-            throw PositionalException("Expected array as $name", node)
+            throw PositionalException("Expected array as $name", args.getFileTable().filePath, node)
         return dictionary
     }
 
     fun getArray(node: Node, name: String, args: SymbolTable): PArray {
         val array = getIdent(node, name, args)
         if (array !is PArray)
-            throw PositionalException("Expected array as $name", node)
+            throw PositionalException("Expected array as $name", args.getFileTable().filePath, node)
         return array
     }
 
     fun getString(node: Node, name: String, args: SymbolTable): PString {
         val str = getIdent(node, name, args)
         if (str !is PString)
-            throw PositionalException("Expected string as $name", node)
+            throw PositionalException("Expected string as $name", args.getFileTable().filePath, node)
         return str
     }
 
     fun getNumber(node: Node, name: String, args: SymbolTable): PNumber {
         val num = getIdent(node, name, args)
         if (num !is PNumber)
-            throw PositionalException("Expected integer as $name", node)
+            throw PositionalException("Expected integer as $name", args.getFileTable().filePath, node)
         return num
     }
 
     fun getInt(node: Node, name: String, args: SymbolTable): PInt {
         val int = getIdent(node, name, args)
         if (int !is PInt)
-            throw PositionalException("Expected integer as $name", node)
+            throw PositionalException("Expected integer as $name", args.getFileTable().filePath, node)
         return int
     }
 
     fun getDouble(node: Node, name: String, args: SymbolTable): PDouble {
         val double = getIdent(node, name, args)
         if (double !is PDouble)
-            throw PositionalException("Expected integer as $name", node)
+            throw PositionalException("Expected integer as $name", args.getFileTable().filePath, node)
         return double
     }
 
@@ -95,45 +96,45 @@ object FunctionFactory {
         res["except"] = EmbeddedFunction("except", listOf("x"))
         { token, args ->
             // TODO check that instances work properly. e.g. except(a())
-            throw PositionalException(getIdent(token, "x", args).toString(), token)
+            throw PositionalException(getIdent(token, "x", args).toString(), args.getFileTable().filePath, token)
         }
         res["input"] = EmbeddedFunction("input", listOf()) { _, _ -> readLine() }
         res["write"] = EmbeddedFunction("write", listOf("content", "path")) { token, args ->
             val fileName = getIdent(token, "path", args)
             val content = getIdent(token, "content", args)
             if (fileName !is PString || content !is PString)
-                throw ExpectedTypeException(listOf(PString::class), token)
+                throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, token)
             FileSystem.write(fileName.getPValue(), content.getPValue())
             Unit
         }
         res["read"] = EmbeddedFunction("read", listOf("path")) { token, args ->
             val fileName = getIdent(token, "path", args)
             if (fileName !is PString)
-                throw ExpectedTypeException(listOf(PString::class), token)
+                throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, token)
             FileSystem.read(fileName.getPValue())
         }
         res["exists"] = EmbeddedFunction("exists", listOf("path")) { token, args ->
             val fileName = getIdent(token, "path", args)
             if (fileName !is PString)
-                throw ExpectedTypeException(listOf(PString::class), token)
+                throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, token)
             FileSystem.exists(fileName.getPValue()).toInt()
         }
         res["delete"] = EmbeddedFunction("delete", listOf("path")) { token, args ->
             val fileName = getIdent(token, "path", args)
             if (fileName !is PString)
-                throw ExpectedTypeException(listOf(PString::class), token)
+                throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, token)
             FileSystem.delete(fileName.getPValue()).toInt()
         }
         res["test"] = EmbeddedFunction("test", listOf("x")) { token, args ->
             val ident = getIdent(token, "x", args)
             if (ident !is PInt || ident.getPValue() == 0)
-                throw PositionalException("test failed", token)
+                throw PositionalException("test failed", args.getFileTable().filePath, token)
         }
         res["rnd"] = EmbeddedFunction("rnd", listOf()) { _, _ -> rnd.nextDouble() }
         res["seed"] = EmbeddedFunction("seed", listOf("x")) { token, args ->
             val seed = getIdent(token, "x", args)
             if (seed !is PInt)
-                throw ExpectedTypeException(listOf(PInt::class), token)
+                throw ExpectedTypeException(listOf(PInt::class), args.getFileTable().filePath, token)
             randomSeed = seed.getPValue()
             rnd = Random(randomSeed)
             Unit
@@ -145,7 +146,7 @@ object FunctionFactory {
                 is PDouble -> argument.getPValue().toInt()
                 is PInt -> argument.getPValue()
                 is PString -> argument.getPValue().toInt()
-                else -> throw PositionalException("cannot cast type to integer", token)
+                else -> throw PositionalException("cannot cast type to integer", args.getFileTable().filePath, token)
             }
         }
         res["double"] = EmbeddedFunction("double", listOf("x")) { token, args ->
@@ -153,7 +154,7 @@ object FunctionFactory {
                 is PDouble -> argument.getPValue()
                 is PInt -> argument.getPValue().toDouble()
                 is PString -> argument.getPValue().toDouble()
-                else -> throw PositionalException("cannot cast type to double", token)
+                else -> throw PositionalException("cannot cast type to double", args.getFileTable().filePath, token)
             }
         }
         res["array"] = EmbeddedFunction("array", listOf("x")) { token, args ->
@@ -170,42 +171,42 @@ object FunctionFactory {
                         )
                     }
                 is PString -> argument.getPValue().map { it.toString().toVariable() }
-                else -> throw PositionalException("cannot cast type to array", token)
+                else -> throw PositionalException("cannot cast type to array", args.getFileTable().filePath, token)
             }
         }
         res["sin"] = EmbeddedFunction("sin", listOf("angle")) { token, args ->
             when (val argument = getIdent(token, "angle", args)) {
                 is PInt -> sin(argument.getPValue().toDouble())
                 is PDouble -> sin(argument.getPValue())
-                else -> throw PositionalException("Expected number", token)
+                else -> throw PositionalException("Expected number", args.getFileTable().filePath, token)
             }
         }
         res["cos"] = EmbeddedFunction("cos", listOf("angle")) { token, args ->
             when (val argument = getIdent(token, "angle", args)) {
                 is PInt -> cos(argument.getPValue().toDouble())
                 is PDouble -> cos(argument.getPValue())
-                else -> throw PositionalException("Expected number", token)
+                else -> throw PositionalException("Expected number", args.getFileTable().filePath, token)
             }
         }
         res["sqrt"] = EmbeddedFunction("sqrt", listOf("number")) { token, args ->
             when (val argument = getIdent(token, "number", args)) {
                 is PInt -> sqrt(argument.getPValue().toDouble())
                 is PDouble -> sqrt(argument.getPValue())
-                else -> throw PositionalException("Expected number", token)
+                else -> throw PositionalException("Expected number", args.getFileTable().filePath, token)
             }
         }
         res["asin"] = EmbeddedFunction("asin", listOf("sin")) { token, args ->
             when (val argument = getIdent(token, "sin", args)) {
                 is PInt -> asin(argument.getPValue().toDouble())
                 is PDouble -> asin(argument.getPValue())
-                else -> throw PositionalException("Expected number", token)
+                else -> throw PositionalException("Expected number", args.getFileTable().filePath, token)
             }
         }
         res["acos"] = EmbeddedFunction("acos", listOf("cos")) { token, args ->
             when (val argument = getIdent(token, "cos", args)) {
                 is PInt -> acos(argument.getPValue().toDouble())
                 is PDouble -> acos(argument.getPValue())
-                else -> throw PositionalException("Expected number", token)
+                else -> throw PositionalException("Expected number", args.getFileTable().filePath, token)
             }
         }
         res["floatEquals"] =
@@ -230,16 +231,15 @@ object FunctionFactory {
             EmbeddedFunction(
                 "type", listOf("instance"),
             ) { token, args ->
-                val instance = getIdent(token, "instance", args)
-                when (instance) {
+                when (val instance = getIdent(token, "instance", args)) {
                     is PInt -> "Int"
                     is PDouble -> "Double"
                     is PString -> "String"
                     is PArray -> "Array"
                     is PDictionary -> "Dictionary"
                     is Type -> instance.fileTable.getUncopiedType(Node(value = instance.name))
-                        ?: throw PositionalException("Class not found", token)
-                    else -> throw PositionalException("Unsupported type", token)
+                        ?: throw PositionalException("Class not found", args.getFileTable().filePath, token)
+                    else -> throw PositionalException("Unsupported type", args.getFileTable().filePath, token)
                 }
             }
         return res

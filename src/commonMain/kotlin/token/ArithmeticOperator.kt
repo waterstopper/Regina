@@ -17,7 +17,7 @@ class ArithmeticOperator(
     )?,
     std: ((node: Token, parser: Parser) -> Token)?
 ) : Operator(symbol, value, position, bindingPower, nud, led, std) {
-    override fun toNode(): Node {
-        return ArithmeticOperator(symbol, value, position, children.map { it.toNode() })
+    override fun toNode(filePath: String): Node {
+        return ArithmeticOperator(symbol, value, position, children.map { it.toNode(filePath) })
     }
 }

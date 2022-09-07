@@ -13,31 +13,31 @@ class LexerTest {
                 """
                 "unterminated
                 "
-            """
+            """, "@NoFile"
             )
         }
         assertTrue(thrown.message!!.contains("Unterminated string"))
         val thrown2 = assertFails {
-            Lexer("\"unterminated")
+            Lexer("\"unterminated", "@NoFile")
         }
         assertTrue(thrown2.message!!.contains("Unterminated string"))
     }
 
     @Test
     fun invalidOperator() {
-        val thrown = assertFails { Lexer("a = ^") }
+        val thrown = assertFails { Lexer("a = ^", "@NoFile") }
         assertTrue(thrown.message!!.contains("Invalid operator"))
     }
 
     @Test
     fun failNewLine() {
-        val thrown = assertFails { Lexer("a = \\ 0") }
+        val thrown = assertFails { Lexer("a = \\ 0", "@NoFile") }
         assertTrue(thrown.message!!.contains("Expected new line after \\"))
     }
 
     @Test
     fun invalidCharacter() {
-        val thrown = assertFails { Lexer("a = `") }
+        val thrown = assertFails { Lexer("a = `", "@NoFile") }
         assertTrue(thrown.message!!.contains("Invalid character"))
     }
 
@@ -46,13 +46,13 @@ class LexerTest {
         Parser(
             """a = b // comment
            t = q
-        """
+        """, "@NoFile"
         ).statements()
         Parser(
             """a = b /* comment
            comment continues */ statementStarts()
            thirdOne()
-        """
+        """, "@NoFile"
         ).statements()
     }
 
@@ -62,7 +62,7 @@ class LexerTest {
             Lexer(
                 """
            fun someFunction() {} /* here is a comment about this function 
-        """
+        """, "@NoFile"
             )
         }
         assertTrue(thrown.message!!.contains("Unterminated comment"))
@@ -70,7 +70,7 @@ class LexerTest {
         val unterminatedAtTheEnd = assertFails {
             Lexer(
                 """
-           fun someFunction() {} /*"""
+           fun someFunction() {} /*""", "@NoFile"
             )
         }
         assertTrue(unterminatedAtTheEnd.message!!.contains("Unterminated comment"))

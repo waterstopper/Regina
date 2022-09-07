@@ -17,7 +17,7 @@ open class Invocation(
     override fun evaluate(symbolTable: SymbolTable): Any {
         throw PositionalException(
             "Invocations should be replaced with Calls or Constructors",
-            this, file = symbolTable.getFileTable().fileName
+            symbolTable.getFileTable().filePath, this
         )
     }
 }

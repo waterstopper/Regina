@@ -21,7 +21,7 @@ open class Identifier(
         val variable = symbolTable.getIdentifierOrNull(this)
             ?: return symbolTable.getUncopiedTypeOrNull(this) ?: throw NotFoundException(
                 this,
-                file = symbolTable.getFileTable()
+                symbolTable.getFileTable().filePath
             )
         if (variable is Primitive)
             return (variable).getPValue()
@@ -33,7 +33,11 @@ open class Identifier(
             parent.setProperty(this.value, value.toProperty(assignment.right, parent))
             if (parent.getProperty(this) is Type) {
                 if ((parent.getProperty(this) as Type).index == 0 && parent.getProperty(this) !is Object)
-                    throw PositionalException("Cannot assign class reference as a property. Use instance instead", this)
+                    throw PositionalException(
+                        "Cannot assign class reference as a property. Use instance instead",
+                        symbolTable.getFileTable().filePath,
+                        this
+                    )
                 (parent.getProperty(this) as Type).parent = parent
                 (parent.getProperty(this) as Type).setProperty("parent", parent)
             }

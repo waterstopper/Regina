@@ -20,7 +20,7 @@ class TypeOperator(
         return when (symbol) {
             "is" -> evaluateTypeCheck(symbolTable).toInt()
             "!is" -> (!evaluateTypeCheck(symbolTable)).toInt()
-            else -> throw PositionalException("unknown word for operator", this)
+            else -> throw PositionalException("unknown word for operator", symbolTable.getFileTable().filePath, this)
         }
     }
 
@@ -43,6 +43,7 @@ class TypeOperator(
                     return checked.inherits(type)
                 throw PositionalException(
                     "Expected class instance or primitive as left operator and class name as right operator",
+                    symbolTable.getFileTable().filePath,
                     this
                 )
             }

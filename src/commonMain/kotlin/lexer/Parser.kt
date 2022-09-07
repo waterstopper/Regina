@@ -10,23 +10,26 @@ import token.TokenBlock
  * 1. [advance] changed
  * 2. [block] supports one statement block without braces
  */
-class Parser() {
-    lateinit var lexer: Lexer
+class Parser(text: String, val filePath: String) {
+    var lexer: Lexer
 
-    constructor(text: String) : this() {
-        lexer = Lexer(text)
+    init {
+        lexer = Lexer(text, filePath)
     }
 
     fun expression(rbp: Int): Token {
         var t = lexer.next()
         var left = t.nud?.let { it(t, this) }
             ?: throw PositionalException(
-                "Expected variable or prefix operator", position = t.position, length = t.value.length
+                "Expected variable or prefix operator",
+                position = t.position,
+                length = t.value.length,
+                fileName = filePath
             )
         while (rbp < lexer.peek().bindingPower) {
             t = lexer.next()
             left = t.led?.let { it(t, this, left) } ?: throw PositionalException(
-                "Expected infix or suffix operator", position = t.position, length = t.value.length
+                "Expected infix or suffix operator", position = t.position, length = t.value.length, fileName = filePath
             )
         }
         return left
@@ -39,7 +42,8 @@ class Parser() {
         throw PositionalException(
             "Expected $symbol",
             position = token.position,
-            length = token.symbol.length
+            length = token.symbol.length,
+            fileName = filePath
         )
     }
 
@@ -65,7 +69,8 @@ class Parser() {
                 ?: throw PositionalException(
                     "Expected statement",
                     position = token.position,
-                    length = token.value.length
+                    length = token.value.length,
+                    fileName = filePath
                 )
         }
         token = expression(0)
@@ -87,14 +92,16 @@ class Parser() {
             throw PositionalException(
                 "Expected a block start '{'",
                 position = token.position,
-                length = token.value.length
+                length = token.value.length,
+                fileName = filePath
             )
         }
         return token.std?.let { it(token, this) }
             ?: throw PositionalException(
                 "Expected statement",
                 position = token.position,
-                length = token.value.length
+                length = token.value.length,
+                fileName = filePath
             )
     }
 }

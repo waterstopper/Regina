@@ -9,7 +9,7 @@ class NodeTernary(node: Node) :
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         if (children.size != 3)
-            throw PositionalException("ternary if should have else branch", this)
+            throw PositionalException("ternary if should have else branch", symbolTable.getFileTable().filePath,this)
         val condition = evaluateCondition(symbolTable)
         return if (condition != 0)
             right.evaluate(symbolTable)

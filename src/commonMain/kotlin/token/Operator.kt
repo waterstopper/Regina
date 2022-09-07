@@ -17,7 +17,7 @@ open class Operator(
     )?,
     std: ((node: Token, parser: Parser) -> Token)?
 ) : Token(symbol, value, position, bindingPower, nud, led, std) {
-    override fun toNode(): Node {
-        return Operator(symbol, value, position, children.map { it.toNode() }.toMutableList())
+    override fun toNode(filePath: String): Node {
+        return Operator(symbol, value, position, children.map { it.toNode(filePath) }.toMutableList())
     }
 }

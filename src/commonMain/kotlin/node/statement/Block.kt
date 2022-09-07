@@ -14,7 +14,7 @@ class Block(node: Node) :
             "{" -> evaluateBlock(symbolTable)
             "if" -> evaluateConditional(symbolTable)
             "while" -> evaluateCycle(symbolTable)
-            else -> throw PositionalException("Not a block", this)
+            else -> throw PositionalException("Not a block", symbolTable.getFileTable().filePath, this)
         }
     }
 
@@ -22,7 +22,7 @@ class Block(node: Node) :
         cycles++
         val condition = left
         val block = right
-        while (condition.evaluate(symbolTable).toBoolean(condition)) {
+        while (condition.evaluate(symbolTable).toBoolean(condition,symbolTable.getFileTable())) {
             when (val res = block.evaluate(symbolTable)) {
                 CycleStatement.CONTINUE -> continue
                 CycleStatement.BREAK -> break
@@ -39,7 +39,7 @@ class Block(node: Node) :
     private fun evaluateConditional(symbolTable: SymbolTable): Any {
         val condition = left
         val trueBlock = right
-        if (condition.evaluate(symbolTable).toBoolean(condition))
+        if (condition.evaluate(symbolTable).toBoolean(condition,symbolTable.getFileTable()))
             return trueBlock.evaluate(symbolTable)
         else if (children.size == 3)
             return children[2].evaluate(symbolTable)
@@ -50,7 +50,7 @@ class Block(node: Node) :
         for (token in children) {
             if (token is Block) {
                 if (token.value == "{")
-                    throw PositionalException("Block within a block. Maybe `if`, `else` or `while` was omitted?", token)
+                    throw PositionalException("Block within a block. Maybe `if`, `else` or `while` was omitted?", symbolTable.getFileTable().filePath,token)
                 val res = token.evaluate(symbolTable)
                 if (res !is Unit)
                     return res
@@ -61,11 +61,11 @@ class Block(node: Node) :
                     else token.left.evaluate(symbolTable)
                 }
                 "break" -> if (cycles > 0) return CycleStatement.BREAK else throw PositionalException(
-                    "break out of cycle",
+                    "break out of cycle",symbolTable.getFileTable().filePath,
                     token
                 )
                 "continue" -> if (cycles > 0) return CycleStatement.CONTINUE else throw PositionalException(
-                    "continue out of cycle",
+                    "continue out of cycle",symbolTable.getFileTable().filePath,
                     token
                 )
                 else -> token.evaluate(symbolTable)

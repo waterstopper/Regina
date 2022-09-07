@@ -18,7 +18,7 @@ class PDictionaryTest {
                 log(1)
                 test(b.values == [2, 2])
                 log(2)
-               // log(b.keys)
+                log(b.keys)
                 test(b.keys == [1,2])
                 a = {}
                 a[1] = 2

@@ -1,6 +1,5 @@
 package utils
 
-import delete.Delete
 import isDouble
 import isInt
 import lexer.Parser
@@ -15,6 +14,7 @@ import properties.RFunction
 import properties.Type
 import properties.Variable
 import properties.primitive.*
+import table.FileTable
 import kotlin.reflect.KClass
 
 object Utils {
@@ -35,11 +35,11 @@ object Utils {
     fun Boolean.toInt(): Int = if (this) 1 else 0
     fun Boolean.toNonZeroInt(): Int = if (this) 1 else -1
 
-    fun Any.toBoolean(node: Node): Boolean {
+    fun Any.toBoolean(node: Node, fileTable: FileTable): Boolean {
         try {
             return this.toString().toDouble() != 0.0
         } catch (e: NumberFormatException) {
-            throw PositionalException("expected numeric value", node)
+            throw PositionalException("expected numeric value", fileTable.filePath, node)
         }
     }
 
@@ -49,13 +49,7 @@ object Utils {
     fun Any.toProperty(node: Node = Node(), parent: Type? = null): Property =
         if (this is Property) this else Primitive.createPrimitive(this, parent, node)
 
-    fun Any.toVariable(delete: Delete): Variable =
-        if (this is Variable) this else Primitive.createPrimitive(this, null, delete)
-
-    fun Any.toProperty(delete: Delete, parent: Type? = null): Property =
-        if (this is Property) this else Primitive.createPrimitive(this, parent, delete)
-
-    fun parseAssignment(assignment: String) = Parser(assignment).statements().first().toNode() as Assignment
+    fun parseAssignment(assignment: String) = Parser(assignment, "@NoFile").statements().first().toNode("@NoFile") as Assignment
 
     /**
      * Prints AST with indentation to  show children.
@@ -70,19 +64,19 @@ object Utils {
         return res.toString()
     }
 
-    fun unifyPNumbers(first: Variable, second: Variable, node: Node): List<Number> {
+    fun unifyPNumbers(first: Variable, second: Variable, node: Node, filePath: String): List<Number> {
         val firstNumber =
-            if (first is PNumber) first.getPValue() else throw PositionalException("Expected number", node)
+            if (first is PNumber) first.getPValue() else throw PositionalException("Expected number", filePath, node)
         val secondNumber =
-            if (second is PNumber) second.getPValue() else throw PositionalException("Expected number", node)
-        return unifyNumbers(firstNumber, secondNumber, node)
+            if (second is PNumber) second.getPValue() else throw PositionalException("Expected number", filePath, node)
+        return unifyNumbers(firstNumber, secondNumber, node, filePath)
     }
 
-    fun unifyNumbers(first: Any, second: Any, node: Node): List<Number> {
+    fun unifyNumbers(first: Any, second: Any, node: Node, filePath: String): List<Number> {
         if (first !is Number)
-            throw PositionalException("left operand is not numeric for this infix operator", node)
+            throw PositionalException("left operand is not numeric for this infix operator", filePath, node)
         if (second !is Number)
-            throw PositionalException("right operand is not numeric for this infix operator", node)
+            throw PositionalException("right operand is not numeric for this infix operator", filePath, node)
         if (isInt(first) && isInt(second))
             return listOf(first, second)
         return listOf(first.toDouble(), second.toDouble())
@@ -97,27 +91,15 @@ object Utils {
     fun <T> List<T>.subList(start: Int): List<T> = this.subList(start, this.size)
 
     fun castToArray(array: Any): PArray {
-        if (array !is PArray)
-            throw PositionalException("function in not applicable for this type")
-        return array
+        return array as PArray
     }
 
     fun castToString(str: Any): PString {
-        if (str !is PString)
-            throw PositionalException("function in not applicable for this type")
-        return str
-    }
-
-    fun castToInt(int: Any): PInt {
-        if (int !is PInt)
-            throw PositionalException("function in not applicable for this type")
-        return int
+        return str as PString
     }
 
     fun castToNumber(num: Any): PNumber {
-        if (num !is PNumber)
-            throw PositionalException("Expected number")
-        return num
+        return num as PNumber
     }
 
     fun mapToString(mapped: KClass<*>): String {

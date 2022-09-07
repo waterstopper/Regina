@@ -18,7 +18,11 @@ open class Token(
     val right: Token
         get() = children[1]
 
-    open fun toNode(): Node {
-        return Node(symbol = symbol, value = value, children = children.map { it.toNode() }.toMutableList())
+    open fun toNode(filePath: String): Node {
+        return Node(symbol = symbol, value = value, children = children.map { it.toNode(filePath) }.toMutableList())
+    }
+
+    override fun toString(): String {
+        return "$symbol:$value"
     }
 }

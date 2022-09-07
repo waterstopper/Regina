@@ -15,7 +15,7 @@ open class TokenIdentifier(
     std: ((node: Token, parser: Parser) -> Token)?
 ) : Token(symbol, value, position, bindingPower, nud, led, std), Linkable {
 
-    override fun toNode(): Node {
+    override fun toNode(filePath: String): Node {
         return Identifier(symbol, value, position)
     }
 }

@@ -72,6 +72,7 @@ class SymbolTable(
         fileTable.getTypeOrNull(node.value)
             ?: throw PositionalException(
                 "Type `${node.value}` not found",
+                fileTable.filePath,
                 node
             )
 
@@ -79,8 +80,8 @@ class SymbolTable(
         val res = fileTable.getFunctionOrNull(node)
         if (res == null) {
             if (variableTable == null)
-                throw PositionalException("Function `${node.left.value}` not found", node)
-            return variableTable!!.getFunction(node)
+                throw PositionalException("Function `${node.left.value}` not found", fileTable.filePath, node)
+            return variableTable!!.getFunction(node, fileTable)
         }
         return res
     }
@@ -100,6 +101,7 @@ class SymbolTable(
 
     fun getIdentifier(node: Node): Variable = getIdentifierOrNull(node) ?: throw PositionalException(
         "Identifier `${node.value}` not found in `$fileTable`",
+        fileTable.filePath,
         node
     )
 
@@ -151,7 +153,6 @@ class SymbolTable(
     }
 
     fun getDictionaryFromTable(): MutableMap<Any, Any> {
-        // TODO call stack exceeded
         val references = References()
         val res = mutableMapOf<Any, Any>()
         scopeTable?.getVariables()?.forEach { (name, variable) ->
@@ -159,7 +160,7 @@ class SymbolTable(
         }
         if (variableTable is Type)
             res["@this"] = variableTable!!.toDebugClass(references)
-        while(references.queue.isNotEmpty()){
+        while (references.queue.isNotEmpty()) {
             references.queue.values.last().toDebugClass(references)
         }
         res["@references"] = references

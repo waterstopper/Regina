@@ -10,6 +10,7 @@ import node.Node
 import properties.EmbeddedFunction
 import properties.Type
 import properties.Variable
+import table.FileTable
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
@@ -19,11 +20,11 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
     override fun getIndex() = 6
     override fun getPValue() = value as MutableMap<Any, Variable>
 
-    override fun get(index: Any, node: Node): Variable {
+    override fun get(index: Any, node: Node, fileTable: FileTable): Variable {
         return getPValue()[index.toVariable(node)] ?: PInt(0, null)
     }
 
-    override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node) {
+    override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node, fileTable: FileTable) {
         getPValue()[index.toVariable(nodeIndex)] = value.toVariable(nodeValue)
     }
 

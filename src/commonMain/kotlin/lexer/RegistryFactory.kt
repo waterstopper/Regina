@@ -17,7 +17,7 @@ object RegistryFactory {
     /**
      * Add parsing templates
      */
-    fun getRegistry(): Registry {
+    fun getRegistry(filePath: String): Registry {
         val registry = Registry()
 
         registry.symbol("(IDENT)")
@@ -90,13 +90,13 @@ object RegistryFactory {
         registry.infixLed(".", 105) { node: Token, parser: Parser, left: Token ->
             node.children.add(left)
             node.children.add(parser.expression(105))
-            isLinkable(node.children.last())
+            isLinkable(node.children.last(), filePath)
             var t = parser.lexer.peek()
             while (t.symbol == "(LINK)") {
                 parser.advance("(LINK)")
                 node.children.add(parser.expression(105))
                 t = parser.lexer.peek()
-                isLinkable(node.children.last())
+                isLinkable(node.children.last(), filePath)
             }
             node
         }
@@ -106,7 +106,7 @@ object RegistryFactory {
             if (left.symbol != "(LINK)" && left.symbol != "(IDENT)" && left.symbol != "[" &&
                 left.symbol != "(" && left.symbol != "!"
             )
-                throw SyntaxException("`$left` is not invokable", left)
+                throw SyntaxException("`$left` is not invokable", filePath, left)
             node.children.add(left)
             val t = parser.lexer.peek()
             if (t.symbol != ")") {
@@ -125,7 +125,7 @@ object RegistryFactory {
             if (t.symbol != "]") {
                 sequence(res, parser)
                 parser.advance("]")
-            } else throw SyntaxException("Expected index", t)
+            } else throw SyntaxException("Expected index", filePath, t)
             res
         }
 
@@ -136,9 +136,9 @@ object RegistryFactory {
                 comma = sequence(node, parser)
             parser.advance(")")
             if (comma)
-                throw SyntaxException("Tuples are not implemented", node)
+                throw SyntaxException("Tuples are not implemented", filePath, node)
             else if (node.children.size == 0)
-                throw  SyntaxException("Empty parentheses", node)
+                throw  SyntaxException("Empty parentheses", filePath, node)
             /* Return first child when parentheses are redundant e.g. condition for `if` or `while`
                or if parentheses are inside arithmetic expression. Then, this will return an expression inside them */
             else
@@ -161,7 +161,7 @@ object RegistryFactory {
                 while (true) {
                     res.children.add(parser.expression(0))
                     if (res.children.last().symbol != ":")
-                        throw SyntaxException("Expected key and value", res.children.last())
+                        throw SyntaxException("Expected key and value", filePath, res.children.last())
                     if (parser.lexer.peek().symbol != ",")
                         break
                     parser.advance(",")
@@ -209,20 +209,20 @@ object RegistryFactory {
                 parser.advance("as")
                 res.children.add(parser.expression(0))
                 if (!checkIdentifierInImport(res.right))
-                    throw SyntaxException("Expected non-link identifier after `as` directive", res.right)
+                    throw SyntaxException("Expected non-link identifier after `as` directive", filePath, res.right)
             } else {
                 if (!checkIdentifierInImport(res.left))
                     throw SyntaxException(
                         "Imports containing folders in name should be declared like:\n" +
-                                "`import path as identifier` and used in code with specified identifier",
+                                "`import path as identifier` and used in code with specified identifier", filePath,
                         res
                     )
                 res.children.add(Token(res.left.symbol, res.left.value))
             }
             if (res.left is token.Link)
-                checkImportedFolder(res.left as token.Link)
+                checkImportedFolder(res.left as Link, filePath)
             else if (!checkIdentifierInImport(res.left))
-                throw SyntaxException("Expected link or identifier before `as` directive", res.right)
+                throw SyntaxException("Expected link or identifier before `as` directive", filePath, res.right)
             res
         }
 
@@ -306,20 +306,25 @@ object RegistryFactory {
      *
      * First child of [Link][node.Link] can be anything
      */
-    private fun isLinkable(node: Token) {
+    private fun isLinkable(node: Token, filePath: String) {
         if (node !is Linkable)
-            throw TokenExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), node, node)
+            throw TokenExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), filePath, node)
         var index = node
         while (index is TokenIndex)
             index = index.left
         if (index !is Linkable)
-            throw TokenExpectedTypeException(listOf(Identifier::class, Invocation::class, Index::class), index, index)
+            throw TokenExpectedTypeException(
+                listOf(Identifier::class, Invocation::class, Index::class),
+                filePath,
+                index,
+                index
+            )
     }
 
-    private fun checkImportedFolder(link: token.Link) {
+    private fun checkImportedFolder(link: Link, filePath: String) {
         for (ident in link.children)
             if (!checkIdentifierInImport(ident))
-                throw SyntaxException("Each folder should be represented as identifier", ident)
+                throw SyntaxException("Each folder should be represented as identifier", filePath, ident)
     }
 
     private fun checkIdentifierInImport(node: Token): Boolean = node is TokenIdentifier || node.children.size == 0
