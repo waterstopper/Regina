@@ -42,7 +42,7 @@ class Lexer(val source: String = "", val filePath: String) {
 
     fun next(): Token {
         // in current implementation if is good too, but it is safer with while if there are some changes
-        while (nodes[++tokenIndex].symbol == "(SEP)") {
+        while (nodes[++tokenIndex].value == "//") {
         }
         return nodes[tokenIndex]
     }
@@ -59,12 +59,24 @@ class Lexer(val source: String = "", val filePath: String) {
         var offset = 1
         if (tokenIndex + offset > nodes.lastIndex)
             return nodes.last()
-        while (nodes[tokenIndex + offset].symbol == "(SEP)")
+        while (nodes[tokenIndex + offset].value == "//")
             offset++
         return nodes[tokenIndex + offset]
     }
 
     fun peekSeparator(): Boolean = nodes[tokenIndex + 1].symbol == "(SEP)"
+
+    /**
+     * Once is fictive now, because two separators in a row are merged in one. This behavior might change
+     */
+    fun moveAfterTokenLineSeparator(once: Boolean = true) {
+        if (peek().value.contains(Regex("[\n\r]")))
+            next()
+        if (!once) {
+            while (peek().value.contains(Regex("[\n\r]")))
+                next()
+        }
+    }
 
     private fun createNextToken(): Token {
         consumeWhitespaceAndComments()
@@ -178,8 +190,7 @@ class Lexer(val source: String = "", val filePath: String) {
                 val value = source.substring(index..ind)
                 val operator = registry.operator(value, value, Pair(position.first - value.length, position.second))
                 if (operator.symbol == "(SEP)"
-                    && (operator.value.contains("\n")
-                            || operator.value.contains("\r"))
+                    && (operator.value.contains(Regex("[\n\r]")))
                 ) {
                     toNextLine()
                 } else for (i in index..ind)

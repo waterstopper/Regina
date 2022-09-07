@@ -189,10 +189,13 @@ object RegistryFactory {
         registry.stmt("if") { node: Token, parser: Parser ->
             val res = TokenBlock(node)
             res.children.add(parser.expression(0))
+            parser.lexer.moveAfterTokenLineSeparator()
             res.children.add(parser.block(canBeSingleStatement = true))
+            parser.lexer.moveAfterTokenLineSeparator()
             var next = parser.lexer.peek()
             if (next.value == "else") {
                 parser.lexer.next()
+                parser.lexer.moveAfterTokenLineSeparator()
                 next = parser.lexer.peek()
                 if (next.value == "if")
                     res.children.add(parser.statement())
@@ -248,6 +251,7 @@ object RegistryFactory {
         registry.stmt("fun") { node: Token, parser: Parser ->
             val res = TokenFunction(node)
             res.children.add(parser.expression(0))
+            parser.lexer.moveAfterTokenLineSeparator()
             res.children.add(parser.block())
             res
         }
@@ -262,6 +266,7 @@ object RegistryFactory {
         registry.stmt("while") { node: Token, parser: Parser ->
             val res = TokenBlock(node)
             res.children.add(parser.expression(0))
+            parser.lexer.moveAfterTokenLineSeparator()
             res.children.add(parser.block(canBeSingleStatement = true))
             res
         }

@@ -11,8 +11,7 @@ class BlockTest {
         eval(
             """
            fun main() {a = (1-1)*3
-                while(a < 5)
-                    a = a + 1
+                while(a < 5)a = a + 1
                 test(a == 5)
                 b = 1
                 if(true)

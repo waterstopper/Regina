@@ -115,15 +115,15 @@ class ParserTest {
         )
     }
 
-    @Test
-    fun controversialSeparatorsTest() {
-        eval(
-            """
-           fun main;(;); {
-            if(a()) b = 0; else {}
-            test(b == 0)
-           }; fun a() {return 1} 
-        """
-        )
-    }
+//    @Test
+//    fun controversialSeparatorsTest() {
+//        eval(
+//            """
+//           fun main;(;); {
+//            if(a()) b = 0; else {}
+//            test(b == 0)
+//           }; fun a() {return 1}
+//        """
+//        )
+//    }
 }

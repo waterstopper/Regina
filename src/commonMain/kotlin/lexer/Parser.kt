@@ -62,6 +62,8 @@ class Parser(text: String, val filePath: String) {
     }
 
     fun statement(): Token {
+        if (lexer.peek().symbol == "(SEP)")
+            return lexer.next()
         var token = lexer.peek()
         if (token.std != null) {
             token = lexer.next()
@@ -87,6 +89,8 @@ class Parser(text: String, val filePath: String) {
                 lexer.prev()
                 val res = TokenBlock(Pair(token.position.first - 1, token.position.second))
                 res.children.add(statement())
+                if(res.children.first().symbol=="(SEP)")
+                    res.children.clear()
                 return res
             }
             throw PositionalException(
