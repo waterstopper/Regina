@@ -11,10 +11,10 @@ import node.TokenFactory
 import node.invocation.Call
 import node.statement.Assignment
 import properties.primitive.PDictionary
-import properties.primitive.PInt
 import properties.primitive.Primitive
 import table.FileTable
 import table.SymbolTable
+import utils.Utils.NULL
 import utils.Utils.toVariable
 
 /**
@@ -115,13 +115,10 @@ open class Type(
         else -> properties[name]
     }
 
-    override fun getProperty(node: Node) = when (node.value) {
+    override fun getProperty(node: Node, fileTable: FileTable) = when (node.value) {
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
-        else -> properties[node.value] ?: PInt(
-            0,
-            this
-        )
+        else -> properties[node.value] ?: throw PositionalException("Property not found", fileTable.filePath, node)
     }
 
     fun setProperty(name: String, value: Property) {
@@ -190,7 +187,7 @@ open class Type(
 
     companion object {
         fun resolveTree(root: Type, symbolTable: SymbolTable): Type {
-            root.setProperty("parent", PInt(0, root))
+            root.setProperty("parent", NULL)
             symbolTable.resolvingType = true
             do {
                 val (current, parent) = bfs(root) ?: break

@@ -112,7 +112,8 @@ class SemanticTest {
         """
             )
         }
-        assertTrue(notFoundInType.message!!.contains("Class `A` does not contain function"))
+        println(notFoundInType.message!!)
+        assertTrue(notFoundInType.message!!.contains("Variable does not contain function"))
 
         val notFoundInObject = assertFails {
             eval(
@@ -126,7 +127,7 @@ class SemanticTest {
         """
             )
         }
-        assertTrue(notFoundInObject.message!!.contains("Object `A` does not contain function"))
+        assertTrue(notFoundInObject.message!!.contains("Variable does not contain function"))
     }
 
     @Test

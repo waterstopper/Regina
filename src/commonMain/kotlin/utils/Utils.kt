@@ -18,6 +18,8 @@ import table.FileTable
 import kotlin.reflect.KClass
 
 object Utils {
+    val NULL = PInt(0, null)
+
     init {
         PArray.initializeEmbeddedArrayFunctions()
         PString.initializeEmbeddedStringFunctions()
@@ -49,7 +51,8 @@ object Utils {
     fun Any.toProperty(node: Node = Node(), parent: Type? = null): Property =
         if (this is Property) this else Primitive.createPrimitive(this, parent, node)
 
-    fun parseAssignment(assignment: String) = Parser(assignment, "@NoFile").statements().first().toNode("@NoFile") as Assignment
+    fun parseAssignment(assignment: String) =
+        Parser(assignment, "@NoFile").statements().first().toNode("@NoFile") as Assignment
 
     /**
      * Prints AST with indentation to  show children.

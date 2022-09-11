@@ -70,10 +70,10 @@ class Lexer(val source: String = "", val filePath: String) {
      * Once is fictive now, because two separators in a row are merged in one. This behavior might change
      */
     fun moveAfterTokenLineSeparator(once: Boolean = true) {
-        if (peek().value.contains(Regex("[\n\r]")))
+        if (peek().value.contains("\n") || peek().value.contains("\r"))
             next()
         if (!once) {
-            while (peek().value.contains(Regex("[\n\r]")))
+            while (peek().value.contains("\n") || peek().value.contains("\r"))
                 next()
         }
     }
@@ -190,7 +190,7 @@ class Lexer(val source: String = "", val filePath: String) {
                 val value = source.substring(index..ind)
                 val operator = registry.operator(value, value, Pair(position.first - value.length, position.second))
                 if (operator.symbol == "(SEP)"
-                    && (operator.value.contains(Regex("[\n\r]")))
+                    && (operator.value.contains("\n") || operator.value.contains("\r"))
                 ) {
                     toNextLine()
                 } else for (i in index..ind)

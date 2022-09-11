@@ -31,15 +31,16 @@ open class Identifier(
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
         if (parent != null && assignment.isProperty) {
             parent.setProperty(this.value, value.toProperty(assignment.right, parent))
-            if (parent.getProperty(this) is Type) {
-                if ((parent.getProperty(this) as Type).index == 0 && parent.getProperty(this) !is Object)
+            val property = parent.getProperty(this,symbolTable.getFileTable())
+            if (property is Type) {
+                if (property.index == 0 && property !is Object)
                     throw PositionalException(
                         "Cannot assign class reference as a property. Use instance instead",
                         symbolTable.getFileTable().filePath,
                         this
                     )
-                (parent.getProperty(this) as Type).parent = parent
-                (parent.getProperty(this) as Type).setProperty("parent", parent)
+                property.parent = parent
+                property.setProperty("parent", parent)
             }
         }
         symbolTable.addVariable(this.value, value.toVariable(this))

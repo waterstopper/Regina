@@ -4,6 +4,7 @@ import isDouble
 import lexer.ExpectedTypeException
 import lexer.PositionalException
 import node.Node
+import properties.primitive.PNumber
 import table.FileTable
 import table.SymbolTable
 import utils.Utils.toInt
@@ -99,6 +100,8 @@ class ArithmeticOperator(
         val res = left.evaluate(symbolTable)
         if (res is Number)
             return (res == 0).toInt()
+        if (res is PNumber)
+            return (res.getPValue() == 0).toInt()
         throw PositionalException("! operator applicable to numbers", symbolTable.getFileTable().filePath, this)
     }
 }

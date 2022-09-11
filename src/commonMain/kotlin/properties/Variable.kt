@@ -8,7 +8,7 @@ import table.FileTable
 
 abstract class Variable(var parent: Type?) {
     abstract fun getPropertyOrNull(name: String): Property?
-    abstract fun getProperty(node: Node): Property
+    abstract fun getProperty(node: Node, fileTable: FileTable): Property
     abstract fun getFunctionOrNull(node: Node): RFunction?
     abstract fun getFunction(node: Node, fileTable: FileTable): RFunction
     abstract fun getProperties(): PDictionary

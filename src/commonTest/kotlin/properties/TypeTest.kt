@@ -39,7 +39,7 @@ class TypeTest {
         eval("""
             fun main() {
                 q = A()
-                log(q.a)
+                log(q?.a)
                 q.a = 1
                 test(q.a == 1)
             }

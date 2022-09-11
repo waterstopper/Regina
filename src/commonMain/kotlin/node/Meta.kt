@@ -5,6 +5,7 @@ import properties.primitive.PInt
 import readLine
 import sendMessage
 import table.SymbolTable
+import utils.Utils.NULL
 
 class Meta(
     symbol: String,
@@ -17,6 +18,6 @@ class Meta(
         content["@file"] = symbolTable.getFileTable().filePath
         sendMessage(Message("debug", content))
         readLine()
-        return PInt(0, null)
+        return NULL
     }
 }

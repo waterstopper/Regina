@@ -15,6 +15,7 @@ import properties.Type
 import properties.Variable
 import properties.primitive.Primitive
 import table.SymbolTable
+import utils.Utils.NULL
 import utils.Utils.mapToString
 import utils.Utils.toProperty
 import utils.Utils.toVariable
@@ -37,12 +38,9 @@ open class Link(
     symbol: String,
     value: String,
     position: Pair<Int, Int>,
-    children: List<Node> = listOf()
+    children: List<Node> = listOf(),
+    val nullable:List<Int>
 ) : Node(symbol, value, position), Assignable {
-    constructor(node: Node) : this(
-        node.symbol, node.value,
-        node.position, node.children
-    )
 
     init {
         if (children.isNotEmpty()) {
@@ -50,6 +48,8 @@ open class Link(
             this.children.addAll(children)
         }
     }
+
+
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         var table = symbolTable.copy()
@@ -61,6 +61,8 @@ open class Link(
         while (index < children.size) {
             val isResolved =
                 checkNextVariable(index = index, table = table, initialTable = symbolTable, currentVariable!!)
+            if (isResolved.value is NullValue)
+                return NULL
             if (isResolved.value !is Variable)
                 throw PositionalException("Link not resolved", symbolTable.getFileTable().filePath, children[index])
             currentVariable = isResolved.value
@@ -78,23 +80,37 @@ open class Link(
         variable: Variable
     ): Optional {
         when (children[index]) {
-            is Call -> return Optional(
-                resolveFunctionCall(
-                    index = index,
-                    table = table,
-                    initialTable = initialTable,
-                    currentVariable = variable,
-                    function = variable.getFunction((children[index] as Call),table.getFileTable())
-                ).first
-            )
+            is Call -> {
+                val function = variable.getFunctionOrNull((children[index] as Call))
+                if (function == null && nullable.contains(index))
+                    return Optional(NullValue())
+                if (function == null)
+                    throw PositionalException(
+                        "Variable does not contain function",
+                        table.getFileTable().filePath,
+                        children[index]
+                    )
+                return Optional(
+                    resolveFunctionCall(
+                        index = index,
+                        table = table,
+                        initialTable = initialTable,
+                        currentVariable = variable,
+                        function = function
+                    ).first
+                )
+            }
             is Identifier -> {
                 if (variable is Type && variable !is Object) {
                     val assignment = variable.getLinkedAssignment(this, index)
                     if (assignment != null)
                         return Optional(assignment)
                 }
-                val property = variable.getProperty(children[index])
-                return Optional(property)
+
+                val property = variable.getPropertyOrNull(children[index].value)
+                if (property == null && nullable.contains(index))
+                    return Optional(NullValue())
+               return Optional(property)
             }
             is Index -> {
                 var indexToken = children[index].left
@@ -102,7 +118,11 @@ open class Link(
                     indexToken = indexToken.left
                 variable.getPropertyOrNull(indexToken.value)
                     ?: if (variable is Type) (return Optional(variable.getAssignment(indexToken)))
-                    else throw PositionalException("Property not found", table.getFileTable().filePath, indexToken)
+                    else if (nullable.contains(index)) return Optional(NullValue()) else throw PositionalException(
+                        "Property not found",
+                        table.getFileTable().filePath,
+                        indexToken
+                    )
                 return Optional((children[index] as Index).evaluateIndex(table).toVariable(right.right))
             }
             else -> throw PositionalException("Unexpected token", table.getFileTable().filePath, children[index])
@@ -171,7 +191,7 @@ open class Link(
         function: RFunction
     ): Pair<Variable, Variable?> {
         var type = table.getCurrentType()
-        if (type == null || type !is Type)
+        if (type !is Type)
             type = null
         val tableForEvaluation = SymbolTable(
             fileTable = if (type is Type) type.fileTable
@@ -195,8 +215,10 @@ open class Link(
             symbolTable
         )
         if (currentParent !is Type || index != children.lastIndex)
-            throw PositionalException("Link not resolved", symbolTable.getFileTable().filePath)
-        currentParent.setProperty(children[children.lastIndex].value, value.toProperty(assignment.right))
+            throw PositionalException("Link not resolved", symbolTable.getFileTable().filePath, children.last())
+        if (children.last() is Index)
+            (children.last() as Index).assign(assignment, currentParent, symbolTable, value)
+        else currentParent.setProperty(children.last().value, value.toProperty(assignment.right))
     }
 
     /**
@@ -219,6 +241,8 @@ open class Link(
         index++
         while (index < children.size) {
             val res = checkNextVariable(index, table = table, initialTable = initialTable, currentVariable!!)
+            if (res.value is NullValue)
+                return Tuple4(NULL, currentVariable, null, index)
             // if property not yet assigned and assignment is found, return parent
             if (res.isGood && res.value is Assignment)
                 return Tuple4(null, currentVariable, res.value, index)
@@ -273,4 +297,6 @@ open class Link(
     }
 
     override fun getPropertyName(): Node = (children.last() as Assignable).getPropertyName()
+
+    class NullValue
 }

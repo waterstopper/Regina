@@ -1,7 +1,6 @@
 package node.operator
 
 import Optional
-import isInt
 import lexer.ExpectedTypeException
 import lexer.PositionalException
 import node.Assignable
@@ -58,38 +57,16 @@ class Index(
         }
     }
 
-    private fun getIndexableAndIndex(symbolTable: SymbolTable): Pair<Indexable, Variable> {
-        val indexable = symbolTable.getIdentifier(left)
+    override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
+        val indexable = left.evaluate(symbolTable).toVariable(left)
         val index = right.evaluate(symbolTable).toVariable(right)
-        if (indexable is Indexable && indexable.checkIndexType(index))
-            return Pair(indexable, index)
-        throw ExpectedTypeException(
+        if (indexable is Indexable && indexable.checkIndexType(index)) {
+            indexable.set(index, value, right, assignment.right, symbolTable.getFileTable())
+        } else throw ExpectedTypeException(
             listOf(PArray::class, Number::class),
             symbolTable.getFileTable().filePath,
             this,
             expectedMultiple = true
-        )
-    }
-
-    override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
-        if (parent == null || parent.getProperty(getPropertyName()) == PInt(0, parent)) {
-            val (arr, ind) = getIndexableAndIndex(symbolTable)
-            arr.set(ind, value.toVariable(assignment.right), left, right, symbolTable.getFileTable())
-            return
-        }
-        val property = parent.getProperty(getPropertyName())
-        if (property !is Indexable)
-            throw ExpectedTypeException(
-                listOf(PArray::class, PDictionary::class, PString::class),
-                symbolTable.getFileTable().filePath,
-                left,
-                property
-            )
-        val index = right.evaluate(symbolTable)
-        if (!isInt(index))
-            throw PositionalException("Index is not integer", symbolTable.getFileTable().filePath, this)
-        property.set(
-            index, right.evaluate(symbolTable).toVariable(right), left, right, symbolTable.getFileTable()
         )
     }
 

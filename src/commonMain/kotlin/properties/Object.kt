@@ -3,16 +3,16 @@ package properties
 import lexer.PositionalException
 import node.Node
 import node.statement.Assignment
-import properties.primitive.PInt
 import table.FileTable
 import table.SymbolTable
+import utils.Utils.NULL
 
 /**
  * Object is a [singleton][https://en.wikipedia.org/wiki/Singleton_pattern] Type
  */
 class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileTable) :
     Type(name, null, assignments, fileTable, 0) {
-    override fun getProperty(node: Node): Property {
+    override fun getProperty(node: Node, fileTable: FileTable): Property {
         if (properties[node.value] != null)
             return properties[node.value]!!
         val assignment = assignments.find { it.left.value == node.value }
@@ -23,7 +23,7 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
             )
             return properties[node.value]!!
         }
-        return PInt(0, null)
+        throw PositionalException("Property not found", fileTable.filePath, node)
     }
 
     override fun toString(): String {

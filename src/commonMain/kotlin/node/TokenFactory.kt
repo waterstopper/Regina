@@ -9,6 +9,7 @@ import node.statement.Assignment
 import table.SymbolTable
 import token.Token
 import token.TokenIdentifier
+import token.TypeOperator
 
 object TokenFactory {
     private val nonArithmeticOperators = listOf("+", "==", "!=")
@@ -49,7 +50,8 @@ object TokenFactory {
                 node.symbol,
                 node.value,
                 node.position,
-                node.children.subList(childrenStart, childrenStart + childrenNumber)
+                node.children.subList(childrenStart, childrenStart + childrenNumber),
+                node.nullable.toList()
             )
         else throw PositionalException("Expected assignment or link", "", node)
     }
@@ -64,9 +66,9 @@ object TokenFactory {
         std: ((node: Token, parser: Parser) -> Token)?
     ): Token {
         return when (symbol) {
-            "!is" -> token.TypeOperator(symbol, value, position, bindingPower, nud, led, std)
+            "!is" -> TypeOperator(symbol, value, position, bindingPower, nud, led, std)
             "(" -> token.Invocation(symbol, value, position, bindingPower, nud, led, std)
-            "." -> token.Link(("(LINK)"), value, position, bindingPower, nud, led, std)
+            ".", "?." -> token.Link(("(LINK)"), value, position, bindingPower, nud, led, std)
             "=" -> token.Assignment("(ASSIGNMENT)", value, position, bindingPower, nud, led, std)
             ";", "\n", "\r\n", "\r" -> Token("(SEP)", value, position, bindingPower, nud, led, std)
             in nonArithmeticOperators -> token.Operator(symbol, value, position, bindingPower, nud, led, std)

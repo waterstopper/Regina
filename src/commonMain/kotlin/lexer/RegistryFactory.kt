@@ -88,17 +88,11 @@ object RegistryFactory {
         // tokReg.infixRight("-=", 10)
 
         registry.infixLed(".", 105) { node: Token, parser: Parser, left: Token ->
-            node.children.add(left)
-            node.children.add(parser.expression(105))
-            isLinkable(node.children.last(), filePath)
-            var t = parser.lexer.peek()
-            while (t.symbol == "(LINK)") {
-                parser.advance("(LINK)")
-                node.children.add(parser.expression(105))
-                t = parser.lexer.peek()
-                isLinkable(node.children.last(), filePath)
-            }
-            node
+            registerLink(node as Link, parser, left, filePath)
+        }
+
+        registry.infixLed("?.", 105) { node: Token, parser: Parser, left: Token ->
+            registerLink(node as Link, parser, left, filePath, true)
         }
 
         // function use
@@ -333,4 +327,31 @@ object RegistryFactory {
     }
 
     private fun checkIdentifierInImport(node: Token): Boolean = node is TokenIdentifier || node.children.size == 0
+
+    private fun registerLink(
+        node: Link,
+        parser: Parser,
+        left: Token,
+        filePath: String,
+        nullable: Boolean = false
+    ): Token {
+
+        if (nullable)
+            node.nullable.add(1)
+        node.children.add(left)
+        node.children.add(parser.expression(105))
+        isLinkable(node.children.last(), filePath)
+        var t = parser.lexer.peek()
+        var i = 2
+        while (t.symbol == "(LINK)") {
+            parser.advance("(LINK)")
+            if (t.value == "?.")
+                node.nullable.add(i)
+            node.children.add(parser.expression(105))
+            t = parser.lexer.peek()
+            isLinkable(node.children.last(), filePath)
+            i++
+        }
+        return node
+    }
 }

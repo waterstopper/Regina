@@ -11,10 +11,6 @@ class ScopeTable {
         variables[name] = variable
     }
 
-    fun getVariable(node: Node) = variables[node.value] ?: throw NotFoundException(node)
-    fun getVariable(name: String) = variables[name]
-        ?: throw NotFoundException()
-
     fun getVariables() = variables.toMutableMap()
 
     fun getVariableOrNull(name: String) = variables[name]

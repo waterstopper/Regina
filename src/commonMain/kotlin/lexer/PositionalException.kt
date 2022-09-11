@@ -42,7 +42,7 @@ open class SyntaxException(
 
 class NotFoundException(
     node: Node = Node(),
-    fileName: String = "",
+    fileName:String,
     val variable: Variable? = null
 ) :
     PositionalException("", fileName, node) {

@@ -37,6 +37,8 @@ open class Link(
         node.std, node.children
     )
 
+    val nullable = mutableListOf<Int>()
+
     init {
         if (children.isNotEmpty()) {
             this.children.clear()
@@ -45,6 +47,6 @@ open class Link(
     }
 
     override fun toNode(filePath: String): Node {
-        return Link(symbol, value, position, children.map { it.toNode(filePath) })
+        return Link(symbol, value, position, children.map { it.toNode(filePath) }, nullable.toList())
     }
 }

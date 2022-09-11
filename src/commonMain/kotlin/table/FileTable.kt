@@ -76,7 +76,7 @@ class FileTable(
     } as Type?
 
     fun getType(node: Node): Type = getTypeOrNull(node.value)
-        ?: throw NotFoundException(node)
+        ?: throw NotFoundException(node, filePath)
 
     fun getUncopiedType(node: Node): Type? = types.find { it.name == node.value }
 

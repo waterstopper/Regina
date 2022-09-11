@@ -57,7 +57,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
             else getAllProperties()[0][name]?.let { it(this) })
     }
 
-    override fun getProperty(node: Node): Property = when (node.value) {
+    override fun getProperty(node: Node, fileTable: FileTable): Property = when (node.value) {
         "this" -> this
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
@@ -66,7 +66,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
                 getAllProperties()[1][node.value]?.let { it(this) }
                     ?: getAllProperties()[0][node.value]?.let { it(this) }
             else getAllProperties()[0][node.value]?.let { it(this) })
-            ?: throw NotFoundException(node, variable = this)
+            ?: throw NotFoundException(node, fileTable.filePath, variable = this)
     }
 
     /**

@@ -11,6 +11,7 @@ import properties.EmbeddedFunction
 import properties.Type
 import properties.Variable
 import table.FileTable
+import utils.Utils.NULL
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
@@ -21,7 +22,7 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
     override fun getPValue() = value as MutableMap<Any, Variable>
 
     override fun get(index: Any, node: Node, fileTable: FileTable): Variable {
-        return getPValue()[index.toVariable(node)] ?: PInt(0, null)
+        return getPValue()[index.toVariable(node)] ?: NULL
     }
 
     override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node, fileTable: FileTable) {
@@ -96,7 +97,7 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
             setFunction(p, EmbeddedFunction("remove", listOf("key")) { token, args ->
                 val dict = getDictionary(token, "this", args)
                 val key = getIdent(token, "key", args)
-                dict.getPValue().remove(key) ?: PInt(0, null)
+                dict.getPValue().remove(key) ?: NULL
             })
         }
     }
