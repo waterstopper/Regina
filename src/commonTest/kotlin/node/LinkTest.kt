@@ -1,9 +1,20 @@
 package node
 
 import evaluation.Evaluation.eval
+import preload
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class LinkTest {
+    @BeforeTest
+    fun preloadFiles() {
+        preload(
+            listOf(
+                "std/geometry2D.rgn"
+            )
+        )
+    }
+
     @Test
     fun testSetIndex() {
         eval(
@@ -40,6 +51,22 @@ class LinkTest {
         }
         
         class A {}
+        """)
+    }
+
+    @Test
+    fun testImportObject() {
+        eval("""
+            import std.geometry2D as geom
+            
+            fun main() {
+            a = A()
+                log(geom.Constants.PI)
+            }
+            
+            class A {
+                iter = parent?.iter + 1
+            }
         """)
     }
 }

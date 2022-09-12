@@ -1,6 +1,7 @@
 package node
 
 import Optional
+import References
 import Tuple4
 import lexer.NotFoundException
 import lexer.PositionalException
@@ -9,11 +10,10 @@ import node.invocation.Constructor
 import node.invocation.Invocation
 import node.operator.Index
 import node.statement.Assignment
-import properties.Object
-import properties.RFunction
-import properties.Type
-import properties.Variable
+import properties.*
+import properties.primitive.PDictionary
 import properties.primitive.Primitive
+import table.FileTable
 import table.SymbolTable
 import utils.Utils.NULL
 import utils.Utils.mapToString
@@ -144,14 +144,14 @@ open class Link(
                 return if (identifier == null) {
                     if (canBeFile) {
                         val nextTable = addFile(table) ?: return Pair(0, null)
-                        checkFirstVariable(
+                        return checkFirstVariable(
                             index + 1,
                             table = nextTable,
                             initialTable = initialTable,
                             canBeFile = false
                         )
-                    } else Pair(0, null)
-                } else Pair(0, identifier)
+                    } else Pair(index, null)
+                } else Pair(index, identifier)
             }
             is Call -> return Pair(
                 index,
@@ -242,7 +242,7 @@ open class Link(
         while (index < children.size) {
             val res = checkNextVariable(index, table = table, initialTable = initialTable, currentVariable!!)
             if (res.value is NullValue)
-                return Tuple4(NULL, currentVariable, null, index)
+                return Tuple4(NullValue(), currentVariable, null, index)
             // if property not yet assigned and assignment is found, return parent
             if (res.isGood && res.value is Assignment)
                 return Tuple4(null, currentVariable, res.value, index)
@@ -277,6 +277,8 @@ open class Link(
         forLValue: Boolean = false
     ): Pair<Type?, Assignment?> {
         val (currentVariable, currentParent, assignment, index) = safeEvaluate(parent, symbolTable)
+        if(currentVariable is NullValue)
+            return Pair(null, null)
         if (currentParent != null && currentParent !is Type)
             throw PositionalException(
                 "Expected class instance, got ${mapToString(currentParent::class)}",
@@ -298,5 +300,29 @@ open class Link(
 
     override fun getPropertyName(): Node = (children.last() as Assignable).getPropertyName()
 
-    class NullValue
+    class NullValue:Variable(null){
+        override fun getPropertyOrNull(name: String): Property? {
+            TODO("Not yet implemented")
+        }
+
+        override fun getProperty(node: Node, fileTable: FileTable): Property {
+            TODO("Not yet implemented")
+        }
+
+        override fun getFunctionOrNull(node: Node): RFunction? {
+            TODO("Not yet implemented")
+        }
+
+        override fun getFunction(node: Node, fileTable: FileTable): RFunction {
+            TODO("Not yet implemented")
+        }
+
+        override fun getProperties(): PDictionary {
+            TODO("Not yet implemented")
+        }
+
+        override fun toDebugClass(references: References): Any {
+            TODO("Not yet implemented")
+        }
+    }
 }

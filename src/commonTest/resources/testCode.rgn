@@ -48,6 +48,7 @@ class DoubleSegment {
 }
 
 fun main() {
+    log(geom.Constants.PI)
     a = imported.A()
     s = Segment()
     attributes = array(s.exportArgs["attributes"])
