@@ -14,7 +14,7 @@ class TokenNumber(value: String, position: Pair<Int, Int>) :
                 throw SyntaxException("Integer can be in range [${Int.MIN_VALUE}, ${Int.MAX_VALUE}]", filePath, this)
             value.toInt()
         } else value.toDouble()
-        return NodeNumber(value, position, number)
+        return NodeNumber(value, position, number, !isInteger())
     }
 
     private fun isInteger() = !value.contains(".")

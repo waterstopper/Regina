@@ -39,7 +39,7 @@ class Index(
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         val res = evaluateIndex(symbolTable)
-        if (res is Primitive)
+        if (res is Primitive && res !is PNumber)
             return res.getPValue()
         return res
     }
@@ -63,7 +63,7 @@ class Index(
         if (indexable is Indexable && indexable.checkIndexType(index)) {
             indexable.set(index, value, right, assignment.right, symbolTable.getFileTable())
         } else throw ExpectedTypeException(
-            listOf(PArray::class, Number::class),
+            listOf(PArray::class, PNumber::class),
             symbolTable.getFileTable().filePath,
             this,
             expectedMultiple = true

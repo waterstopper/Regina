@@ -6,7 +6,7 @@ import properties.Object
 import properties.Type
 import properties.primitive.*
 import table.SymbolTable
-import utils.Utils.toInt
+import utils.Utils.toPInt
 import utils.Utils.toVariable
 
 class TypeOperator(
@@ -18,8 +18,8 @@ class TypeOperator(
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         return when (symbol) {
-            "is" -> evaluateTypeCheck(symbolTable).toInt()
-            "!is" -> (!evaluateTypeCheck(symbolTable)).toInt()
+            "is" -> evaluateTypeCheck(symbolTable).toPInt()
+            "!is" -> (!evaluateTypeCheck(symbolTable)).toPInt()
             else -> throw PositionalException("unknown word for operator", symbolTable.getFileTable().filePath, this)
         }
     }

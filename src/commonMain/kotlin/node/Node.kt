@@ -9,6 +9,7 @@ import lexer.PositionalException
 import node.operator.NodeTernary
 import node.statement.Assignment
 import properties.Type
+import properties.primitive.PNumber
 import table.SymbolTable
 
 /**
@@ -77,7 +78,7 @@ open class Node(
      * Each parent token defines how its children should be evaluated/
      */
     open fun evaluate(symbolTable: SymbolTable): Any {
-        throw PositionalException("Not implemented", symbolTable.getFileTable().filePath,this)
+        throw PositionalException("Not implemented", symbolTable.getFileTable().filePath, this)
     }
 
     /**
@@ -110,8 +111,12 @@ open class Node(
                 // If parent == 0, then someProperty is unresolved, but it is fine
                 is NodeTernary -> {
                     val condition = it.left.traverseUnresolvedOptional(symbolTable, parent)
+                    // condition resolved
                     if (condition.second == null) {
-                        if (it.evaluateCondition(symbolTable.changeVariable(parent)) != 0) {
+                        // condition is true
+                        if ((it.evaluateCondition(symbolTable.changeVariable(parent)) as PNumber).getPValue()
+                                .toDouble() != 0.0
+                        ) {
                             val result = it.right.traverseUnresolvedOptional(symbolTable, parent)
                             if (result.second == null)
                                 Optional(Node("(LEAVE)"))

@@ -187,7 +187,7 @@ fun checkNestedReturn() {
 }
 
 fun checkType() {
-	test(0.0 is Int)
+	test(0.0 is Double)
 	test(0 is Int)
 	test("" is String)
 	test([] is Array)

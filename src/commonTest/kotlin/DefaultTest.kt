@@ -34,7 +34,6 @@ e*/
 }
 
 class A {
-    a = 0
     n = if(iter < 5)  A() else B()
     iter = if(parent == 0) 0 else parent.iter + 1
 }

@@ -8,6 +8,7 @@ import properties.RFunction
 import properties.Variable
 import table.FileTable
 import table.SymbolTable
+import utils.Utils.NULL
 import utils.Utils.toVariable
 
 class Call(
@@ -106,6 +107,6 @@ class Call(
             function.executeFunction(left, symbolTable)
         else function.body.evaluate(symbolTable)
         // this is because Unit variables are not allowed and in Links variable is assigned
-        return if (res is Unit) 0 else res
+        return if (res is Unit) NULL else res
     }
 }

@@ -4,14 +4,14 @@ import DebugDictionary
 import NestableDebug
 import References
 import elementToDebug
-import evaluation.FunctionFactory.getDictionary
-import evaluation.FunctionFactory.getIdent
 import node.Node
 import properties.EmbeddedFunction
 import properties.Type
 import properties.Variable
 import table.FileTable
 import utils.Utils.NULL
+import utils.Utils.getPDictionary
+import utils.Utils.getIdent
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
@@ -82,7 +82,7 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
         fun initializeDictionaryProperties() {
             val p = PDictionary(mutableMapOf(), null, -1)
             setProperty(p, "size") { pr: Primitive ->
-                (pr as PDictionary).getPValue().size.toProperty()
+                PInt((pr as PDictionary).getPValue().size).toProperty()
             }
             setProperty(p, "keys") { pr: Primitive ->
                 (pr as PDictionary).getPValue().keys.toMutableList().toProperty()
@@ -95,7 +95,7 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
         fun initializeDictionaryFunctions() {
             val p = PDictionary(mutableMapOf(), null, -1)
             setFunction(p, EmbeddedFunction("remove", listOf("key")) { token, args ->
-                val dict = getDictionary(token, "this", args)
+                val dict = getPDictionary(args, token, "this")
                 val key = getIdent(token, "key", args)
                 dict.getPValue().remove(key) ?: NULL
             })

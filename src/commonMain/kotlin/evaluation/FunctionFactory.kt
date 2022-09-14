@@ -14,8 +14,10 @@ import properties.primitive.*
 import readLine
 import sendMessage
 import table.FileTable
-import table.SymbolTable
-import utils.Utils.toInt
+import utils.Utils.NULL
+import utils.Utils.getIdent
+import utils.Utils.getPNumber
+import utils.Utils.toPInt
 import utils.Utils.toVariable
 import kotlin.math.*
 import kotlin.random.Random
@@ -42,51 +44,6 @@ object FunctionFactory {
         )
     }
 
-    private fun createIdent(node: Node, name: String) = Node(symbol = name, value = name, position = node.position)
-
-    fun getIdent(node: Node, name: String, args: SymbolTable) = args.getIdentifier(createIdent(node, name))
-    fun getDictionary(node: Node, name: String, args: SymbolTable): PDictionary {
-        val dictionary = getIdent(node, name, args)
-        if (dictionary !is PDictionary)
-            throw PositionalException("Expected array as $name", args.getFileTable().filePath, node)
-        return dictionary
-    }
-
-    fun getArray(node: Node, name: String, args: SymbolTable): PArray {
-        val array = getIdent(node, name, args)
-        if (array !is PArray)
-            throw PositionalException("Expected array as $name", args.getFileTable().filePath, node)
-        return array
-    }
-
-    fun getString(node: Node, name: String, args: SymbolTable): PString {
-        val str = getIdent(node, name, args)
-        if (str !is PString)
-            throw PositionalException("Expected string as $name", args.getFileTable().filePath, node)
-        return str
-    }
-
-    fun getNumber(node: Node, name: String, args: SymbolTable): PNumber {
-        val num = getIdent(node, name, args)
-        if (num !is PNumber)
-            throw PositionalException("Expected integer as $name", args.getFileTable().filePath, node)
-        return num
-    }
-
-    fun getInt(node: Node, name: String, args: SymbolTable): PInt {
-        val int = getIdent(node, name, args)
-        if (int !is PInt)
-            throw PositionalException("Expected integer as $name", args.getFileTable().filePath, node)
-        return int
-    }
-
-    fun getDouble(node: Node, name: String, args: SymbolTable): PDouble {
-        val double = getIdent(node, name, args)
-        if (double !is PDouble)
-            throw PositionalException("Expected integer as $name", args.getFileTable().filePath, node)
-        return double
-    }
-
     fun initializeEmbedded(): MutableMap<String, RFunction> {
         val res = mutableMapOf<String, RFunction>()
         res["log"] = EmbeddedFunction("log", listOf("x"))
@@ -105,7 +62,7 @@ object FunctionFactory {
             if (fileName !is PString || content !is PString)
                 throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, token)
             FileSystem.write(fileName.getPValue(), content.getPValue())
-            Unit
+            NULL
         }
         res["read"] = EmbeddedFunction("read", listOf("path")) { token, args ->
             val fileName = getIdent(token, "path", args)
@@ -117,20 +74,20 @@ object FunctionFactory {
             val fileName = getIdent(token, "path", args)
             if (fileName !is PString)
                 throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, token)
-            FileSystem.exists(fileName.getPValue()).toInt()
+            FileSystem.exists(fileName.getPValue()).toPInt()
         }
         res["delete"] = EmbeddedFunction("delete", listOf("path")) { token, args ->
             val fileName = getIdent(token, "path", args)
             if (fileName !is PString)
                 throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, token)
-            FileSystem.delete(fileName.getPValue()).toInt()
+            FileSystem.delete(fileName.getPValue()).toPInt()
         }
         res["test"] = EmbeddedFunction("test", listOf("x")) { token, args ->
             val ident = getIdent(token, "x", args)
-            if (ident !is PInt || ident.getPValue() == 0)
+            if (ident !is PNumber || ident.getPValue() == 0)
                 throw PositionalException("test failed", args.getFileTable().filePath, token)
         }
-        res["rnd"] = EmbeddedFunction("rnd", listOf()) { _, _ -> rnd.nextDouble() }
+        res["rnd"] = EmbeddedFunction("rnd", listOf()) { _, _ -> PInt(rnd.nextInt()) }
         res["seed"] = EmbeddedFunction("seed", listOf("x")) { token, args ->
             val seed = getIdent(token, "x", args)
             if (seed !is PInt)
@@ -143,18 +100,24 @@ object FunctionFactory {
             EmbeddedFunction("str", listOf("x")) { token, args -> getIdent(token, "x", args).toString() }
         res["int"] = EmbeddedFunction("int", listOf("x")) { token, args ->
             when (val argument = getIdent(token, "x", args)) {
-                is PDouble -> argument.getPValue().toInt()
-                is PInt -> argument.getPValue()
-                is PString -> argument.getPValue().toInt()
-                else -> throw PositionalException("cannot cast type to integer", args.getFileTable().filePath, token)
+                is PNumber -> PInt(argument.getPValue().toInt())
+                is PString -> try {
+                    PInt(argument.getPValue().toInt())
+                } catch (e: NumberFormatException) {
+                    throw PositionalException("String is not castable to int", args.getFileTable().filePath, token)
+                }
+                else -> throw PositionalException("Cannot cast type to double", args.getFileTable().filePath, token)
             }
         }
         res["double"] = EmbeddedFunction("double", listOf("x")) { token, args ->
             when (val argument = getIdent(token, "x", args)) {
-                is PDouble -> argument.getPValue()
-                is PInt -> argument.getPValue().toDouble()
-                is PString -> argument.getPValue().toDouble()
-                else -> throw PositionalException("cannot cast type to double", args.getFileTable().filePath, token)
+                is PNumber -> PDouble(argument.getPValue().toDouble())
+                is PString ->  try {
+                PDouble(argument.getPValue().toDouble())
+            } catch (e: NumberFormatException) {
+                throw PositionalException("String is not castable to Double", args.getFileTable().filePath, token)
+            }
+                else -> throw PositionalException("Cannot cast type to Double", args.getFileTable().filePath, token)
             }
         }
         res["array"] = EmbeddedFunction("array", listOf("x")) { token, args ->
@@ -174,40 +137,20 @@ object FunctionFactory {
                 else -> throw PositionalException("cannot cast type to array", args.getFileTable().filePath, token)
             }
         }
-        res["sin"] = EmbeddedFunction("sin", listOf("angle")) { token, args ->
-            when (val argument = getIdent(token, "angle", args)) {
-                is PInt -> sin(argument.getPValue().toDouble())
-                is PDouble -> sin(argument.getPValue())
-                else -> throw PositionalException("Expected number", args.getFileTable().filePath, token)
-            }
+        res["sin"] = EmbeddedFunction("sin", listOf("number")) { token, args ->
+            PDouble(sin(getPNumber(args, token, "number").getPValue().toDouble()))
         }
-        res["cos"] = EmbeddedFunction("cos", listOf("angle")) { token, args ->
-            when (val argument = getIdent(token, "angle", args)) {
-                is PInt -> cos(argument.getPValue().toDouble())
-                is PDouble -> cos(argument.getPValue())
-                else -> throw PositionalException("Expected number", args.getFileTable().filePath, token)
-            }
+        res["cos"] = EmbeddedFunction("cos", listOf("number")) { token, args ->
+            PDouble(cos(getPNumber(args, token, "number").getPValue().toDouble()))
         }
         res["sqrt"] = EmbeddedFunction("sqrt", listOf("number")) { token, args ->
-            when (val argument = getIdent(token, "number", args)) {
-                is PInt -> sqrt(argument.getPValue().toDouble())
-                is PDouble -> sqrt(argument.getPValue())
-                else -> throw PositionalException("Expected number", args.getFileTable().filePath, token)
-            }
+            PDouble(sqrt(getPNumber(args, token, "number").getPValue().toDouble()))
         }
-        res["asin"] = EmbeddedFunction("asin", listOf("sin")) { token, args ->
-            when (val argument = getIdent(token, "sin", args)) {
-                is PInt -> asin(argument.getPValue().toDouble())
-                is PDouble -> asin(argument.getPValue())
-                else -> throw PositionalException("Expected number", args.getFileTable().filePath, token)
-            }
+        res["asin"] = EmbeddedFunction("asin", listOf("number")) { token, args ->
+            PDouble(asin(getPNumber(args, token, "number").getPValue().toDouble()))
         }
-        res["acos"] = EmbeddedFunction("acos", listOf("cos")) { token, args ->
-            when (val argument = getIdent(token, "cos", args)) {
-                is PInt -> acos(argument.getPValue().toDouble())
-                is PDouble -> acos(argument.getPValue())
-                else -> throw PositionalException("Expected number", args.getFileTable().filePath, token)
-            }
+        res["acos"] = EmbeddedFunction("acos", listOf("number")) { token, args ->
+            PDouble(acos(getPNumber(args, token, "number").getPValue().toDouble()))
         }
         res["floatEquals"] =
             EmbeddedFunction(
@@ -215,16 +158,16 @@ object FunctionFactory {
                 listOf("epsilon = 0.0000000000000000000000000001", "absTh = 0.0000001")
             ) { token, args ->
                 // https://stackoverflow.com/a/32334103
-                val first = getNumber(token, "first", args).getPValue().toDouble()
-                val second = getNumber(token, "second", args).getPValue().toDouble()
-                val epsilon = getNumber(token, "epsilon", args).getPValue().toDouble()
-                val absTh = getNumber(token, "absTh", args).getPValue().toDouble()
+                val first = getPNumber(args, token, "first").getPValue().toDouble()
+                val second = getPNumber(args, token, "second").getPValue().toDouble()
+                val epsilon = getPNumber(args, token, "epsilon").getPValue().toDouble()
+                val absTh = getPNumber(args, token, "absTh").getPValue().toDouble()
                 if (first == second)
                     PInt(1, null)
                 else {
                     val diff = abs(first - second)
                     val norm = min(abs(first) + abs(second), Float.MAX_VALUE.toDouble())
-                    (diff < max(absTh, epsilon * norm)).toInt()
+                    (diff < max(absTh, epsilon * norm)).toPInt()
                 }
             }
         res["type"] =

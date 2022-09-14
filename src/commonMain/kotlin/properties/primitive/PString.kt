@@ -1,8 +1,6 @@
 package properties.primitive
 
 import References
-import evaluation.FunctionFactory.getInt
-import evaluation.FunctionFactory.getString
 import isInt
 import lexer.PositionalException
 import node.Node
@@ -10,7 +8,9 @@ import properties.EmbeddedFunction
 import properties.Type
 import properties.Variable
 import table.FileTable
-import utils.Utils.castToString
+import utils.Utils.castToPString
+import utils.Utils.getPInt
+import utils.Utils.getPString
 import utils.Utils.toProperty
 
 class PString(value: String, parent: Type? = null) : Primitive(value, parent), Indexable {
@@ -42,7 +42,7 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
     companion object {
         fun initializeStringProperties() {
             val s = PString("", null)
-            setProperty(s, "size") { p: Primitive -> (p as PString).getPValue().length.toProperty() }
+            setProperty(s, "size") { p: Primitive -> PInt((p as PString).getPValue().length).toProperty() }
         }
 
         /**
@@ -58,46 +58,46 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
             setFunction(
                 s,
                 EmbeddedFunction("substring", listOf("start"), listOf("end = this.size")) { token, args ->
-                    val string = castToString(args.getPropertyOrNull("this")!!)
-                    val start = getInt(token, "start", args)
-                    val end = getInt(token, "end", args)
+                    val string = castToPString(args.getPropertyOrNull("this")!!)
+                    val start = getPInt(args, token, "start")
+                    val end = getPInt(args, token, "end")
                     string.getPValue().substring(start.getPValue(), end.getPValue())
                 }
             )
             setFunction(
                 s,
                 EmbeddedFunction("replace", listOf("oldString", "newString")) { token, args ->
-                    val string = castToString(args.getPropertyOrNull("this")!!)
-                    val oldString = getString(token, "oldString", args)
-                    val newString = getString(token, "newString", args)
+                    val string = castToPString(args.getPropertyOrNull("this")!!)
+                    val oldString = getPString(args, token, "oldString")
+                    val newString = getPString(args, token, "newString")
                     string.getPValue().replace(oldString.getPValue(), newString.getPValue())
                 }
             )
             setFunction(
                 s,
                 EmbeddedFunction("reversed") { _, args ->
-                    val string = castToString(args.getPropertyOrNull("this")!!)
+                    val string = castToPString(args.getPropertyOrNull("this")!!)
                     string.getPValue().reversed()
                 }
             )
             setFunction(
                 s,
                 EmbeddedFunction("lowercase") { _, args ->
-                    val string = castToString(args.getPropertyOrNull("this")!!)
+                    val string = castToPString(args.getPropertyOrNull("this")!!)
                     string.getPValue().lowercase()
                 }
             )
             setFunction(
                 s,
                 EmbeddedFunction("uppercase") { _, args ->
-                    val string = castToString(args.getPropertyOrNull("this")!!)
+                    val string = castToPString(args.getPropertyOrNull("this")!!)
                     string.getPValue().uppercase()
                 }
             )
             setFunction(
                 s,
                 EmbeddedFunction("toArray") { _, args ->
-                    val string = castToString(args.getPropertyOrNull("this")!!)
+                    val string = castToPString(args.getPropertyOrNull("this")!!)
                     string.getPValue().toCharArray().map { it.toString() }
                 }
             )

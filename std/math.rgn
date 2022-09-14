@@ -128,12 +128,10 @@ fun newton(a, b) {
 
 // x^3 + ax^2 + bx + c = 0
 fun solveCubic(a, b, c) {
-    d = 42
-    // #stop
     if (c == 0) {
         solution = 0.0
     } else {
-        a3 = a / 3.0
+        a3 = a / 3
         p = b - a3 * a
         q = c - (a3 * a3 + p) * a3
         if (q < 0) {
@@ -155,7 +153,6 @@ fun solveCubic(a, b, c) {
 }
 // x^2 + ax + b = 0
 fun solveSquare(a, b) {
-   // #stop
     if (b == 0)
         return if(a == 0) [0.0, 0.0] else [0.0, -double(a)].sorted()
     solution = []

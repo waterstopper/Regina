@@ -46,6 +46,10 @@ class LinkTest {
         fun main() {
             a = A()
             a.b = 1
+            log(a.b)
+            log(a.b?.c)
+            log(!a.b?.c)
+            log(!a.b?.c.d)
             test(!a.b?.c.d)
             test(!a.b?.c?.d)
         }

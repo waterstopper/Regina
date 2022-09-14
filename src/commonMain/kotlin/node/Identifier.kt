@@ -5,6 +5,7 @@ import lexer.PositionalException
 import node.statement.Assignment
 import properties.Object
 import properties.Type
+import properties.primitive.PNumber
 import properties.primitive.Primitive
 import table.SymbolTable
 import utils.Utils.toProperty
@@ -23,7 +24,7 @@ open class Identifier(
                 this,
                 symbolTable.getFileTable().filePath
             )
-        if (variable is Primitive)
+        if (variable is Primitive && variable !is PNumber)
             return (variable).getPValue()
         return variable
     }

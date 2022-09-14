@@ -2,6 +2,7 @@ package utils
 
 import isDouble
 import isInt
+import lexer.ExpectedTypeException
 import lexer.Parser
 import lexer.PositionalException
 import node.Identifier
@@ -15,10 +16,13 @@ import properties.Type
 import properties.Variable
 import properties.primitive.*
 import table.FileTable
+import table.SymbolTable
 import kotlin.reflect.KClass
 
 object Utils {
-    val NULL = PInt(0, null)
+    val NULL = PInt(0)
+    val FALSE = PInt(0)
+    val TRUE = PInt(1)
 
     init {
         PArray.initializeEmbeddedArrayFunctions()
@@ -34,7 +38,8 @@ object Utils {
         PDictionary.initializeDictionaryProperties()
     }
 
-    fun Boolean.toInt(): Int = if (this) 1 else 0
+    fun Boolean.toPInt(): PInt = if (this) TRUE else FALSE
+    // fun Boolean.toInt(): Int = if (this) 1 else 0
     fun Boolean.toNonZeroInt(): Int = if (this) 1 else -1
 
     fun Any.toBoolean(node: Node, fileTable: FileTable): Boolean {
@@ -67,41 +72,62 @@ object Utils {
         return res.toString()
     }
 
-    fun unifyPNumbers(first: Variable, second: Variable, node: Node, filePath: String): List<Number> {
-        val firstNumber =
-            if (first is PNumber) first.getPValue() else throw PositionalException("Expected number", filePath, node)
-        val secondNumber =
-            if (second is PNumber) second.getPValue() else throw PositionalException("Expected number", filePath, node)
-        return unifyNumbers(firstNumber, secondNumber, node, filePath)
+    private fun createIdent(node: Node, name: String) = Node(symbol = name, value = name, position = node.position)
+
+    fun getIdent(node: Node, name: String, args: SymbolTable) = args.getIdentifier(createIdent(node, name))
+    fun getPDictionary(args: SymbolTable, node: Node, name: String): PDictionary {
+        val dictionary = getIdent(node, name, args)
+        if (dictionary !is PDictionary)
+            throw ExpectedTypeException(listOf(PDictionary::class), args.getFileTable().filePath, node, dictionary)
+        return dictionary
     }
 
-    fun unifyNumbers(first: Any, second: Any, node: Node, filePath: String): List<Number> {
-        if (first !is Number)
-            throw PositionalException("left operand is not numeric for this infix operator", filePath, node)
-        if (second !is Number)
-            throw PositionalException("right operand is not numeric for this infix operator", filePath, node)
-        if (isInt(first) && isInt(second))
-            return listOf(first, second)
-        return listOf(first.toDouble(), second.toDouble())
+    fun getPArray(args: SymbolTable, node: Node, name: String): PArray {
+        val array = getIdent(node, name, args)
+        if (array !is PArray)
+            throw ExpectedTypeException(listOf(PArray::class), args.getFileTable().filePath, node, array)
+        return array
     }
 
-    operator fun Number.unaryMinus(): Any {
-        return if (isDouble(this))
-            -(this as Double)
-        else -this.toInt()
+    fun getPString(args: SymbolTable, node: Node, name: String): PString {
+        val str = getIdent(node, name, args)
+        if (str !is PString)
+            throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, node, str)
+        return str
+    }
+
+    fun getPNumber(args: SymbolTable, node: Node, name: String? = null ): PNumber {
+        val num = if(name == null) node.evaluate(args) else getIdent(node, name, args)
+        if (num !is PNumber)
+            throw ExpectedTypeException(listOf(PNumber::class), args.getFileTable().filePath, node, num)
+        return num
+    }
+
+    fun getPInt(args: SymbolTable, node: Node, name: String): PInt {
+        val int = getIdent(node, name, args)
+        if (int !is PInt)
+            throw ExpectedTypeException(listOf(PInt::class), args.getFileTable().filePath, node, int)
+        return int
+    }
+
+    fun getPDouble(args: SymbolTable, node: Node, name: String): PDouble {
+        val double = getIdent(node, name, args)
+        if (double !is PDouble)
+            throw ExpectedTypeException(listOf(PDouble::class), args.getFileTable().filePath, node, double)
+        return double
     }
 
     fun <T> List<T>.subList(start: Int): List<T> = this.subList(start, this.size)
 
-    fun castToArray(array: Any): PArray {
+    fun castToPArray(array: Any): PArray {
         return array as PArray
     }
 
-    fun castToString(str: Any): PString {
+    fun castToPString(str: Any): PString {
         return str as PString
     }
 
-    fun castToNumber(num: Any): PNumber {
+    fun castToPNumber(num: Any): PNumber {
         return num as PNumber
     }
 

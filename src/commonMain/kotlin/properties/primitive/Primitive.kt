@@ -111,11 +111,6 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
             return when (value) {
                 is String -> PString(value, parent)
                 is List<*> -> PArray(value as MutableList<Variable>, parent, arrayId++)
-                is Number -> {
-                    if (isInt(value))
-                        PInt(value.toInt(), parent)
-                    else PDouble(value.toDouble(), parent)
-                }
                 is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent, dictionaryId++)
                 else -> throw PositionalException(
                     "Cannot create variable of type `${value::class}`", "", node

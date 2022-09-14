@@ -1,7 +1,6 @@
 package node
 
 import Message
-import properties.primitive.PInt
 import readLine
 import sendMessage
 import table.SymbolTable
@@ -17,7 +16,7 @@ class Meta(
         content["@position"] = position
         content["@file"] = symbolTable.getFileTable().filePath
         sendMessage(Message("debug", content))
-        readLine()
+       // readLine()
         return NULL
     }
 }

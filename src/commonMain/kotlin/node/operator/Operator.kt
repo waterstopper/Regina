@@ -1,11 +1,10 @@
 package node.operator
 
-import isInt
 import lexer.PositionalException
 import node.Node
 import properties.primitive.PNumber
 import table.SymbolTable
-import utils.Utils.toInt
+import utils.Utils.toPInt
 import utils.Utils.toVariable
 
 open class Operator(
@@ -18,8 +17,8 @@ open class Operator(
     override fun evaluate(symbolTable: SymbolTable): Any {
         return when (value) {
             "+" -> left.evaluate(symbolTable).plus(right.evaluate(symbolTable), this, symbolTable)
-            "==" -> left.evaluate(symbolTable).eq(right.evaluate(symbolTable)).toInt()
-            "!=" -> left.evaluate(symbolTable).neq(right.evaluate(symbolTable)).toInt()
+            "==" -> left.evaluate(symbolTable).eq(right.evaluate(symbolTable)).toPInt()
+            "!=" -> left.evaluate(symbolTable).neq(right.evaluate(symbolTable)).toPInt()
             else -> throw PositionalException(
                 "Operator `$value` not implemented",
                 symbolTable.getFileTable().filePath,
@@ -42,11 +41,9 @@ open class Operator(
         }
         if (this is String || other is String)
             return this.toString() + other.toString()
-        if (this is Number && other is Number) {
+        if (this is PNumber && other is PNumber) {
             // to make MAX_VALUE + n equal to MIN_VALUE + n - 1
-            if (isInt(this) && isInt(other))
-                return this.toInt() + other.toInt()
-            return this.toDouble() + other.toDouble()
+            return this + other
         } else throw PositionalException(
             "Operator not applicable to operands",
             symbolTable.getFileTable().filePath,
@@ -55,10 +52,8 @@ open class Operator(
     }
 
     private fun Any.eq(other: Any): Boolean {
-        if (this is Number && other is Number)
-            return this.toDouble() == other.toDouble()
         if (this is PNumber && other is PNumber)
-            return this.getPValue().toDouble() == other.getPValue().toDouble()
+            return this == other
         if (this is MutableList<*> && other is MutableList<*>) {
             if (this.size != other.size)
                 return false

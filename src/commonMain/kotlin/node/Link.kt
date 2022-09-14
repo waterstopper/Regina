@@ -12,6 +12,7 @@ import node.operator.Index
 import node.statement.Assignment
 import properties.*
 import properties.primitive.PDictionary
+import properties.primitive.PNumber
 import properties.primitive.Primitive
 import table.FileTable
 import table.SymbolTable
@@ -69,7 +70,7 @@ open class Link(
             table = table.changeVariable(currentVariable)
             index++
         }
-        return if (currentVariable!! is Primitive)
+        return if (currentVariable!! is Primitive && currentVariable !is PNumber)
             (currentVariable as Primitive).getPValue() else currentVariable
     }
 
@@ -106,7 +107,6 @@ open class Link(
                     if (assignment != null)
                         return Optional(assignment)
                 }
-
                 val property = variable.getPropertyOrNull(children[index].value)
                 if (property == null && nullable.contains(index))
                     return Optional(NullValue())

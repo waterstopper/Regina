@@ -18,7 +18,7 @@ class PNumberTest {
                 test(0.MAX_VALUE == 2147483647)
                 test(0 is Int)
                 test(0.1 is Double)
-                test(0.0 is Int) // important test
+                test(0.0 is Double) // important test
                 test(0.1 !is Int)
                 
                 test((-0.2.abs()) == -0.2)
