@@ -56,6 +56,7 @@ object RegistryFactory {
         registry.consumable("{")
         registry.consumable("}")
         registry.consumable("as")
+        registry.consumable("in")
 
         registry.infix("+", 50)
         registry.infix("-", 50)
@@ -259,6 +260,16 @@ object RegistryFactory {
 
         registry.stmt("while") { node: Token, parser: Parser ->
             val res = TokenBlock(node)
+            res.children.add(parser.expression(0))
+            parser.lexer.moveAfterTokenLineSeparator()
+            res.children.add(parser.block(canBeSingleStatement = true))
+            res
+        }
+
+        registry.stmt("foreach") { node: Token, parser: Parser ->
+            val res = TokenBlock(node)
+            res.children.add(parser.expression(0))
+            parser.advance("in")
             res.children.add(parser.expression(0))
             parser.lexer.moveAfterTokenLineSeparator()
             res.children.add(parser.block(canBeSingleStatement = true))

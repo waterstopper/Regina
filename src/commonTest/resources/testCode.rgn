@@ -257,8 +257,7 @@ class Math {
 	PI = 3.1415926
 }
 
-fun rotate(point, pivot, angle) {
-break}
+fun rotate(point, pivot, angle) {}
 
 fun abs(x) {
 	return if (x < 0) -x else x

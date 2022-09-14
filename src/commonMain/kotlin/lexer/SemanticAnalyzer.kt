@@ -13,6 +13,7 @@ import node.invocation.Constructor
 import node.invocation.Invocation
 import node.statement.Assignment
 import node.statement.Block
+import node.statement.WordStatement
 import properties.RFunction
 import properties.Type
 import sendMessage
@@ -81,7 +82,7 @@ class Analyzer(fileTable: FileTable) {
             val table = addFunctionParametersToTable(
                 function, SymbolTable(fileTable = fileTable, resolvingType = false)
             )
-            changeInvocationType(function.body, table)
+            changeInvocationType(function.body, table, 0)
         }
     }
 
@@ -92,17 +93,25 @@ class Analyzer(fileTable: FileTable) {
         for (assignment in type.assignments)
             table.addVariableOrNot(assignment.left)
         for (assignment in type.assignments)
-            changeInvocationType(assignment, table.copy(), inProperty = true)
+            changeInvocationType(assignment, table.copy(), 0, inProperty = true)
 
         for (function in type.functions) {
             val functionTable = addFunctionParametersToTable(function, table.copy())
-            changeInvocationType(function.body, functionTable)
+            changeInvocationType(function.body, functionTable, 0)
         }
     }
 
-    private fun changeInvocationType(node: Node, symbolTable: SymbolTable, inProperty: Boolean = false) {
+    private fun changeInvocationType(node: Node, symbolTable: SymbolTable, cycles: Int, inProperty: Boolean = false) {
         for ((index, child) in node.children.withIndex()) {
             when (child) {
+                is WordStatement -> {
+                    if (cycles < 1 && (child.symbol == "break" || child.symbol == "continue"))
+                        throw PositionalException(
+                            "${child.symbol} out of cycle",
+                            symbolTable.getFileTable().filePath,
+                            child
+                        )
+                }
                 is Assignment -> {
                     if (node !is Invocation && node !is Block && node !is Assignment)
                         throw PositionalException(
@@ -118,11 +127,13 @@ class Analyzer(fileTable: FileTable) {
             }
         }
         for (child in node.children)
-            if (child !is Link)
-                changeInvocationType(child, symbolTable)
-            else {
+            if (child !is Link) {
+                if (child is Block && (child.symbol == "foreach" || child.symbol == "while"))
+                    changeInvocationType(child, symbolTable, cycles + 1)
+                else changeInvocationType(child, symbolTable, cycles)
+            } else {
                 for (linkChild in child.children)
-                    changeInvocationType(linkChild, symbolTable)
+                    changeInvocationType(linkChild, symbolTable, cycles)
             }
     }
 
@@ -134,7 +145,7 @@ class Analyzer(fileTable: FileTable) {
                 changeInvocationOnSecondPositionInLink(symbolTable, node, inProperty)
             else {
                 node.children[1] = Call(node.right)
-                return changeInvocationType(node.left, symbolTable)
+                return changeInvocationType(node.left, symbolTable, 0)
             }
         }
         for ((index, child) in node.children.subList(2).withIndex())
@@ -148,7 +159,7 @@ class Analyzer(fileTable: FileTable) {
         for (param in function.nonDefaultParams)
             table.addVariableOrNot(param)
         for (defaultParam in function.defaultParams) {
-            changeInvocationType(defaultParam, table)
+            changeInvocationType(defaultParam, table, 0)
             table.addVariableOrNot(defaultParam.left)
         }
         return table
