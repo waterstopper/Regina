@@ -16,6 +16,7 @@ import sendMessage
 import table.FileTable
 import utils.Utils.NULL
 import utils.Utils.getIdent
+import utils.Utils.getPInt
 import utils.Utils.getPNumber
 import utils.Utils.toPInt
 import utils.Utils.toVariable
@@ -87,7 +88,10 @@ object FunctionFactory {
             if (ident !is PNumber || ident.getPValue() == 0)
                 throw PositionalException("test failed", args.getFileTable().filePath, token)
         }
-        res["rnd"] = EmbeddedFunction("rnd", listOf()) { _, _ -> PInt(rnd.nextInt()) }
+        res["rnd"] = EmbeddedFunction("rnd", namedArgs = listOf("isDouble = false")) { token, args ->
+            if (getPInt(args, token, "isDouble").getPValue() == 0)
+                PInt(rnd.nextInt()) else PDouble(rnd.nextDouble())
+        }
         res["seed"] = EmbeddedFunction("seed", listOf("x")) { token, args ->
             val seed = getIdent(token, "x", args)
             if (seed !is PInt)
@@ -112,11 +116,11 @@ object FunctionFactory {
         res["double"] = EmbeddedFunction("double", listOf("x")) { token, args ->
             when (val argument = getIdent(token, "x", args)) {
                 is PNumber -> PDouble(argument.getPValue().toDouble())
-                is PString ->  try {
-                PDouble(argument.getPValue().toDouble())
-            } catch (e: NumberFormatException) {
-                throw PositionalException("String is not castable to Double", args.getFileTable().filePath, token)
-            }
+                is PString -> try {
+                    PDouble(argument.getPValue().toDouble())
+                } catch (e: NumberFormatException) {
+                    throw PositionalException("String is not castable to Double", args.getFileTable().filePath, token)
+                }
                 else -> throw PositionalException("Cannot cast type to Double", args.getFileTable().filePath, token)
             }
         }
@@ -185,6 +189,14 @@ object FunctionFactory {
                     else -> throw PositionalException("Unsupported type", args.getFileTable().filePath, token)
                 }
             }
+        res["range"] = EmbeddedFunction("range", listOf("start", "end"), listOf("step = 1")) { token, args ->
+            val start = getPInt(args, token, "start")
+            val end = getPInt(args, token, "end")
+            val step = getPInt(args, token, "step")
+            if (step.getPValue() < 1)
+                throw PositionalException("Step must be positive", args.getFileTable().filePath, token)
+            mutableListOf(start, end, step).toVariable()
+        }
         return res
     }
 }

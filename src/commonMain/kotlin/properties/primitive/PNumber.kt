@@ -8,6 +8,8 @@ import utils.Utils.castToPNumber
 import utils.Utils.getPInt
 import utils.Utils.getPNumber
 import utils.Utils.toPInt
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -113,6 +115,24 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
                         val divisor = 10.0.pow(-digits.getPValue())
                         PDouble((number.getPValue().toDouble() / divisor).roundToInt() * divisor, null)
                     } else PDouble(round(number.getPValue().toDouble(), digits.getPValue()))
+                }
+            )
+            setFunction(
+                n,
+                EmbeddedFunction(
+                    "floor"
+                ) { token, args ->
+                    val number = getPNumber(args, token, "this")
+                    PInt(floor(number.getPValue().toDouble()).toInt())
+                }
+            )
+            setFunction(
+                n,
+                EmbeddedFunction(
+                    "ceil"
+                ) { token, args ->
+                    val number = getPNumber(args, token, "this")
+                    PInt(ceil(number.getPValue().toDouble()).toInt())
                 }
             )
             setFunction(

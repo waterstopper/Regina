@@ -34,11 +34,9 @@ fun removeFirstZeros(array) {
 }
 
 fun firstToOne(array) {
-    i = 0
     coeff = array[0]
-    while(i < array.size) {
+    foreach(i in range(0, array.size-1)) {
         array[i] = array[i] / double(coeff)
-        i = i + 1
     }
     return array
 }
@@ -55,10 +53,8 @@ fun solveQuadratic(a, b, c, d) {
     q =  8 * h * e - 2 * b * e + c
     r = -3 * h * h + b * h - c * e + d
     offset = solveQuadraticZeroCube(p, q, r)
-    i = 0
-    while(i < offset.size) {
+    foreach(i in range(0, offset.size - 1)) {
         offset[i] = offset[i] - e
-        i = i + 1
     }
     return offset
 }

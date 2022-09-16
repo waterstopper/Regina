@@ -10,8 +10,8 @@ import properties.Type
 import properties.Variable
 import table.FileTable
 import utils.Utils.NULL
-import utils.Utils.getPDictionary
 import utils.Utils.getIdent
+import utils.Utils.getPDictionary
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
@@ -89,6 +89,15 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
             }
             setProperty(p, "values") { pr: Primitive ->
                 (pr as PDictionary).getPValue().values.toMutableList().toProperty()
+            }
+            setProperty(p, "entries") { pr: Primitive ->
+                (pr as PDictionary).getPValue().map {
+                    PDictionary(
+                        mutableMapOf("key".toVariable() to it.key.toVariable(), "value".toVariable() to it.value),
+                        null,
+                        dictionaryId++
+                    )
+                }.toProperty()
             }
         }
 

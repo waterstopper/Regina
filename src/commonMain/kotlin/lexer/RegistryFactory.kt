@@ -268,9 +268,13 @@ object RegistryFactory {
 
         registry.stmt("foreach") { node: Token, parser: Parser ->
             val res = TokenBlock(node)
+            parser.advance("(")
             res.children.add(parser.expression(0))
+            if (res.left !is TokenIdentifier)
+                throw SyntaxException("Expected identifier", filePath, res.left)
             parser.advance("in")
             res.children.add(parser.expression(0))
+            parser.advance(")")
             parser.lexer.moveAfterTokenLineSeparator()
             res.children.add(parser.block(canBeSingleStatement = true))
             res

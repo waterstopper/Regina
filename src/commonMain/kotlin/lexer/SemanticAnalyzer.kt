@@ -112,6 +112,10 @@ class Analyzer(fileTable: FileTable) {
                             child
                         )
                 }
+                is Block -> {
+                    if (child.symbol == "foreach")
+                        symbolTable.addVariableOrNot(child.left)
+                }
                 is Assignment -> {
                     if (node !is Invocation && node !is Block && node !is Assignment)
                         throw PositionalException(

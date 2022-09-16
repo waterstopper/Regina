@@ -173,20 +173,18 @@ class Polyline {
 }
 
 class Plane {
-    objects = []
 
     fun center() {
         points = []
-        i = 0
-        while(i < objects.size) {
-            points.add(centerFigure(objects[i]))
-            i = i + 1
+        foreach(i in objects) {
+            points.add(centerFigure(i))
         }
 
     }
     fun rotate(angle, pivot = center()) {
-        i = 0
-        while(i < objects.size) { rotateFigure(this, angle, pivot); i = i + 1 }
+        foreach(i in range(0, objects.size-1)) {
+            rotateFigure(this, angle, pivot)
+        }
     }
 }
 
@@ -200,18 +198,15 @@ fun cosAngleBetweenSegments(a, b) {
 
 fun rotateFigure(fig, angle, pivot) {
     props = fig.properties
-    i = 0
-    while(i < props.size) {
+    foreach(i in range(0, props.size-1)) {
         if(props[i] is Point)
             props[i] = props[i].rotate(angle, pivot)
-        i = i + 1
     }
 }
 
 fun translateFigure(fig, vec) {
     props = fig.properties
-    i = 0
-    while(i < props.size)
+    foreach(i in range(0, props.size-1))
         if(props[i] is Point)
             props[i] = props[i].plus(vec)
 }
@@ -228,35 +223,29 @@ fun scaleArrayFromLine(points, segment, coeff) {
 }
 
 fun scaleArrayFromPoint(points, point, coeff) {
-    i = 0
-    while(i < points.size) {
+    foreach(i in range(0, points.size-1)) {
         if(points[i] is Point) {
             vec = points[i].minus(point).scale(coeff)
             points[i] = point.plus(vec)
         }
-        i = i + 1
     }
 }
 
 fun centerFigure(fig) {
     props = array(fig.properties)
     array = []
-    i = 0
-    while(i < props.size) {
+    foreach(i in range(0, props.size-1)) {
         if(props[i]["value"] is Point)
             array.add(props[i]["value"])
-        i = i + 1
     }
     return centerFromPointsArray(array)
 }
 
 fun centerFromPointsArray(array) {
     res = Point()
-    i = 0
-    while(i < array.size) {
+    foreach(i in range(0, array.size-1)) {
         res.x = res.x + array[i].x
         res.y = res.y + array[i].y
-        i = i + 1
     }
     res.x = double(res.x) / array.size
     res.y = double(res.y) / array.size

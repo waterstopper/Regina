@@ -106,7 +106,8 @@ object TokenFactory {
             link.children[1] = Call(link.right)
             return link.children[1] as Call
         }
-        val fileTable = symbolTable.getImportOrNull(link.left.value) ?: if (!inProperty) throw PositionalException(
+        val fileTable = symbolTable.getImportOrNull(link.left.value)
+            ?: if (!inProperty) throw PositionalException(
             "Variable or import not found",
             symbolTable.getFileTable().filePath,
             link.left

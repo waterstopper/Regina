@@ -7,6 +7,69 @@ import kotlin.test.assertTrue
 
 class BlockTest {
     @Test
+    fun testForeach() {
+        eval("""
+            fun main() {
+                foreach(i in {1:2, 3:4}.entries) {
+                    test(i["key"] % 2 == 1)
+                    test(i["value"] % 2 == 0)
+                }
+                index = 0
+                foreach   (i in [1,2,3]  ) {
+                    index = index + 1
+                    test(index == i)
+                }
+                index = 0
+                foreach(i in "123") {
+                    index = index + 1
+                    test(index == int(i))
+                }
+                
+            } 
+        """)
+    }
+
+    @Test
+    fun testForeachMutable() {
+        eval("""
+            fun main() {
+                arr = [[], []]
+                foreach(i in arr) {
+                    i.add(1)
+                }
+                test(arr == [[1], [1]])
+            } 
+        """)
+    }
+
+    @Test
+    fun testRange() {
+        eval("""
+            fun main() {
+                foreach(i in range(1, 2, 3))
+                    test(i == 1)
+                visits = 0
+                foreach(i in range(10, 2)) {
+                    test(i <= 10 && i >= 2)
+                    visits = visits + 1
+                }
+                test(visits == 9)
+                visits = 0
+                foreach(i in range(10, 2, 2)) {
+                    test(i <= 10 && i >= 2)
+                    visits = visits + 1
+                }
+                test(visits == 5)
+                foreach(i in range(2, 10, 2)) {
+                    test(i <= 10 && i >= 2)
+                    visits = visits + 1
+                }
+                test(visits == 10)
+            }
+        """)
+    }
+
+    @Test
     fun testPassingBlocks() {
         eval(
             """

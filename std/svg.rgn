@@ -15,7 +15,10 @@ object usedValues {
 }
 
 // should have a name
-class Node {
+class SvgNode {
+    name = "svg"
+    header = StringBuilder()
+    content = StringBuilder()
     attributes = []
     children = []
 
@@ -38,7 +41,19 @@ class Node {
             res.add("<" + this.name + "/>")
         }
     }
+
+    fun addTextToHeader(text) {
+    }
+
+    fun addTextToContent(text, toStart = false) {
+
+    }
 }
+
+class Transform {
+    scale = ""
+}
+
 // should have a name and a value
 class Attribute {
     fun toString() {
@@ -109,11 +124,12 @@ fun create(root, width, height) {
 
 class StringBuilder {
     string = []
-    fun add(s) {
-        string.add(s)
+    fun add(s, index=string.size) {
+        string.add(s, index)
     }
-    fun toString() {
-        return string.joinToString("")
+
+    fun toString(sep="") {
+        return string.joinToString(sep)
     }
 }
 

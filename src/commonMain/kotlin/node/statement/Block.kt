@@ -2,12 +2,17 @@ package node.statement
 
 import lexer.PositionalException
 import node.Node
+import node.invocation.Call
+import properties.primitive.Indexable
+import properties.primitive.PDictionary
+import properties.primitive.PInt
+import properties.primitive.Primitive
 import table.SymbolTable
 import utils.Utils.toBoolean
+import utils.Utils.toVariable
 
 class Block(node: Node) :
     Node(node.symbol, node.value, node.position, node.children) {
-    constructor(position: Pair<Int, Int>) : this(Node("{", "{", position))
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         return when (symbol) {
@@ -19,8 +24,51 @@ class Block(node: Node) :
         }
     }
 
+    /**
+     * children[0] is always an identifier [RegistryFactory] is responsible
+     * children[1] is iterable
+     * children[2] is a block
+     * Method with duplicated code, but it is understandable
+     */
     private fun evaluateForeach(symbolTable: SymbolTable): Any {
+        var (iterable, isRange) = getIterable(symbolTable)
+        if (isRange) {
+            iterable = (iterable as List<PInt>).map { it.getPValue() }
+            for (i in (if (iterable[0] < iterable[1]) iterable[0]..iterable[1] else iterable[0] downTo iterable[1])
+                    step iterable[2]) {
+                symbolTable.addVariable(left.value, PInt(i).toVariable(left))
+                when (val res = children[2].evaluate(symbolTable)) {
+                    CycleStatement.CONTINUE -> continue
+                    CycleStatement.BREAK -> break
+                    !is Unit -> return res
+                }
+            }
+        } else
+            for (i in iterable) {
+                symbolTable.addVariable(left.value, i!!.toVariable(left))
+                when (val res = children[2].evaluate(symbolTable)) {
+                    CycleStatement.CONTINUE -> continue
+                    CycleStatement.BREAK -> break
+                    !is Unit -> return res
+                }
+            }
         return Unit
+    }
+
+    private fun getIterable(symbolTable: SymbolTable): Pair<Iterable<*>, Boolean> {
+        var iterable: Any = right.evaluate(symbolTable).toVariable(right)
+        if (right is Call && (right as Call).name.value == "range")
+            return Pair((iterable as Primitive).getPValue() as Iterable<*>, true)
+        if (iterable !is Indexable || iterable is PDictionary)
+            throw PositionalException(
+                "Expected array, string or range",
+                symbolTable.getFileTable().filePath,
+                right
+            )
+        iterable = (iterable as Primitive).getPValue()
+        if (iterable is String)
+            iterable = iterable.map { it.toString() }
+        return Pair(iterable as Iterable<*>, false)
     }
 
     private fun evaluateCycle(symbolTable: SymbolTable): Any {

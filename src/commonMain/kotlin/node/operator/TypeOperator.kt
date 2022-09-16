@@ -31,6 +31,7 @@ class TypeOperator(
             "Int" -> checked is PInt
             "Double" -> checked is PDouble
             "Array" -> checked is PArray
+            "Number" -> checked is PNumber
             else -> {
                 if (checked is Primitive)
                     return false
