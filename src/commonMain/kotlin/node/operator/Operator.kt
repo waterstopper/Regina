@@ -39,7 +39,7 @@ open class Operator(
                 res
             }
         }
-        if (this is String || other is String)
+        if (this is String)
             return this.toString() + other.toString()
         if (this is PNumber && other is PNumber) {
             // to make MAX_VALUE + n equal to MIN_VALUE + n - 1
