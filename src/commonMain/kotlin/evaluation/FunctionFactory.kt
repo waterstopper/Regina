@@ -15,6 +15,7 @@ import readLine
 import sendMessage
 import table.FileTable
 import utils.Utils.NULL
+import utils.Utils.TRUE
 import utils.Utils.getIdent
 import utils.Utils.getPInt
 import utils.Utils.getPNumber
@@ -50,6 +51,7 @@ object FunctionFactory {
         res["log"] = EmbeddedFunction("log", listOf("x"))
         { token, args ->
             sendMessage(Message("log", getIdent(token, "x", args).toString()))
+            NULL
         }
         res["except"] = EmbeddedFunction("except", listOf("x"))
         { token, args ->
@@ -87,10 +89,11 @@ object FunctionFactory {
             val ident = getIdent(token, "x", args)
             if (ident !is PNumber || ident.getPValue() == 0)
                 throw PositionalException("test failed", args.getFileTable().filePath, token)
+            NULL
         }
-        res["rnd"] = EmbeddedFunction("rnd", namedArgs = listOf("isDouble = false")) { token, args ->
-            if (getPInt(args, token, "isDouble").getPValue() == 0)
-                PInt(rnd.nextInt()) else PDouble(rnd.nextDouble())
+        res["rnd"] = EmbeddedFunction("rnd", namedArgs = listOf("isInt = false")) { token, args ->
+            if (getPInt(args, token, "isInt").getPValue() == 0)
+                 PDouble(rnd.nextDouble()) else PInt(rnd.nextInt())
         }
         res["seed"] = EmbeddedFunction("seed", listOf("x")) { token, args ->
             val seed = getIdent(token, "x", args)
@@ -98,7 +101,7 @@ object FunctionFactory {
                 throw ExpectedTypeException(listOf(PInt::class), args.getFileTable().filePath, token)
             randomSeed = seed.getPValue()
             rnd = Random(randomSeed)
-            Unit
+            NULL
         }
         res["str"] =
             EmbeddedFunction("str", listOf("x")) { token, args -> getIdent(token, "x", args).toString() }
@@ -141,21 +144,6 @@ object FunctionFactory {
                 else -> throw PositionalException("cannot cast type to array", args.getFileTable().filePath, token)
             }
         }
-        res["sin"] = EmbeddedFunction("sin", listOf("number")) { token, args ->
-            PDouble(sin(getPNumber(args, token, "number").getPValue().toDouble()))
-        }
-        res["cos"] = EmbeddedFunction("cos", listOf("number")) { token, args ->
-            PDouble(cos(getPNumber(args, token, "number").getPValue().toDouble()))
-        }
-        res["sqrt"] = EmbeddedFunction("sqrt", listOf("number")) { token, args ->
-            PDouble(sqrt(getPNumber(args, token, "number").getPValue().toDouble()))
-        }
-        res["asin"] = EmbeddedFunction("asin", listOf("number")) { token, args ->
-            PDouble(asin(getPNumber(args, token, "number").getPValue().toDouble()))
-        }
-        res["acos"] = EmbeddedFunction("acos", listOf("number")) { token, args ->
-            PDouble(acos(getPNumber(args, token, "number").getPValue().toDouble()))
-        }
         res["floatEquals"] =
             EmbeddedFunction(
                 "floatEquals", listOf("first", "second"),
@@ -167,7 +155,7 @@ object FunctionFactory {
                 val epsilon = getPNumber(args, token, "epsilon").getPValue().toDouble()
                 val absTh = getPNumber(args, token, "absTh").getPValue().toDouble()
                 if (first == second)
-                    PInt(1, null)
+                    TRUE
                 else {
                     val diff = abs(first - second)
                     val norm = min(abs(first) + abs(second), Float.MAX_VALUE.toDouble())

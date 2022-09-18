@@ -27,7 +27,7 @@ class FileTable(
     var numberInstances: Int = 0
 
     init {
-        imports["@global"] = globalFile
+        imports["Global"] = globalFile
     }
 
     fun addType(node: Node): Type {

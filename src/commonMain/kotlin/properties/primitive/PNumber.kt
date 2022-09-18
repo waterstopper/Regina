@@ -8,10 +8,7 @@ import utils.Utils.castToPNumber
 import utils.Utils.getPInt
 import utils.Utils.getPNumber
 import utils.Utils.toPInt
-import kotlin.math.ceil
-import kotlin.math.floor
-import kotlin.math.pow
-import kotlin.math.roundToInt
+import kotlin.math.*
 
 open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
     override fun getIndex() = 1
@@ -74,7 +71,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
                 n,
                 EmbeddedFunction("abs") { _, args ->
                     val number = castToPNumber(args.getPropertyOrNull("this")!!)
-                    if(number.getPValue().toDouble() < 0) -number else number
+                    if (number.getPValue().toDouble() < 0) -number else number
                 }
             )
             setFunction(
@@ -83,7 +80,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
                     val first = castToPNumber(args.getPropertyOrNull("this")!!)
                     val second = getPNumber(args, token, "other")
                     // 'this' has priority
-                    if(first.getPValue().toDouble() > second.getPValue().toDouble()) second else first
+                    if (first.getPValue().toDouble() > second.getPValue().toDouble()) second else first
                 }
             )
             setFunction(
@@ -92,7 +89,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
                     val first = castToPNumber(args.getPropertyOrNull("this")!!)
                     val second = getPNumber(args, token, "other")
                     // 'this' has priority
-                    if(first.getPValue().toDouble() < second.getPValue().toDouble()) second else first
+                    if (first.getPValue().toDouble() < second.getPValue().toDouble()) second else first
                 }
             )
             setFunction(
@@ -138,7 +135,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
             setFunction(
                 n,
                 EmbeddedFunction(
-                    "intDivide",
+                    "intDiv",
                     listOf("divisor")
                 ) { token, args ->
                     val number = getPNumber(args, token, "this")
@@ -146,6 +143,21 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
                     number.getPValue().toInt() / divisor.getPValue().toInt()
                 }
             )
+            setFunction(n, EmbeddedFunction("sin") { token, args ->
+                PDouble(sin(getPNumber(args, token, "this").getPValue().toDouble()))
+            })
+            setFunction(n, EmbeddedFunction("cos") { token, args ->
+                PDouble(cos(getPNumber(args, token, "this").getPValue().toDouble()))
+            })
+            setFunction(n, EmbeddedFunction("sqrt") { token, args ->
+                PDouble(sqrt(getPNumber(args, token, "this").getPValue().toDouble()))
+            })
+            setFunction(n, EmbeddedFunction("asin") { token, args ->
+                PDouble(asin(getPNumber(args, token, "this").getPValue().toDouble()))
+            })
+            setFunction(n, EmbeddedFunction("acos") { token, args ->
+                PDouble(acos(getPNumber(args, token, "this").getPValue().toDouble()))
+            })
         }
     }
 }

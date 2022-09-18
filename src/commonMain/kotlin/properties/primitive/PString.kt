@@ -94,13 +94,6 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
                     string.getPValue().uppercase()
                 }
             )
-            setFunction(
-                s,
-                EmbeddedFunction("toArray") { _, args ->
-                    val string = castToPString(args.getPropertyOrNull("this")!!)
-                    string.getPValue().toCharArray().map { it.toString() }
-                }
-            )
         }
     }
 }

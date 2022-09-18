@@ -5,7 +5,6 @@ import node.Node
 import node.statement.Assignment
 import table.FileTable
 import table.SymbolTable
-import utils.Utils.NULL
 
 /**
  * Object is a [singleton][https://en.wikipedia.org/wiki/Singleton_pattern] Type

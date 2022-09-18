@@ -23,7 +23,7 @@ class SymbolTable(
         val globalFile = initializeGlobal()
 
         private fun initializeGlobal(): FileTable {
-            val res = FileTable("@global", 0)
+            val res = FileTable("Global", 0)
             for (i in initializeEmbedded())
                 res.addFunction(i.value)
             return res

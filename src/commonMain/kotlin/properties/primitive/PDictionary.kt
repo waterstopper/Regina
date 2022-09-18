@@ -12,6 +12,7 @@ import table.FileTable
 import utils.Utils.NULL
 import utils.Utils.getIdent
 import utils.Utils.getPDictionary
+import utils.Utils.toPInt
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
@@ -107,6 +108,12 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
                 val dict = getPDictionary(args, token, "this")
                 val key = getIdent(token, "key", args)
                 dict.getPValue().remove(key) ?: NULL
+            })
+
+            setFunction(p, EmbeddedFunction("has", listOf("key")) { token, args ->
+                val dict = getPDictionary(args, token, "this")
+                val key = getIdent(token, "key", args)
+                dict.getPValue().contains(key).toPInt()
             })
         }
     }

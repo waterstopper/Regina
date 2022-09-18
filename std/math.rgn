@@ -64,14 +64,14 @@ fun m1(p, r) {
     if (n.size == 0) return []
     if (n[0] >= 0)
     {
-        n[0] = sqrt(n[0])
+        n[0] = n[0].sqrt()
         n[1] = -n[0]
     }
     else
         n = []
     if (n[1] >= 0)
     {
-        n.add(sqrt(n[1]))
+        n.add(n[1].sqrt())
         n.add(-n[n.size - 1])
     }
     return n
@@ -93,7 +93,7 @@ fun solveQuadraticZeroCube(a, b, c) {
     if (p <= 0)
         return m1(a, c)
     a = a + p
-    p = sqrt(p)
+    p = p.sqrt()
     ba = b / p
     sol = solveSquare(p, 0.5 * (a - ba))
     sol = sol + solveSquare(-p, 0.5 * (a + ba))
@@ -156,7 +156,7 @@ fun solveSquare(a, b) {
     d = a * a - b
     if (d < 0)
         return []
-    d = sqrt(d)
+    d = d.sqrt()
     if(d == 0)
         return [a, a]
     return [a + d, a - d].sorted()
@@ -187,7 +187,7 @@ fun solveSquare(a, b, c) {
             b = b * -0.5
             d = b * b - a * c
             if (d < 0) { return 0 }
-            d = sqrt(d)
+            d = d.sqrt()
             t = double(if(b > 0) b + d else b - d)
             return [c / t, t / a]
         }

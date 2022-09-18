@@ -4,7 +4,6 @@ import DebugArray
 import NestableDebug
 import References
 import elementToDebug
-import isInt
 import lexer.PositionalException
 import node.Node
 import properties.EmbeddedFunction
@@ -109,16 +108,21 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
                     val list = castToPArray(args.getPropertyOrNull("this")!!)
                     val argument = getIdent(token, "element", args)
                     if (argument is Primitive) {
-                        var removed = false
-                        for (e in list.getPValue()) {
+                        var removedIndex = -1
+                        for ((i, e) in list.getPValue().withIndex()) {
                             if (e is Primitive && e == argument) {
-                                removed = true
+                                removedIndex = i
                                 list.getPValue().remove(e)
                                 break
                             }
                         }
-                        removed.toPInt()
-                    } else list.getPValue().remove(argument).toPInt()
+                        PInt(removedIndex)
+                    } else {
+                        val removedIndex = list.getPValue().indexOf(argument)
+                        if (removedIndex != -1)
+                            list.getPValue().removeAt(removedIndex)
+                        PInt(removedIndex)
+                    }
                 }
             )
             setFunction(
@@ -177,9 +181,9 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
                 }
             )
             setFunction(p,
-                EmbeddedFunction("sorted", namedArgs = listOf("reverse = false")) { token, args ->
+                EmbeddedFunction("sorted", namedArgs = listOf("desc = false")) { token, args ->
                     val array = getPArray(args, token, "this")
-                    val desc = getPInt(args, token, "reverse")
+                    val desc = getPInt(args, token, "desc")
                     val comparator = Comparator<Variable> { a, b -> compareVariables(a, b) }
                     val res = array.getPValue().sortedWith(comparator).toMutableList()
                     if (desc.getPValue() != 0) res.reversed().toMutableList() else res

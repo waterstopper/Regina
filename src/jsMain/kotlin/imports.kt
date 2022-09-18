@@ -15,8 +15,8 @@ class Point {
 
     // angle in degrees // TODO invocation in function args
     fun rotate(angle, pivot = Point()) {
-        s = sin(toRadians(angle))
-        c = cos(toRadians(angle))
+        s = toRadians(angle).sin()
+        c = toRadians(angle).cos()
         this.x = this.x - pivot.x
         this.y = this.y - pivot.y
 
@@ -29,7 +29,7 @@ class Point {
 
     fun distance(p) {
         if(p is Point)
-            return sqrt((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y))
+            return ((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y)).sqrt()
     }
 }
 object Constants {
@@ -66,9 +66,9 @@ class Segment {
 
     fun angleBetween(other) {
         if(other is Segment)
-            return acos(cosAngleBetweenSegments(this, other))
+            return cosAngleBetweenSegments(this, other).acos()
         if(other is Line)
-            return acos(cosAngleBetweenSegments(this, other.segment))
+            return cosAngleBetweenSegments(this, other.segment).acos()
     }
 
     fun getLine() {
@@ -178,20 +178,18 @@ class Polyline {
 }
 
 class Plane {
-    objects = []
 
     fun center() {
         points = []
-        i = 0
-        while(i < objects.size) {
-            points.add(centerFigure(objects[i]))
-            i = i + 1
+        foreach(i in objects) {
+            points.add(centerFigure(i))
         }
 
     }
     fun rotate(angle, pivot = center()) {
-        i = 0
-        while(i < objects.size) { rotateFigure(this, angle, pivot); i = i + 1 }
+        foreach(i in range(0, objects.size-1)) {
+            rotateFigure(this, angle, pivot)
+        }
     }
 }
 
@@ -205,18 +203,15 @@ fun cosAngleBetweenSegments(a, b) {
 
 fun rotateFigure(fig, angle, pivot) {
     props = fig.properties
-    i = 0
-    while(i < props.size) {
+    foreach(i in range(0, props.size-1)) {
         if(props[i] is Point)
             props[i] = props[i].rotate(angle, pivot)
-        i = i + 1
     }
 }
 
 fun translateFigure(fig, vec) {
     props = fig.properties
-    i = 0
-    while(i < props.size)
+    foreach(i in range(0, props.size-1))
         if(props[i] is Point)
             props[i] = props[i].plus(vec)
 }
@@ -233,42 +228,35 @@ fun scaleArrayFromLine(points, segment, coeff) {
 }
 
 fun scaleArrayFromPoint(points, point, coeff) {
-    i = 0
-    while(i < points.size) {
+    foreach(i in range(0, points.size-1)) {
         if(points[i] is Point) {
             vec = points[i].minus(point).scale(coeff)
             points[i] = point.plus(vec)
         }
-        i = i + 1
     }
 }
 
 fun centerFigure(fig) {
     props = array(fig.properties)
     array = []
-    i = 0
-    while(i < props.size) {
+    foreach(i in range(0, props.size-1)) {
         if(props[i]["value"] is Point)
             array.add(props[i]["value"])
-        i = i + 1
     }
     return centerFromPointsArray(array)
 }
 
 fun centerFromPointsArray(array) {
     res = Point()
-    i = 0
-    while(i < array.size) {
+    foreach(i in range(0, array.size-1)) {
         res.x = res.x + array[i].x
         res.y = res.y + array[i].y
-        i = i + 1
     }
     res.x = double(res.x) / array.size
     res.y = double(res.y) / array.size
     return res
 }
-
-    """
+   """
     )
 }
 
@@ -311,11 +299,9 @@ fun removeFirstZeros(array) {
 }
 
 fun firstToOne(array) {
-    i = 0
     coeff = array[0]
-    while(i < array.size) {
+    foreach(i in range(0, array.size-1)) {
         array[i] = array[i] / double(coeff)
-        i = i + 1
     }
     return array
 }
@@ -332,10 +318,8 @@ fun solveQuadratic(a, b, c, d) {
     q =  8 * h * e - 2 * b * e + c
     r = -3 * h * h + b * h - c * e + d
     offset = solveQuadraticZeroCube(p, q, r)
-    i = 0
-    while(i < offset.size) {
+    foreach(i in range(0, offset.size - 1)) {
         offset[i] = offset[i] - e
-        i = i + 1
     }
     return offset
 }
@@ -345,14 +329,14 @@ fun m1(p, r) {
     if (n.size == 0) return []
     if (n[0] >= 0)
     {
-        n[0] = sqrt(n[0])
+        n[0] = n[0].sqrt()
         n[1] = -n[0]
     }
     else
         n = []
     if (n[1] >= 0)
     {
-        n.add(sqrt(n[1]))
+        n.add(n[1].sqrt())
         n.add(-n[n.size - 1])
     }
     return n
@@ -374,7 +358,7 @@ fun solveQuadraticZeroCube(a, b, c) {
     if (p <= 0)
         return m1(a, c)
     a = a + p
-    p = sqrt(p)
+    p = p.sqrt()
     ba = b / p
     sol = solveSquare(p, 0.5 * (a - ba))
     sol = sol + solveSquare(-p, 0.5 * (a + ba))
@@ -405,12 +389,10 @@ fun newton(a, b) {
 
 // x^3 + ax^2 + bx + c = 0
 fun solveCubic(a, b, c) {
-    d = 42
-    // #stop
     if (c == 0) {
         solution = 0.0
     } else {
-        a3 = a / 3.0
+        a3 = a / 3
         p = b - a3 * a
         q = c - (a3 * a3 + p) * a3
         if (q < 0) {
@@ -432,7 +414,6 @@ fun solveCubic(a, b, c) {
 }
 // x^2 + ax + b = 0
 fun solveSquare(a, b) {
-   // #stop
     if (b == 0)
         return if(a == 0) [0.0, 0.0] else [0.0, -double(a)].sorted()
     solution = []
@@ -440,7 +421,7 @@ fun solveSquare(a, b) {
     d = a * a - b
     if (d < 0)
         return []
-    d = sqrt(d)
+    d = d.sqrt()
     if(d == 0)
         return [a, a]
     return [a + d, a - d].sorted()
@@ -471,13 +452,12 @@ fun solveSquare(a, b, c) {
             b = b * -0.5
             d = b * b - a * c
             if (d < 0) { return 0 }
-            d = sqrt(d)
+            d = d.sqrt()
             t = double(if(b > 0) b + d else b - d)
             return [c / t, t / a]
         }
     }
 }
- 
     """
     )
 }

@@ -209,7 +209,7 @@ open class Link(
         val (_, currentParent, _, index) = safeEvaluate(
             parent ?: Type(
                 "@Fictive",
-                null, mutableSetOf(), symbolTable.getImport(Node(value = "@global")),
+                null, mutableSetOf(), symbolTable.getImport(Node(value = "Global")),
                 index = -1
             ),
             symbolTable
