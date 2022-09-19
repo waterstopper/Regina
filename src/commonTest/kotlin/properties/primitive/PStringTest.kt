@@ -30,7 +30,7 @@ class PStringTest {
             test("A_$#$@DDkofe".uppercase() == "A_$#$@DDKOFE")
             test("A_$#$@DDkofe".lowercase() == "a_$#$@ddkofe")
             
-            test(array(s) == ["a", "b", "c", "d", "e"])
+            test(list(s) == ["a", "b", "c", "d", "e"])
             }
         """
         )

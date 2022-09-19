@@ -30,7 +30,7 @@ class TypeOperator(
             "String" -> checked is PString
             "Int" -> checked is PInt
             "Double" -> checked is PDouble
-            "Array" -> checked is PArray
+            "List" -> checked is PList
             "Number" -> checked is PNumber
             else -> {
                 if (checked is Primitive)

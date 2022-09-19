@@ -8,7 +8,7 @@ import properties.primitive.*
 
 /**
  * Format: `a[i]` -  `[]` is index, `a` is indexed value
- *  ([PArray] or [PDictionary]) and `i` is [PInt] or key of dictionary.
+ *  ([PList] or [PDictionary]) and `i` is [PInt] or key of dictionary.
  *
  * Token that represents taking value from collection by index or key
  */

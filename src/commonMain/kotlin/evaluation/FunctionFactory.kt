@@ -127,7 +127,7 @@ object FunctionFactory {
                 else -> throw PositionalException("Cannot cast type to Double", args.getFileTable().filePath, token)
             }
         }
-        res["array"] = EmbeddedFunction("array", listOf("x")) { token, args ->
+        res["list"] = EmbeddedFunction("list", listOf("x")) { token, args ->
             when (val argument = getIdent(token, "x", args)) {
                 is PDictionary -> argument.getPValue()
                     .map {
@@ -141,7 +141,7 @@ object FunctionFactory {
                         )
                     }
                 is PString -> argument.getPValue().map { it.toString().toVariable() }
-                else -> throw PositionalException("cannot cast type to array", args.getFileTable().filePath, token)
+                else -> throw PositionalException("cannot cast type to list", args.getFileTable().filePath, token)
             }
         }
         res["floatEquals"] =
@@ -170,7 +170,7 @@ object FunctionFactory {
                     is PInt -> "Int"
                     is PDouble -> "Double"
                     is PString -> "String"
-                    is PArray -> "Array"
+                    is PList -> "List"
                     is PDictionary -> "Dictionary"
                     is Type -> instance.fileTable.getUncopiedType(Node(value = instance.name))
                         ?: throw PositionalException("Class not found", args.getFileTable().filePath, token)

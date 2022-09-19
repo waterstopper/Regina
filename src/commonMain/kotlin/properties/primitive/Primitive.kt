@@ -1,6 +1,5 @@
 package properties.primitive
 
-import isInt
 import lexer.NotFoundException
 import lexer.PositionalException
 import node.Node
@@ -9,16 +8,16 @@ import properties.*
 import table.FileTable
 
 /**
- * Stores Dictionary, Array, String, Int, Double values.
+ * Stores Dictionary, List, String, Int, Double values.
  * 0 : Primitive
  * 1 : Number
  * 2 : Int
  * 3 : Double
  * 4 : String
- * 5 : Array
+ * 5 : List
  * 6 : Dictionary
  *
- * **Array and Dictionary are mutable**, unlike other primitive classes
+ * List and Dictionary are mutable**, unlike other primitive classes
  */
 abstract class Primitive(protected open var value: Any, parent: Type?) : Property(parent) {
     open fun getIndex() = 0
@@ -92,9 +91,9 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
     private fun formatClassName() = this::class.toString().split('.').last().substring(1)
 
     companion object {
-        // used for debugging ids. hashCode() as id will give stack overflow on recursive arrays or dictionaries
+        // used for debugging ids. hashCode() as id will give stack overflow on recursive lists or dictionaries
         var dictionaryId = 0
-        var arrayId = 0
+        var listId = 0
 
         fun setProperty(primitive: Primitive, name: String, property: (s: Primitive) -> Property) {
             properties[primitive.getIndex()][name] = property
@@ -110,7 +109,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         fun createPrimitive(value: Any, parent: Type? = null, node: Node = Node()): Primitive {
             return when (value) {
                 is String -> PString(value, parent)
-                is List<*> -> PArray(value as MutableList<Variable>, parent, arrayId++)
+                is List<*> -> PList(value as MutableList<Variable>, parent, listId++)
                 is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent, dictionaryId++)
                 else -> throw PositionalException(
                     "Cannot create variable of type `${value::class}`", "", node

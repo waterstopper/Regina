@@ -2,20 +2,18 @@ package node.operator
 
 import Optional
 import lexer.ExpectedTypeException
-import lexer.PositionalException
 import node.Assignable
 import node.Linkable
 import node.Node
 import node.statement.Assignment
 import properties.Type
-import properties.Variable
 import properties.primitive.*
 import table.SymbolTable
 import utils.Utils.toVariable
 
 /**
  * Format: `a[i]` -  `[]` is index, `a` is indexed value
- *  ([PArray] or [PDictionary]) and `i` is [PInt] or key of dictionary.
+ *  ([PList] or [PDictionary]) and `i` is [PInt] or key of dictionary.
  *
  * Token that represents taking value from collection by index or key
  */
@@ -50,7 +48,7 @@ class Index(
         return when (indexed) {
             is Indexable -> indexed[index, right, symbolTable.getFileTable()]
             else -> throw ExpectedTypeException(
-                listOf(PArray::class, PDictionary::class, PString::class),
+                listOf(PList::class, PDictionary::class, PString::class),
                 symbolTable.getFileTable().filePath,
                 this
             )
@@ -63,7 +61,7 @@ class Index(
         if (indexable is Indexable && indexable.checkIndexType(index)) {
             indexable.set(index, value, right, assignment.right, symbolTable.getFileTable())
         } else throw ExpectedTypeException(
-            listOf(PArray::class, PNumber::class),
+            listOf(PList::class, PNumber::class),
             symbolTable.getFileTable().filePath,
             this,
             expectedMultiple = true

@@ -61,7 +61,7 @@ class Block(node: Node) :
             return Pair((iterable as Primitive).getPValue() as Iterable<*>, true)
         if (iterable !is Indexable || iterable is PDictionary)
             throw PositionalException(
-                "Expected array, string or range",
+                "Expected list, string or range",
                 symbolTable.getFileTable().filePath,
                 right
             )

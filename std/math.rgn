@@ -7,7 +7,7 @@ fun rotate(point, angle, pivot) {
 fun solve(args) {
     args = removeFirstZeros(args)
     if (args.size <= 1 || args.size >= 6) {
-        except("Expected from 2 to 5 elements in input array, not counting preceding zeros")
+        except("Expected from 2 to 5 elements in input list, not counting preceding zeros")
         }
     // a = 0
     if(args.size == 1)
@@ -24,7 +24,7 @@ fun solve(args) {
         return solveQuadratic(args[1], args[2], args[3], args[4]).sorted()
 }
 
-// remove all zeros from start of the array
+// remove all zeros from start of the list
 fun removeFirstZeros(array) {
     if (array.size > 0 && array[0] == 0) {
         array.removeAt(0)
@@ -169,7 +169,7 @@ fun solve1(a) {
     return [-b / a]
 }
 
-// Return array of doubles as a solution of ax^2 + bx + c = 0
+// Return list of doubles as a solution of ax^2 + bx + c = 0
 fun solveSquare(a, b, c) {
     solution = [0.0, 0.0]
     if (a == 0) {

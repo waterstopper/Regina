@@ -4,7 +4,7 @@ import node.Node
 import table.SymbolTable
 import utils.Utils.toVariable
 
-class NodeArray(node: Node) : Node(
+class NodeList(node: Node) : Node(
     node.symbol,
     node.value,
     node.position,

@@ -1,6 +1,6 @@
 package lexer
 
-import TokenArray
+import TokenList
 import TokenDictionary
 import TokenNumber
 import node.Identifier
@@ -112,7 +112,7 @@ object RegistryFactory {
             node
         }
 
-        // array indexing
+        // list indexing
         registry.infixLed("[", 110) { node: Token, parser: Parser, left: Token ->
             val res = TokenIndex(node)
             res.children.add(left)
@@ -141,12 +141,12 @@ object RegistryFactory {
         }
 
         registry.prefixNud("[") { node: Token, parser: Parser ->
-            val res = TokenArray(node)
+            val res = TokenList(node)
             if (parser.lexer.peek().symbol != "]")
                 sequence(res, parser)
             parser.advance("]")
             res.symbol = "[]"
-            res.value = "(ARRAY)"
+            res.value = "(LIST)"
             res
         }
 

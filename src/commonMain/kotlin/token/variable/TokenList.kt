@@ -1,8 +1,8 @@
 import node.Node
-import node.variable.NodeArray
+import node.variable.NodeList
 import token.Token
 
-class TokenArray(node: Token) : Token(
+class TokenList(node: Token) : Token(
     node.symbol,
     node.value,
     node.position,
@@ -18,6 +18,6 @@ class TokenArray(node: Token) : Token(
     }
 
     override fun toNode(filePath: String): Node {
-        return NodeArray(Node(symbol, value, position, children.map { it.toNode(filePath) }.toMutableList()))
+        return NodeList(Node(symbol, value, position, children.map { it.toNode(filePath) }.toMutableList()))
     }
 }

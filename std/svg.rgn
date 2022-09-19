@@ -66,8 +66,8 @@ fun add(node, sb) {
     log(node)
     #stop
     added = node.exportArgs["exported"]
-    propertiesArray = array(node.properties)
-    attributes = array(node.exportArgs["attributes"])
+    propertiesArray = list(node.properties)
+    attributes = list(node.exportArgs["attributes"])
     if(added != 0) {
         sb.add("<" + added)
         i = 0

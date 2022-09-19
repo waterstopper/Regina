@@ -1,6 +1,6 @@
 import properties.Type
 import properties.Variable
-import properties.primitive.PArray
+import properties.primitive.PList
 import properties.primitive.PDictionary
 
 // used for js. Debug classes are classes without references
@@ -11,7 +11,7 @@ fun elementToDebug(element: Variable, references: References) = if (element !is 
 else {
     val resolved = when (element) {
         is Type -> references.types[element.getDebugId().toString()]
-        is PArray -> references.arrays[element.getDebugId().second]
+        is PList -> references.lists[element.getDebugId().second]
         is PDictionary -> references.dictionaries[element.getDebugId().second]
         else -> throw Exception("Unexpected type")
     }
@@ -29,17 +29,15 @@ interface NestableDebug {
 
 data class DebugType(val properties: Map<String, Any>) : Debug
 
-// @Array-number
-data class DebugArray(val properties: List<Any>) : Debug {}
+data class DebugList(val properties: List<Any>) : Debug {}
 
-// @Dictionary-number
 data class DebugDictionary(val properties: MutableMap<Any, Any>) : Debug {
 
 }
 
 class References(
     val types: MutableMap<String, DebugType> = mutableMapOf(),
-    val arrays: MutableMap<Int, DebugArray> = mutableMapOf(),
+    val lists: MutableMap<Int, DebugList> = mutableMapOf(),
     val dictionaries: MutableMap<Int, DebugDictionary> = mutableMapOf(),
     val queue: MutableMap<Any, Variable> = mutableMapOf()
 ) {

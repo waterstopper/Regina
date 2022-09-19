@@ -1,7 +1,5 @@
 package utils
 
-import isDouble
-import isInt
 import lexer.ExpectedTypeException
 import lexer.Parser
 import lexer.PositionalException
@@ -25,7 +23,7 @@ object Utils {
     val TRUE = PInt(1)
 
     init {
-        PArray.initializeEmbeddedArrayFunctions()
+        PList.initializeEmbeddedListFunctions()
         PString.initializeEmbeddedStringFunctions()
         PNumber.initializeEmbeddedNumberFunctions()
         PDouble.initializeEmbeddedDoubleFunctions()
@@ -33,7 +31,7 @@ object Utils {
 
         PInt.initializeIntProperties()
         PDouble.initializeDoubleProperties()
-        PArray.initializeArrayProperties()
+        PList.initializeListProperties()
         PString.initializeStringProperties()
         PDictionary.initializeDictionaryProperties()
     }
@@ -82,11 +80,11 @@ object Utils {
         return dictionary
     }
 
-    fun getPArray(args: SymbolTable, node: Node, name: String): PArray {
-        val array = getIdent(node, name, args)
-        if (array !is PArray)
-            throw ExpectedTypeException(listOf(PArray::class), args.getFileTable().filePath, node, array)
-        return array
+    fun getPList(args: SymbolTable, node: Node, name: String): PList {
+        val list = getIdent(node, name, args)
+        if (list !is PList)
+            throw ExpectedTypeException(listOf(PList::class), args.getFileTable().filePath, node, list)
+        return list
     }
 
     fun getPString(args: SymbolTable, node: Node, name: String): PString {
@@ -119,8 +117,8 @@ object Utils {
 
     fun <T> List<T>.subList(start: Int): List<T> = this.subList(start, this.size)
 
-    fun castToPArray(array: Any): PArray {
-        return array as PArray
+    fun castToPList(list: Any): PList {
+        return list as PList
     }
 
     fun castToPString(str: Any): PString {
@@ -138,7 +136,7 @@ object Utils {
             PDouble::class -> "Double"
             PNumber::class -> "Number"
             PString::class -> "String"
-            PArray::class -> "Array"
+            PList::class -> "List"
             PDictionary::class -> "Dictionary"
             Identifier::class -> "Identifier"
             Invocation::class -> "Invocation"

@@ -51,7 +51,6 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
          * * reversed
          * * lowercase
          * * uppercase
-         * * toArray: "abc" -> ["a", "b", "c"]
          */
         fun initializeEmbeddedStringFunctions() {
             val s = PString("", null)

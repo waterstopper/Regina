@@ -51,7 +51,7 @@ fun main() {
     log(geom.Constants.PI)
     a = imported.A()
     s = Segment()
-    attributes = array(s.exportArgs["attributes"])
+    attributes = list(s.exportArgs["attributes"])
     log([1,2,3].has(1))
     testing = 1
     if(1) {
@@ -190,11 +190,11 @@ fun checkType() {
 	test(0.0 is Double)
 	test(0 is Int)
 	test("" is String)
-	test([] is Array)
+	test([] is List)
 	test(A() is A)
 	log(B() is A)
 	test(B() is A)
-	test(0 !is Array)
+	test(0 !is List)
 }
 
 class Something {

@@ -1,6 +1,6 @@
 package properties.primitive
 
-import DebugArray
+import DebugList
 import NestableDebug
 import References
 import elementToDebug
@@ -12,16 +12,16 @@ import properties.Type
 import properties.Variable
 import table.FileTable
 import utils.Utils.NULL
-import utils.Utils.castToPArray
+import utils.Utils.castToPList
 import utils.Utils.getIdent
-import utils.Utils.getPArray
+import utils.Utils.getPList
 import utils.Utils.getPInt
 import utils.Utils.getPString
 import utils.Utils.toPInt
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
-class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primitive(value, parent),
+class PList(value: MutableList<Variable>, parent: Type?, var id: Int) : Primitive(value, parent),
     Indexable,
     NestableDebug {
     override fun getIndex() = 5
@@ -37,16 +37,16 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
     override fun toDebugClass(references: References): Any {
         val id = getDebugId()
         references.queue.remove(id)
-        if (references.arrays[id.second] != null)
+        if (references.lists[id.second] != null)
             return id
-        val res = DebugArray(getPValue().map {
+        val res = DebugList(getPValue().map {
             if (it == this) id else elementToDebug(it, references)
         })
-        references.arrays[id.second as Int] = res
+        references.lists[id.second as Int] = res
         return id
     }
 
-    override fun getDebugId(): Pair<String, Any> = Pair("Array", id)
+    override fun getDebugId(): Pair<String, Any> = Pair("List", id)
 
     override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node, fileTable: FileTable) {
         getPValue()[(index as PInt).getPValue()] = value.toVariable(nodeIndex)
@@ -62,7 +62,7 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other !is PArray) return false
+        if (other !is PList) return false
         if (getPValue() == other.getPValue())
             return true
         return false
@@ -75,19 +75,19 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
     }
 
     companion object {
-        fun initializeArrayProperties() {
-            val p = PArray(mutableListOf(), null, arrayId++)
-            setProperty(p, "size") { pr: Primitive -> PInt((pr as PArray).getPValue().size).toProperty() }
+        fun initializeListProperties() {
+            val p = PList(mutableListOf(), null, listId++)
+            setProperty(p, "size") { pr: Primitive -> PInt((pr as PList).getPValue().size).toProperty() }
         }
 
-        fun initializeEmbeddedArrayFunctions() {
-            val p = PArray(mutableListOf(), null, arrayId++)
+        fun initializeEmbeddedListFunctions() {
+            val p = PList(mutableListOf(), null, listId++)
             setFunction(
                 p,
                 EmbeddedFunction(
                     "add", listOf("element"), listOf("index = this.size")
                 ) { token, args ->
-                    val list = castToPArray(args.getPropertyOrNull("this")!!)
+                    val list = castToPList(args.getPropertyOrNull("this")!!)
                     val argument = getIdent(token, "element", args)
                     val index = getPInt(args, token, "index")
                     if (index.getPValue() < 0 || index.getPValue() > list.getPValue().size)
@@ -105,7 +105,7 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
                 EmbeddedFunction(
                     "remove", args = listOf("element"),
                 ) { token, args ->
-                    val list = castToPArray(args.getPropertyOrNull("this")!!)
+                    val list = castToPList(args.getPropertyOrNull("this")!!)
                     val argument = getIdent(token, "element", args)
                     if (argument is Primitive) {
                         var removedIndex = -1
@@ -128,7 +128,7 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
             setFunction(
                 p,
                 EmbeddedFunction("removeAt", listOf("index")) { token, args ->
-                    val list = castToPArray(args.getPropertyOrNull("this")!!)
+                    val list = castToPList(args.getPropertyOrNull("this")!!)
                     val index = getPInt(args, token, "index")
                     val res: Any
                     try {
@@ -145,7 +145,7 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
             setFunction(
                 p,
                 EmbeddedFunction("has", listOf("element")) { token, args ->
-                    val list = castToPArray(args.getPropertyOrNull("this")!!)
+                    val list = castToPList(args.getPropertyOrNull("this")!!)
                     val element = getIdent(token, "element", args)
                     if (element is Primitive)
                         list.getPValue().any { (it is Primitive && it == element) }.toPInt()
@@ -155,15 +155,15 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
             setFunction(
                 p,
                 EmbeddedFunction("joinToString", namedArgs = listOf("separator = \", \"")) { token, args ->
-                    val array = getPArray(args, token, "this")
+                    val list = getPList(args, token, "this")
                     val separator = getPString(args, token, "separator")
-                    array.getPValue().joinToString(separator = separator.getPValue())
+                    list.getPValue().joinToString(separator = separator.getPValue())
                 }
             )
             setFunction(
                 p,
                 EmbeddedFunction("clear") { _, args ->
-                    val list = castToPArray(args.getPropertyOrNull("this")!!)
+                    val list = castToPList(args.getPropertyOrNull("this")!!)
                     list.getPValue().clear()
                     NULL
                 }
@@ -171,21 +171,21 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
             setFunction(
                 p,
                 EmbeddedFunction("sort", listOf(), listOf("desc = false")) { token, args ->
-                    val array = getPArray(args, token, "this")
+                    val list = getPList(args, token, "this")
                     val desc = getPInt(args, token, "desc")
                     val comparator = Comparator<Variable> { a, b -> compareVariables(a, b) }
-                    array.getPValue().sortWith(comparator)
+                    list.getPValue().sortWith(comparator)
                     if (desc.getPValue() != 0)
-                        array.getPValue().reverse()
+                        list.getPValue().reverse()
                     NULL
                 }
             )
             setFunction(p,
                 EmbeddedFunction("sorted", namedArgs = listOf("desc = false")) { token, args ->
-                    val array = getPArray(args, token, "this")
+                    val list = getPList(args, token, "this")
                     val desc = getPInt(args, token, "desc")
                     val comparator = Comparator<Variable> { a, b -> compareVariables(a, b) }
-                    val res = array.getPValue().sortedWith(comparator).toMutableList()
+                    val res = list.getPValue().sortedWith(comparator).toMutableList()
                     if (desc.getPValue() != 0) res.reversed().toMutableList() else res
                 }
             )
@@ -213,7 +213,7 @@ class PArray(value: MutableList<Variable>, parent: Type?, var id: Int) : Primiti
             if (primitive.getIndex() != (variable as Primitive).getIndex())
                 return compareValues(primitive.getIndex(), variable.getIndex())
             return when (variable) {
-                is PArray -> compareValues((primitive as PArray).getPValue().size, variable.getPValue().size)
+                is PList -> compareValues((primitive as PList).getPValue().size, variable.getPValue().size)
                 is PDictionary -> compareValues((primitive as PDictionary).getPValue().size, variable.getPValue().size)
                 is PString -> compareValues((primitive as PString).getPValue(), variable.getPValue())
                 else -> throw PositionalException("Non-comparable primitive", "")
