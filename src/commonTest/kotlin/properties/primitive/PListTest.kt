@@ -5,9 +5,9 @@ import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertTrue
 
-class PArrayTest {
+class PListTest {
     @Test
-    fun testArray() {
+    fun testList() {
         eval(
             """
         fun main() {
@@ -44,7 +44,7 @@ class PArrayTest {
     }
 
     @Test
-    fun testArrayEquals() {
+    fun testListEquals() {
         eval(
             """
         fun main() {
@@ -74,7 +74,7 @@ class PArrayTest {
     }
 
     @Test
-    fun testArraySort() {
+    fun testListSort() {
         eval(
             """
            fun main() {
@@ -107,7 +107,7 @@ class PArrayTest {
     }
 
     @Test
-    fun indexArrayNotInteger() {
+    fun indexListNotInteger() {
         val thrown = assertFails {
             eval(
                 """
@@ -149,7 +149,7 @@ class PArrayTest {
     }
 
     @Test
-    fun testImplicitArray() {
+    fun testImplicitList() {
         eval(
             """
            fun main() {

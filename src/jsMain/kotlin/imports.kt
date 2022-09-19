@@ -237,7 +237,7 @@ fun scaleArrayFromPoint(points, point, coeff) {
 }
 
 fun centerFigure(fig) {
-    props = array(fig.properties)
+    props = list(fig.properties)
     array = []
     foreach(i in range(0, props.size-1)) {
         if(props[i]["value"] is Point)
@@ -516,8 +516,8 @@ class Attribute {
 fun add(node, sb) {
     containers = ["group, svg"]
     added = node.exportArgs["exported"]
-    propertiesArray = array(node.properties)
-    attributes = array(node.exportArgs["attributes"])
+    propertiesArray = list(node.properties)
+    attributes = list(node.exportArgs["attributes"])
     if(added != 0) {
         sb.add("<" + added)
         i = 0
@@ -737,7 +737,7 @@ fun main() {
     log(geom.Constants.PI)
     a = imported.A()
     s = Segment()
-    attributes = array(s.exportArgs["attributes"])
+    attributes = list(s.exportArgs["attributes"])
     log([1,2,3].has(1))
     testing = 1
     if(1) {
@@ -876,11 +876,11 @@ fun checkType() {
 	test(0.0 is Double)
 	test(0 is Int)
 	test("" is String)
-	test([] is Array)
+	test([] is List)
 	test(A() is A)
 	log(B() is A)
 	test(B() is A)
-	test(0 !is Array)
+	test(0 !is List)
 }
 
 class Something {
