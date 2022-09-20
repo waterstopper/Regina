@@ -4,6 +4,7 @@ import lexer.PositionalException
 import node.Node
 import properties.primitive.PNumber
 import table.SymbolTable
+import utils.Utils.NULL
 import utils.Utils.toPInt
 import utils.Utils.toVariable
 
@@ -19,6 +20,7 @@ open class Operator(
             "+" -> left.evaluate(symbolTable).plus(right.evaluate(symbolTable), this, symbolTable)
             "==" -> left.evaluate(symbolTable).eq(right.evaluate(symbolTable)).toPInt()
             "!=" -> left.evaluate(symbolTable).neq(right.evaluate(symbolTable)).toPInt()
+            "??" -> nullCoalesce(left.evaluate(symbolTable), right.evaluate(symbolTable))
             else -> throw PositionalException(
                 "Operator `$value` not implemented",
                 symbolTable.getFileTable().filePath,
@@ -78,4 +80,8 @@ open class Operator(
     }
 
     private fun Any.neq(other: Any) = !this.eq(other)
+
+    private fun nullCoalesce(first: Any, second: Any): Any {
+        return if (first == NULL) second else first
+    }
 }

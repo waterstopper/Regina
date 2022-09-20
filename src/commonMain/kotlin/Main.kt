@@ -55,4 +55,5 @@ fun startEvaluationJS(igc: ImportGraphCreator) {
             resolvingType = false
         )
     )
+    sendMessage(Message("finished", ""))
 }

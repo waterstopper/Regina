@@ -11,6 +11,7 @@ import table.FileTable
 import utils.Utils.castToPString
 import utils.Utils.getPInt
 import utils.Utils.getPString
+import utils.Utils.toPInt
 import utils.Utils.toProperty
 
 class PString(value: String, parent: Type? = null) : Primitive(value, parent), Indexable {
@@ -18,17 +19,18 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
     override fun getPValue() = value as String
     override fun get(index: Any, node: Node, fileTable: FileTable): Any {
         if (!isInt(index))
-            throw PositionalException("Expected integer",fileTable.filePath, node)
+            throw PositionalException("Expected integer", fileTable.filePath, node)
         if ((index as Int) < 0 || index >= getPValue().length)
-            throw PositionalException("Index out of bounds", fileTable.filePath,node)
+            throw PositionalException("Index out of bounds", fileTable.filePath, node)
         return getPValue()[index]
     }
+
     override fun toDebugClass(references: References): Any {
         return Pair("String", getPValue())
     }
 
     override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node, fileTable: FileTable) {
-        throw PositionalException("Set is not implemented for String",fileTable.filePath, nodeValue)
+        throw PositionalException("Set is not implemented for String", fileTable.filePath, nodeValue)
     }
 
     override fun toString(): String {
@@ -53,7 +55,23 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
          * * uppercase
          */
         fun initializeEmbeddedStringFunctions() {
-            val s = PString("", null)
+            val s = PString("")
+            setFunction(
+                s,
+                EmbeddedFunction("index", listOf("found")) { token, args ->
+                    val string = castToPString(args.getPropertyOrNull("this")!!)
+                    val found = getPString(args, token, "index")
+                    PInt(string.getPValue().indexOf(found.getPValue()))
+                }
+            )
+            setFunction(
+                s,
+                EmbeddedFunction("has", listOf("found")) { token, args ->
+                    val string = castToPString(args.getPropertyOrNull("this")!!)
+                    val found = getPString(args, token, "found")
+                    string.getPValue().contains(found.getPValue()).toPInt()
+                }
+            )
             setFunction(
                 s,
                 EmbeddedFunction("substring", listOf("start"), listOf("end = this.size")) { token, args ->

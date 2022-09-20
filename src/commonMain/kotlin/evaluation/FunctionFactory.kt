@@ -21,7 +21,9 @@ import utils.Utils.getPInt
 import utils.Utils.getPNumber
 import utils.Utils.toPInt
 import utils.Utils.toVariable
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.random.Random
 
 object FunctionFactory {
@@ -93,7 +95,7 @@ object FunctionFactory {
         }
         res["rnd"] = EmbeddedFunction("rnd", namedArgs = listOf("isInt = false")) { token, args ->
             if (getPInt(args, token, "isInt").getPValue() == 0)
-                 PDouble(rnd.nextDouble()) else PInt(rnd.nextInt())
+                PDouble(rnd.nextDouble()) else PInt(rnd.nextInt())
         }
         res["seed"] = EmbeddedFunction("seed", listOf("x")) { token, args ->
             val seed = getIdent(token, "x", args)
@@ -111,9 +113,9 @@ object FunctionFactory {
                 is PString -> try {
                     PInt(argument.getPValue().toInt())
                 } catch (e: NumberFormatException) {
-                    throw PositionalException("String is not castable to int", args.getFileTable().filePath, token)
+                    NULL//throw PositionalException("String is not castable to int", args.getFileTable().filePath, token)
                 }
-                else -> throw PositionalException("Cannot cast type to double", args.getFileTable().filePath, token)
+                else -> throw PositionalException("Cannot cast type to int", args.getFileTable().filePath, token)
             }
         }
         res["double"] = EmbeddedFunction("double", listOf("x")) { token, args ->
@@ -122,7 +124,7 @@ object FunctionFactory {
                 is PString -> try {
                     PDouble(argument.getPValue().toDouble())
                 } catch (e: NumberFormatException) {
-                    throw PositionalException("String is not castable to Double", args.getFileTable().filePath, token)
+                    NULL//throw PositionalException("String is not castable to Double", args.getFileTable().filePath, token)
                 }
                 else -> throw PositionalException("Cannot cast type to Double", args.getFileTable().filePath, token)
             }

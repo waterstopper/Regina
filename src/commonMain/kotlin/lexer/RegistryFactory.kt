@@ -32,6 +32,9 @@ object RegistryFactory {
         registry.prefixNud("true") { node: Token, _: Parser ->
             TokenNumber("1", node.position)
         }
+        registry.prefixNud("null") { node: Token, _: Parser ->
+            TokenNumber("0", node.position)
+        }
         registry.symbol("true")
         registry.symbol("false")
 
@@ -80,6 +83,7 @@ object RegistryFactory {
         registry.unaryMinus("-")
         registry.prefix("!")
 
+        registry.infix("??", 20)
         registry.infixRight("&&", 25)
         registry.infixRight("||", 25)
         registry.infixRight("=", 10)
@@ -183,7 +187,9 @@ object RegistryFactory {
         // statements
         registry.stmt("if") { node: Token, parser: Parser ->
             val res = TokenBlock(node)
+            parser.advance("(")
             res.children.add(parser.expression(0))
+            parser.advance(")")
             parser.lexer.moveAfterTokenLineSeparator()
             res.children.add(parser.block(canBeSingleStatement = true))
             parser.lexer.moveAfterTokenLineSeparator()
@@ -260,7 +266,9 @@ object RegistryFactory {
 
         registry.stmt("while") { node: Token, parser: Parser ->
             val res = TokenBlock(node)
+            parser.advance("(")
             res.children.add(parser.expression(0))
+            parser.advance(")")
             parser.lexer.moveAfterTokenLineSeparator()
             res.children.add(parser.block(canBeSingleStatement = true))
             res

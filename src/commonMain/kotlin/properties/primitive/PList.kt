@@ -14,8 +14,8 @@ import table.FileTable
 import utils.Utils.NULL
 import utils.Utils.castToPList
 import utils.Utils.getIdent
-import utils.Utils.getPList
 import utils.Utils.getPInt
+import utils.Utils.getPList
 import utils.Utils.getPString
 import utils.Utils.toPInt
 import utils.Utils.toProperty
@@ -147,9 +147,15 @@ class PList(value: MutableList<Variable>, parent: Type?, var id: Int) : Primitiv
                 EmbeddedFunction("has", listOf("element")) { token, args ->
                     val list = castToPList(args.getPropertyOrNull("this")!!)
                     val element = getIdent(token, "element", args)
-                    if (element is Primitive)
-                        list.getPValue().any { (it is Primitive && it == element) }.toPInt()
-                    else list.getPValue().any { it == element }.toPInt()
+                    list.getPValue().any { (it is Primitive && it == element) }.toPInt()
+                }
+            )
+            setFunction(
+                p,
+                EmbeddedFunction("index", listOf("element")) { token, args ->
+                    val list = castToPList(args.getPropertyOrNull("this")!!)
+                    val element = getIdent(token, "element", args)
+                    PInt(list.getPValue().indexOf(element))
                 }
             )
             setFunction(

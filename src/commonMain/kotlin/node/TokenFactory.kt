@@ -12,7 +12,7 @@ import token.TokenIdentifier
 import token.TypeOperator
 
 object TokenFactory {
-    private val nonArithmeticOperators = listOf("+", "==", "!=")
+    private val nonArithmeticOperators = listOf("+", "==", "!=", "??")
     private val arithmeticOperators = listOf("-", "*", "/", "%", ">=", "<=", ">", "<", "!", "&&", "||")
     private val wordOperators = listOf("is")
 
@@ -26,7 +26,7 @@ object TokenFactory {
         std: ((node: Token, parser: Parser) -> Token)?
     ): Token {
         return when (symbol) {
-            in wordOperators -> token.TypeOperator(symbol, value, position, bindingPower, nud, led, std)
+            in wordOperators -> TypeOperator(symbol, value, position, bindingPower, nud, led, std)
             else -> TokenIdentifier(symbol, value, position, bindingPower, nud, led, std)
         }
     }
