@@ -33,7 +33,7 @@ class TypeOperator(
             "List" -> checked is PList
             "Number" -> checked is PNumber
             else -> {
-                if (checked is Primitive)
+                if (checked is Primitive || checked is Null)
                     return false
                 val type = right.evaluate(symbolTable)
                 if (checked is Type && checked !is Object

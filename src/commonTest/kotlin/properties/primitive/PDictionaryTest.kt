@@ -29,7 +29,7 @@ class PDictionaryTest {
                 test(a.size == 2)
                 test(a.values == [2,3])
                 test(a.remove(1) == 2)
-                test(a[1] == 0)
+                test(a[1] == null)
                 test(a.size == 1)
                 log(a.keys)
                 test(a.keys == [2])

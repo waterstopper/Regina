@@ -16,7 +16,7 @@ class TypeTest {
                 log(a.str())
            }
            class A {
-                iter = if(parent == 0) 0 else parent.iter + 1
+                iter = (parent?.iter ?? 0) + 1
                 next = if(iter < 1) A() else 0
                 fromNext = if(next == 0) -1 else next.fromNext - 1
               

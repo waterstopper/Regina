@@ -12,6 +12,7 @@ import token.declaration.TokenFunction
 import token.declaration.TokenImport
 import token.declaration.TokenObject
 import token.declaration.TokenType
+import token.variable.TokenNull
 
 object RegistryFactory {
     /**
@@ -33,7 +34,7 @@ object RegistryFactory {
             TokenNumber("1", node.position)
         }
         registry.prefixNud("null") { node: Token, _: Parser ->
-            TokenNumber("0", node.position)
+            TokenNull(node.position)
         }
         registry.symbol("true")
         registry.symbol("false")

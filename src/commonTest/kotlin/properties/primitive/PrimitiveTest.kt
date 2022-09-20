@@ -11,7 +11,7 @@ class PrimitiveTest {
             """
             fun main() {
                 a = void()
-                test(a == 0)
+                test(a == null)
             }
             fun void() {return}
         """

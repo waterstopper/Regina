@@ -49,10 +49,10 @@ class LinkTest {
             a.b = 1
             log(a.b)
             log(a.b?.c)
-            log(!a.b?.c)
-            log(!a.b?.c.d)
-            test(!a.b?.c.d)
-            test(!a.b?.c?.d)
+            log(a.b?.c)
+            log(a.b?.c.d)
+            test(a.b?.c.d == null)
+            test(a.b?.c?.d == null)
         }
         
         class A {}
@@ -72,7 +72,7 @@ class LinkTest {
             }
             
             class A {
-                iter = parent?.iter + 1
+                iter = (parent?.iter ?? 0) + 1
             }
         """
         )

@@ -36,7 +36,7 @@ e*/
 
 class A {
     n = if(iter < 5)  A() else B()
-    iter = if(parent == 0) 0 else parent.iter + 1
+    iter =  (parent?.iter ?? 0) + 1
 }
 
 class B {

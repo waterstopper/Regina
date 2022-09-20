@@ -36,7 +36,7 @@ class PListTest {
         }
         
         class A {
-            iter = if(parent == 0) 0 else parent.iter + 1
+            iter = (parent?.iter ?? 0) + 1
             next = if(iter < 5) A() else 0
         }
         """

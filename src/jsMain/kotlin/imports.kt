@@ -482,7 +482,10 @@ object usedValues {
 }
 
 // should have a name
-class Node {
+class SvgNode {
+    name = "svg"
+    header = StringBuilder()
+    content = StringBuilder()
     attributes = []
     children = []
 
@@ -505,7 +508,19 @@ class Node {
             res.add("<" + this.name + "/>")
         }
     }
+
+    fun addTextToHeader(text) {
+    }
+
+    fun addTextToContent(text, toStart = false) {
+
+    }
 }
+
+class Transform {
+    scale = ""
+}
+
 // should have a name and a value
 class Attribute {
     fun toString() {
@@ -515,6 +530,8 @@ class Attribute {
 
 fun add(node, sb) {
     containers = ["group, svg"]
+    log(node)
+    #stop
     added = node.exportArgs["exported"]
     propertiesArray = list(node.properties)
     attributes = list(node.exportArgs["attributes"])
@@ -545,9 +562,9 @@ fun add(node, sb) {
     i = 0
 
     while(i < propertiesArray.size) {
-        if((propertiesArray[i]["value"].properties["exportArgs"] != 0) \
+        if((propertiesArray[i]["value"]?.properties["exportArgs"] != null) \
             && propertiesArray[i]["value"].exportArgs["type"] == "node" \
-            && (!propertiesArray[i]["value"].exportArgs["inParent"] && !containers.has(added))) {
+            && (propertiesArray[i]["value"].exportArgs["inParent"] != null && !containers.has(added))) {
             if(propertiesArray[i]["key"]!="parent" && propertiesArray[i]["key"] != "this") {
                 add(propertiesArray[i]["value"], sb)
                }
@@ -574,15 +591,16 @@ fun create(root, width, height) {
 
 class StringBuilder {
     string = []
-    fun add(s) {
-        string.add(s)
+    fun add(s, index=string.size) {
+        string.add(s, index)
     }
-    fun toString() {
-        return string.joinToString("")
+
+    fun toString(sep="") {
+        return string.joinToString(sep)
     }
 }
 
-// class A : B -> ["exported":"svg", "inParent": true] {} 
+// class A : B -> ["exported":"svg", "inParent": true] {}
     """
     )
 }
@@ -720,9 +738,9 @@ class Nothing {
 }
 
 class Segment {
-    iter = if(parent == 0) 0 else (1 + parent.iter)
+    iter = (parent?.iter ?? 0) + 1
     root = if(iter < 2) Segment() else Nothing()
-    start = Position(x = if(parent == 0) 0 else parent.end.x, y = if(parent == 0) 0 else parent.end.y)
+    start = Position(x = parent?.end.x ?? 0, y = parent?.end.y ?? 0)
     end = math.rotate(Position(x = start.x, y = start.y + 10), 30, start)
     exportArgs = {"exported":"line","type":"node","attributes":{"x1": start.x, "y1": start.y}}
 }
@@ -979,6 +997,7 @@ fun all(classRef) {
 	}
 	stack.add(res.properties !is Value)
 }
+
     """
     )
     write(

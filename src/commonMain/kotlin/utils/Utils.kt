@@ -18,7 +18,7 @@ import table.SymbolTable
 import kotlin.reflect.KClass
 
 object Utils {
-    val NULL = PInt(0)
+    val NULL = Null()
     val FALSE = PInt(0)
     val TRUE = PInt(1)
 

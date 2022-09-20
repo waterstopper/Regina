@@ -137,11 +137,11 @@ class SemanticTest {
             fun main() {
                 test(B.objectFun() == 1)
                 a = A()
-                test(a.getMe().a.getMe().iter == 1)
-                test(firstInvocationFun().a.iter == 1)
+                test(a.getMe().a.getMe().iter == 2)
+                test(firstInvocationFun().a.iter == 2)
             }
             class A {
-                iter = if(parent == 0) 0 else parent.iter + 1
+                iter = (parent?.iter ?? 0) + 1
                 a = if(iter < 5) A() else 0
                 
                 fun getMe() {return this}

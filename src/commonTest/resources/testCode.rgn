@@ -34,9 +34,9 @@ class Nothing {
 }
 
 class Segment {
-    iter = if(parent == 0) 0 else (1 + parent.iter)
+    iter = (parent?.iter ?? 0) + 1
     root = if(iter < 2) Segment() else Nothing()
-    start = Position(x = if(parent == 0) 0 else parent.end.x, y = if(parent == 0) 0 else parent.end.y)
+    start = Position(x = parent?.end.x ?? 0, y = parent?.end.y ?? 0)
     end = math.rotate(Position(x = start.x, y = start.y + 10), 30, start)
     exportArgs = {"exported":"line","type":"node","attributes":{"x1": start.x, "y1": start.y}}
 }

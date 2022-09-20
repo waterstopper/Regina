@@ -95,9 +95,9 @@ fun add(node, sb) {
     i = 0
 
     while(i < propertiesArray.size) {
-        if((propertiesArray[i]["value"].properties["exportArgs"] != 0) \
+        if((propertiesArray[i]["value"]?.properties["exportArgs"] != null) \
             && propertiesArray[i]["value"].exportArgs["type"] == "node" \
-            && (!propertiesArray[i]["value"].exportArgs["inParent"] && !containers.has(added))) {
+            && (propertiesArray[i]["value"].exportArgs["inParent"] != null && !containers.has(added))) {
             if(propertiesArray[i]["key"]!="parent" && propertiesArray[i]["key"] != "this") {
                 add(propertiesArray[i]["value"], sb)
                }
