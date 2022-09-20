@@ -1,7 +1,7 @@
 import properties.Type
 import properties.Variable
-import properties.primitive.PList
 import properties.primitive.PDictionary
+import properties.primitive.PList
 
 // used for js. Debug classes are classes without references
 interface Debug
@@ -29,17 +29,13 @@ interface NestableDebug {
 
 data class DebugType(val properties: Map<String, Any>) : Debug
 
-data class DebugList(val properties: List<Any>) : Debug {}
+data class DebugList(val properties: List<Any>) : Debug
 
-data class DebugDictionary(val properties: MutableMap<Any, Any>) : Debug {
-
-}
+data class DebugDictionary(val properties: MutableMap<Any, Any>) : Debug
 
 class References(
     val types: MutableMap<String, DebugType> = mutableMapOf(),
     val lists: MutableMap<Int, DebugList> = mutableMapOf(),
     val dictionaries: MutableMap<Int, DebugDictionary> = mutableMapOf(),
     val queue: MutableMap<Any, Variable> = mutableMapOf()
-) {
-
-}
+)

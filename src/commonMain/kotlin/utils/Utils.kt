@@ -37,6 +37,7 @@ object Utils {
     }
 
     fun Boolean.toPInt(): PInt = if (this) TRUE else FALSE
+
     // fun Boolean.toInt(): Int = if (this) 1 else 0
     fun Boolean.toNonZeroInt(): Int = if (this) 1 else -1
 
@@ -94,8 +95,8 @@ object Utils {
         return str
     }
 
-    fun getPNumber(args: SymbolTable, node: Node, name: String? = null ): PNumber {
-        val num = if(name == null) node.evaluate(args) else getIdent(node, name, args)
+    fun getPNumber(args: SymbolTable, node: Node, name: String? = null): PNumber {
+        val num = if (name == null) node.evaluate(args) else getIdent(node, name, args)
         if (num !is PNumber)
             throw ExpectedTypeException(listOf(PNumber::class), args.getFileTable().filePath, node, num)
         return num

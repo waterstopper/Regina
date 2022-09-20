@@ -8,7 +8,8 @@ import kotlin.test.assertTrue
 class BlockTest {
     @Test
     fun testForeach() {
-        eval("""
+        eval(
+            """
             fun main() {
                 foreach(i in {1:2, 3:4}.entries) {
                     test(i["key"] % 2 == 1)
@@ -26,12 +27,14 @@ class BlockTest {
                 }
                 
             } 
-        """)
+        """
+        )
     }
 
     @Test
     fun testForeachMutable() {
-        eval("""
+        eval(
+            """
             fun main() {
                 arr = [[], []]
                 foreach(i in arr) {
@@ -39,12 +42,14 @@ class BlockTest {
                 }
                 test(arr == [[1], [1]])
             } 
-        """)
+        """
+        )
     }
 
     @Test
     fun testRange() {
-        eval("""
+        eval(
+            """
             fun main() {
                 foreach(i in range(1, 2, 3))
                     test(i == 1)
@@ -66,7 +71,8 @@ class BlockTest {
                 }
                 test(visits == 10)
             }
-        """)
+        """
+        )
     }
 
     @Test

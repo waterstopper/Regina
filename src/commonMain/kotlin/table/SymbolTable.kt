@@ -6,7 +6,6 @@ import lexer.PositionalException
 import node.Node
 import node.statement.Assignment
 import properties.*
-import properties.primitive.PInt
 import utils.Utils.toVariable
 
 class SymbolTable(

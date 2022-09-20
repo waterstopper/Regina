@@ -36,7 +36,8 @@ class TypeTest {
 
     @Test
     fun noProperty() {
-        eval("""
+        eval(
+            """
             fun main() {
                 q = A()
                 log(q?.a)
@@ -45,7 +46,8 @@ class TypeTest {
             }
             
             class A{}
-        """)
+        """
+        )
     }
 
     @Test
@@ -265,7 +267,8 @@ class TypeTest {
 
     @Test
     fun createFromTypeFunction() {
-        eval("""
+        eval(
+            """
             fun main() {
                 a = A()
                 b = type(a)()
@@ -275,12 +278,14 @@ class TypeTest {
             class A {
                 p = 1
             }
-        """)
+        """
+        )
     }
 
     @Test
     fun testNonLinkedSupertype() {
-        eval("""
+        eval(
+            """
             import std.svg as svg
             import std.geometry2D as geom
 
@@ -290,6 +295,7 @@ class TypeTest {
 
             class Stem:Segment {
             }
-        """)
+        """
+        )
     }
 }

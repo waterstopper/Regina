@@ -19,7 +19,7 @@ expect fun isDouble(num: Any): Boolean
 
 @OptIn(ExperimentalJsExport::class)
 @JsExport
-data class Message(val type:String, val content:Any)
+data class Message(val type: String, val content: Any)
 
-expect fun sendMessage(m:Message)
+expect fun sendMessage(m: Message)
 

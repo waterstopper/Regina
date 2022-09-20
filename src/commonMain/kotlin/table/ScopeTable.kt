@@ -1,7 +1,5 @@
 package table
 
-import lexer.NotFoundException
-import node.Node
 import properties.Variable
 
 class ScopeTable {

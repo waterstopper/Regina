@@ -1,7 +1,7 @@
 package lexer
 
-import TokenList
 import TokenDictionary
+import TokenList
 import TokenNumber
 import node.Identifier
 import node.Linkable

@@ -1,7 +1,5 @@
 package node
 
-import lexer.PositionalException
-
 open class Declaration(
     symbol: String,
     value: String,

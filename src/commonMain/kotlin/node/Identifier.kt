@@ -32,7 +32,7 @@ open class Identifier(
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
         if (parent != null && assignment.isProperty) {
             parent.setProperty(this.value, value.toProperty(assignment.right, parent))
-            val property = parent.getProperty(this,symbolTable.getFileTable())
+            val property = parent.getProperty(this, symbolTable.getFileTable())
             if (property is Type) {
                 if (property.index == 0 && property !is Object)
                     throw PositionalException(

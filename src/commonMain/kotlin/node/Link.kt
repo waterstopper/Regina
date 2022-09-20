@@ -40,7 +40,7 @@ open class Link(
     value: String,
     position: Pair<Int, Int>,
     children: List<Node> = listOf(),
-    val nullable:List<Int>
+    val nullable: List<Int>
 ) : Node(symbol, value, position), Assignable {
 
     init {
@@ -49,7 +49,6 @@ open class Link(
             this.children.addAll(children)
         }
     }
-
 
 
     override fun evaluate(symbolTable: SymbolTable): Any {
@@ -110,7 +109,7 @@ open class Link(
                 val property = variable.getPropertyOrNull(children[index].value)
                 if (property == null && nullable.contains(index))
                     return Optional(NullValue())
-               return Optional(property)
+                return Optional(property)
             }
             is Index -> {
                 var indexToken = children[index].left
@@ -277,7 +276,7 @@ open class Link(
         forLValue: Boolean = false
     ): Pair<Type?, Assignment?> {
         val (currentVariable, currentParent, assignment, index) = safeEvaluate(parent, symbolTable)
-        if(currentVariable is NullValue)
+        if (currentVariable is NullValue)
             return Pair(null, null)
         if (currentParent != null && currentParent !is Type)
             throw PositionalException(
@@ -300,7 +299,7 @@ open class Link(
 
     override fun getPropertyName(): Node = (children.last() as Assignable).getPropertyName()
 
-    class NullValue:Variable(null){
+    class NullValue : Variable(null) {
         override fun getPropertyOrNull(name: String): Property? {
             TODO("Not yet implemented")
         }

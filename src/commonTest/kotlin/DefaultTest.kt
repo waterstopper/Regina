@@ -16,7 +16,8 @@ class DefaultTest {
 
     @Test
     fun testDebug() {
-        eval("""
+        eval(
+            """
           fun main() {/*w
 {
 e*/
@@ -46,6 +47,7 @@ class B {
 fun C() {
     q = 1
 }
-        """)
+        """
+        )
     }
 }

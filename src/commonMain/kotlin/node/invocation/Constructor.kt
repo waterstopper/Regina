@@ -24,8 +24,8 @@ class Constructor(
     override fun evaluate(symbolTable: SymbolTable): Any {
         val type = if (left is Identifier) symbolTable.getType(left) else left.evaluate(symbolTable)
         if (type !is Type)
-            throw PositionalException("Expected type", symbolTable.getFileTable().filePath,left)
-        if(type.index == 0)
+            throw PositionalException("Expected type", symbolTable.getFileTable().filePath, left)
+        if (type.index == 0)
             return evaluateType(type.copy(), symbolTable)
         return evaluateType(type, symbolTable)
     }
@@ -41,9 +41,9 @@ class Constructor(
     private fun resolveArguments(type: Type, symbolTable: SymbolTable) {
         for (arg in children.subList(1, children.size)) {
             if (arg !is Assignment)
-                throw PositionalException("Expected assignment",symbolTable.getFileTable().filePath, arg)
+                throw PositionalException("Expected assignment", symbolTable.getFileTable().filePath, arg)
             if (arg.left !is Identifier)
-                throw PositionalException("Expected property name",symbolTable.getFileTable().filePath, arg)
+                throw PositionalException("Expected property name", symbolTable.getFileTable().filePath, arg)
             type.setProperty(arg.left.value, arg.right.evaluate(symbolTable).toProperty(arg.left, type))
             type.removeAssignment(arg.left)
         }

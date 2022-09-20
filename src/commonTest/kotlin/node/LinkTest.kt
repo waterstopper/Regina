@@ -42,7 +42,8 @@ class LinkTest {
 
     @Test
     fun testNullableLink() {
-        eval("""
+        eval(
+            """
         fun main() {
             a = A()
             a.b = 1
@@ -55,12 +56,14 @@ class LinkTest {
         }
         
         class A {}
-        """)
+        """
+        )
     }
 
     @Test
     fun testImportObject() {
-        eval("""
+        eval(
+            """
             import std.geometry2D as geom
             
             fun main() {
@@ -71,6 +74,7 @@ class LinkTest {
             class A {
                 iter = parent?.iter + 1
             }
-        """)
+        """
+        )
     }
 }

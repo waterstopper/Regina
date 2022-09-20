@@ -1,7 +1,6 @@
 package node
 
 import Message
-import readLine
 import sendMessage
 import table.SymbolTable
 import utils.Utils.NULL
@@ -16,7 +15,7 @@ class Meta(
         content["@position"] = position
         content["@file"] = symbolTable.getFileTable().filePath
         sendMessage(Message("debug", content))
-       // readLine()
+        // readLine()
         return NULL
     }
 }

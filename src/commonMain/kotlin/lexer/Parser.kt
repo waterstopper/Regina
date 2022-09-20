@@ -89,7 +89,7 @@ class Parser(text: String, val filePath: String) {
                 lexer.prev()
                 val res = TokenBlock(Pair(token.position.first - 1, token.position.second))
                 res.children.add(statement())
-                if(res.children.first().symbol=="(SEP)")
+                if (res.children.first().symbol == "(SEP)")
                     res.children.clear()
                 return res
             }

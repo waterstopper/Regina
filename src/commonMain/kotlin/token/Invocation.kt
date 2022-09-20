@@ -5,7 +5,6 @@ import lexer.SyntaxException
 import node.Linkable
 import node.Node
 import node.invocation.Invocation
-import table.FileTable
 
 open class Invocation(
     symbol: String,
@@ -37,7 +36,7 @@ open class Invocation(
             when (param) {
                 is Assignment -> wasAssignment = true
                 is TokenIdentifier -> if (wasAssignment)
-                    throw SyntaxException("Default params should be after other",filePath, param)
+                    throw SyntaxException("Default params should be after other", filePath, param)
                 else -> if (wasAssignment) throw SyntaxException("Named args should be after other", filePath, param)
             }
     }

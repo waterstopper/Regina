@@ -50,7 +50,8 @@ class ObjectTest {
 
     @Test
     fun testRecursive() {
-        eval("""
+        eval(
+            """
             fun main() {
                 test(A.b.a.b.a.b == B)
             }
@@ -63,6 +64,7 @@ class ObjectTest {
             }
             
             class A {}
-        """)
+        """
+        )
     }
 }
