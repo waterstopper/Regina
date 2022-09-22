@@ -104,12 +104,15 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
 
         fun initializeDictionaryFunctions() {
             val p = PDictionary(mutableMapOf(), null, -1)
+            setFunction(p, EmbeddedFunction("toString") { token, args ->
+                val dict = getPDictionary(args, token, "this")
+                dict.getPValue().toString()
+            })
             setFunction(p, EmbeddedFunction("remove", listOf("key")) { token, args ->
                 val dict = getPDictionary(args, token, "this")
                 val key = getIdent(token, "key", args)
                 dict.getPValue().remove(key) ?: NULL
             })
-
             setFunction(p, EmbeddedFunction("has", listOf("key")) { token, args ->
                 val dict = getPDictionary(args, token, "this")
                 val key = getIdent(token, "key", args)

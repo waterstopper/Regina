@@ -43,10 +43,7 @@ class Segment {
     p1 = Point()
     p2 = Point()
 
-    fun length() { p1;
-
-
-    return p1.distance(p2) }
+    fun length() { return p1.distance(p2) }
     fun vec() { return p2.minus(p1) }
     fun isPerpendicular(other) { return dotProduct(other) == 0 }
 

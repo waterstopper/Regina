@@ -105,15 +105,15 @@ object FunctionFactory {
             rnd = Random(randomSeed)
             NULL
         }
-        res["str"] =
-            EmbeddedFunction("str", listOf("x")) { token, args -> getIdent(token, "x", args).toString() }
+        res["str"] = EmbeddedFunction("str", listOf("x"))
+        { token, args -> getIdent(token, "x", args).toString() }
         res["int"] = EmbeddedFunction("int", listOf("x")) { token, args ->
             when (val argument = getIdent(token, "x", args)) {
                 is PNumber -> PInt(argument.getPValue().toInt())
                 is PString -> try {
                     PInt(argument.getPValue().toInt())
                 } catch (e: NumberFormatException) {
-                    NULL//throw PositionalException("String is not castable to int", args.getFileTable().filePath, token)
+                    NULL
                 }
                 else -> throw PositionalException("Cannot cast type to int", args.getFileTable().filePath, token)
             }
@@ -124,7 +124,7 @@ object FunctionFactory {
                 is PString -> try {
                     PDouble(argument.getPValue().toDouble())
                 } catch (e: NumberFormatException) {
-                    NULL//throw PositionalException("String is not castable to Double", args.getFileTable().filePath, token)
+                    NULL
                 }
                 else -> throw PositionalException("Cannot cast type to Double", args.getFileTable().filePath, token)
             }

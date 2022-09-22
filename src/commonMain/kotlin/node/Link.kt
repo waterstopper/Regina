@@ -17,7 +17,6 @@ import properties.primitive.Primitive
 import table.FileTable
 import table.SymbolTable
 import utils.Utils.NULL
-import utils.Utils.mapToString
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
@@ -112,10 +111,14 @@ open class Link(
                 return Optional(property)
             }
             is Index -> {
+                // TODO here get linked assignment should be done too
                 var indexToken = children[index].left
                 while (indexToken is Index)
                     indexToken = indexToken.left
-                variable.getPropertyOrNull(indexToken.value)
+                val property = variable.getPropertyOrNull(indexToken.value)
+                if (property == null && nullable.contains(index))
+                    return Optional(NullValue())
+                property
                     ?: if (variable is Type) (return Optional(variable.getAssignment(indexToken)))
                     else if (nullable.contains(index)) return Optional(NullValue()) else throw PositionalException(
                         "Property not found",
@@ -279,11 +282,12 @@ open class Link(
         if (currentVariable is NullValue)
             return Pair(null, null)
         if (currentParent != null && currentParent !is Type)
-            throw PositionalException(
-                "Expected class instance, got ${mapToString(currentParent::class)}",
-                symbolTable.getFileTable().filePath,
-                children[index - 1]
-            )
+            return Pair(null, null)
+//            throw PositionalException(
+//                "Expected class instance, got ${mapToString(currentParent::class)}",
+//                symbolTable.getFileTable().filePath,
+//                children[index - 1]
+//            )
         // left hand-side can be assigned if last link child is not assigned
         if (forLValue && index == children.lastIndex)
             return Pair(parent, null)

@@ -5,12 +5,15 @@ import NestableDebug
 import References
 import elementToDebug
 import lexer.PositionalException
+import node.Identifier
 import node.Node
+import node.invocation.Call
 import properties.EmbeddedFunction
 import properties.Object
 import properties.Type
 import properties.Variable
 import table.FileTable
+import table.SymbolTable
 import utils.Utils.NULL
 import utils.Utils.castToPList
 import utils.Utils.getIdent
@@ -21,7 +24,7 @@ import utils.Utils.toPInt
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
-class PList(value: MutableList<Variable>, parent: Type?, var id: Int) : Primitive(value, parent),
+class PList(value: MutableList<Variable>, parent: Type?, private var id: Int) : Primitive(value, parent),
     Indexable,
     NestableDebug {
     override fun getIndex() = 5
@@ -82,6 +85,13 @@ class PList(value: MutableList<Variable>, parent: Type?, var id: Int) : Primitiv
 
         fun initializeEmbeddedListFunctions() {
             val p = PList(mutableListOf(), null, listId++)
+            setFunction(
+                p,
+                EmbeddedFunction("toString") { _, args ->
+                    val list = castToPList(args.getPropertyOrNull("this")!!)
+                    list.getPValue().toString()
+                }
+            )
             setFunction(
                 p,
                 EmbeddedFunction(
@@ -160,10 +170,35 @@ class PList(value: MutableList<Variable>, parent: Type?, var id: Int) : Primitiv
             )
             setFunction(
                 p,
-                EmbeddedFunction("joinToString", namedArgs = listOf("separator = \", \"")) { token, args ->
+                EmbeddedFunction(
+                    "joinToString",
+                    namedArgs = listOf("separator = \", \"", "prefix = \"\"", "postfix = \"\"")
+                ) { token, args ->
                     val list = getPList(args, token, "this")
                     val separator = getPString(args, token, "separator")
-                    list.getPValue().joinToString(separator = separator.getPValue())
+                    val prefix = getPString(args, token, "prefix")
+                    val postfix = getPString(args, token, "postfix")
+                    list.getPValue().joinToString(
+                        separator = separator.getPValue(),
+                        prefix = prefix.getPValue(),
+                        postfix = postfix.getPValue(),
+                        transform = {
+                            val tmp = Node("()")
+                            tmp.children.add(Identifier("toString"))
+                            val functionNode = Call(tmp)
+                            val f = it.getFunctionOrNull(functionNode)
+                            if (f != null) {
+                                val tableForEvaluation = SymbolTable(
+                                    fileTable = if (it is Type) it.fileTable
+                                    else args.getFileTable(),
+                                    variableTable = it,
+                                    resolvingType = args.resolvingType
+                                )
+                                val functionResult = functionNode.evaluateFunction(tableForEvaluation, f)
+                                functionResult.toString()
+                            } else it.toString()
+                        }
+                    )
                 }
             )
             setFunction(
@@ -172,6 +207,21 @@ class PList(value: MutableList<Variable>, parent: Type?, var id: Int) : Primitiv
                     val list = castToPList(args.getPropertyOrNull("this")!!)
                     list.getPValue().clear()
                     NULL
+                }
+            )
+            setFunction(
+                p,
+                EmbeddedFunction("reverse") { token, args ->
+                    val list = getPList(args, token, "this")
+                    list.getPValue().reverse()
+                    NULL
+                }
+            )
+            setFunction(
+                p,
+                EmbeddedFunction("reversed") { token, args ->
+                    val list = getPList(args, token, "this")
+                    list.getPValue().reversed()
                 }
             )
             setFunction(

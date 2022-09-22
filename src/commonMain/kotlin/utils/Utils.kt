@@ -8,10 +8,7 @@ import node.Node
 import node.invocation.Invocation
 import node.operator.Index
 import node.statement.Assignment
-import properties.Property
-import properties.RFunction
-import properties.Type
-import properties.Variable
+import properties.*
 import properties.primitive.*
 import table.FileTable
 import table.SymbolTable

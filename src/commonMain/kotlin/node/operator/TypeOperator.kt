@@ -2,6 +2,7 @@ package node.operator
 
 import lexer.PositionalException
 import node.Node
+import properties.Null
 import properties.Object
 import properties.Type
 import properties.primitive.*
@@ -32,6 +33,8 @@ class TypeOperator(
             "Double" -> checked is PDouble
             "List" -> checked is PList
             "Number" -> checked is PNumber
+            "Class" -> checked is Type
+            "Primitive" -> checked is Primitive
             else -> {
                 if (checked is Primitive || checked is Null)
                     return false

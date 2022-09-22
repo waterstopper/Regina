@@ -3,7 +3,6 @@ package properties.primitive
 import evaluation.Evaluation.eval
 import kotlin.test.Test
 
-
 class PDictionaryTest {
     @Test
     fun testDictionary() {

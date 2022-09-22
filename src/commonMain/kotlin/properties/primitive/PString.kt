@@ -58,6 +58,13 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
             val s = PString("")
             setFunction(
                 s,
+                EmbeddedFunction("toString") { token, args ->
+                    val string = castToPString(args.getPropertyOrNull("this")!!)
+                    string.getPValue()
+                }
+            )
+            setFunction(
+                s,
                 EmbeddedFunction("index", listOf("found")) { token, args ->
                     val string = castToPString(args.getPropertyOrNull("this")!!)
                     val found = getPString(args, token, "index")

@@ -69,6 +69,13 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
             val n = PNumber(0, null)
             setFunction(
                 n,
+                EmbeddedFunction("toString") { _, args ->
+                    val number = castToPNumber(args.getPropertyOrNull("this")!!)
+                    number.getPValue().toString()
+                }
+            )
+            setFunction(
+                n,
                 EmbeddedFunction("abs") { _, args ->
                     val number = castToPNumber(args.getPropertyOrNull("this")!!)
                     if (number.getPValue().toDouble() < 0) -number else number

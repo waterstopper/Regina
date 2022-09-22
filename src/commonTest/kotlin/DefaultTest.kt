@@ -50,4 +50,13 @@ fun C() {
         """
         )
     }
+
+    @Test
+    fun testIs() {
+        eval("""
+            fun main() {
+                test(1 !is Class || 0) 
+            }
+        """)
+    }
 }
