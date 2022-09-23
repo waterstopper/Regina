@@ -55,7 +55,7 @@ fun C() {
     fun testIs() {
         eval("""
             fun main() {
-                test(1 !is Class || 0) 
+                test((1 !is Class) || 0) 
             }
         """)
     }

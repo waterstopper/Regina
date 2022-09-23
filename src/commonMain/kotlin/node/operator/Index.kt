@@ -56,8 +56,9 @@ class Index(
     }
 
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
-        val indexable = left.evaluate(symbolTable).toVariable(left)
-        val index = right.evaluate(symbolTable).toVariable(right)
+        val assignTable = if(parent != null) symbolTable.changeVariable(parent) else symbolTable
+        val indexable = left.evaluate(assignTable).toVariable(left)
+        val index = right.evaluate(assignTable).toVariable(right)
         if (indexable is Indexable && indexable.checkIndexType(index)) {
             indexable.set(index, value, right, assignment.right, symbolTable.getFileTable())
         } else throw ExpectedTypeException(

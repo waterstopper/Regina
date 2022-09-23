@@ -162,7 +162,13 @@ open class Link(
                     null, table.getFunction(children[index])
                 ).first
             )
-            is Constructor -> return Pair(index, children[index].evaluate(initialTable).toVariable(children[index]))
+            is Constructor -> {
+                val type = table.getType(children[index].left).copy()
+                return Pair(
+                    index,
+                    (children[index] as Constructor).evaluateType(type, initialTable).toVariable(children[index])
+                )
+            }
             // unary minus, (1+2).max(...)
             else -> {
                 if (!canBeFile)

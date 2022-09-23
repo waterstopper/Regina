@@ -101,6 +101,15 @@ class PListTest {
                 test(a.joinToString() == "1, 2, 3")
                 test(a.joinToString(separator="\n") == "1\n2\n3")
                 test(a.joinToString(separator="\"") == "1\"2\"3")
+                b = [0.1, "2", [3], {4:5}]
+                test(b.joinToString() == "0.1, 2, [3], {4=5}")
+                a = A()
+                c = [a, "2"]
+                test(c.joinToString() == "A to string, 2")
+            }
+            
+            class A {
+                fun toString() {return "A to string"}
             }
         """
         )

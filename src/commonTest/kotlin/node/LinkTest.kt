@@ -16,6 +16,33 @@ class LinkTest {
     }
 
     @Test
+    fun doubleIndexedLink() {
+        eval("""
+        fun main() {
+            a = A()
+            a.p["a"]["b"] = 1
+        } 
+        
+        class A{
+            p = {"a":{}}
+        }
+        """)
+    }
+
+    @Test
+    fun unassignedNonTypeTest() {
+        eval("""
+            fun main() {
+                fsd = fsd()
+            }
+            class fsd {
+                a = []
+                b = a.joinToString(", ")
+            }
+        """)
+    }
+
+    @Test
     fun testSetIndex() {
         eval(
             """

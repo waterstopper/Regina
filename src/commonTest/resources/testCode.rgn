@@ -50,6 +50,7 @@ class DoubleSegment {
 fun main() {
     log(geom.Constants.PI)
     a = imported.A()
+    log("imported:" + a)
     s = Segment()
     attributes = list(s.exportArgs["attributes"])
     log([1,2,3].has(1))

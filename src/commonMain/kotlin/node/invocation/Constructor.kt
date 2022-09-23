@@ -22,7 +22,8 @@ class Constructor(
     }
 
     override fun evaluate(symbolTable: SymbolTable): Any {
-        val type = if (left is Identifier) symbolTable.getType(left) else left.evaluate(symbolTable)
+        val type = if (left is Identifier) symbolTable.getType(left)
+        else left.evaluate(symbolTable)
         if (type !is Type)
             throw PositionalException("Expected type", symbolTable.getFileTable().filePath, left)
         if (type.index == 0)
@@ -30,7 +31,7 @@ class Constructor(
         return evaluateType(type, symbolTable)
     }
 
-    private fun evaluateType(type: Type, symbolTable: SymbolTable): Any {
+    fun evaluateType(type: Type, symbolTable: SymbolTable): Any {
         resolveArguments(type, symbolTable)
         return if (symbolTable.resolvingType) type else resolveTree(
             type,
