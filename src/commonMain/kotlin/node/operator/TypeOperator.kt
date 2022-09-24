@@ -46,7 +46,7 @@ class TypeOperator(
                         symbolTable.getFileTable().filePath,
                         right
                     )
-                val type = if (right is Identifier) right.evaluate(symbolTable) else getType(symbolTable, right as Link)
+                val type = if (right is Identifier) symbolTable.getType(right) else getType(symbolTable, right as Link)
                 if (checked is Type && checked !is Object
                     && type is Type && type !is Object
                     && checked.assignments.isEmpty() &&
