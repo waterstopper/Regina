@@ -1,6 +1,8 @@
 package node.operator
 
 import lexer.PositionalException
+import node.Identifier
+import node.Link
 import node.Node
 import properties.Null
 import properties.Object
@@ -38,7 +40,13 @@ class TypeOperator(
             else -> {
                 if (checked is Primitive || checked is Null)
                     return false
-                val type = right.evaluate(symbolTable)
+                if (right !is Link && right !is Identifier)
+                    throw PositionalException(
+                        "Currently `is` and `!is` expression support type and imported type on the right-hand side",
+                        symbolTable.getFileTable().filePath,
+                        right
+                    )
+                val type = if (right is Identifier) right.evaluate(symbolTable) else getType(symbolTable, right as Link)
                 if (checked is Type && checked !is Object
                     && type is Type && type !is Object
                     && checked.assignments.isEmpty() &&
@@ -52,5 +60,16 @@ class TypeOperator(
                 )
             }
         }
+    }
+
+    private fun getType(symbolTable: SymbolTable, link: Link): Type {
+        if (link.children.size != 2 || link.left !is Identifier || link.right !is Identifier)
+            throw PositionalException(
+                "Expected link in form of `importName.typeName`",
+                symbolTable.getFileTable().filePath,
+                link
+            )
+        val import = symbolTable.getImport(link.left)
+        return symbolTable.changeFile(import).getType(link.right)
     }
 }
