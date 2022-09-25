@@ -61,6 +61,7 @@ actual fun preload(fileNames: List<String>) {
             "src/commonTest/resources/std/geometry2DTest.rgn" -> addGeometryTest()
             "src/commonTest/resources/std/mathTest.rgn" -> addMathTest()
             "src/commonTest/resources/testCode.rgn" -> addGenericTest()
+            "src/commonTest/resources/isTest.rgn" -> addIsTest()
             else -> throw Exception("File not found $name")
         }
     }

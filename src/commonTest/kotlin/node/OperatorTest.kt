@@ -12,7 +12,7 @@ class OperatorTest {
         preload(
             listOf(
                 "src/commonTest/resources/isTest.rgn",
-                "src/commonTest/resources/imported.rgn"
+                "src/commonTest/resources/testCode.rgn"
             )
         )
     }

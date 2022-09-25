@@ -9,6 +9,7 @@ import node.Link
 import node.Node
 import node.TokenFactory
 import node.invocation.Call
+import node.invocation.ResolvingMode
 import node.statement.Assignment
 import properties.primitive.PDictionary
 import properties.primitive.Primitive
@@ -188,46 +189,89 @@ open class Type(
     companion object {
         fun resolveTree(root: Type, symbolTable: SymbolTable): Type {
             root.setProperty("parent", NULL)
-            symbolTable.resolvingType = true
+            symbolTable.resolvingType = ResolvingMode.TYPE
+            val visitedTypes = mutableSetOf<String>()
             do {
-                val (current, parent) = bfs(root) ?: break
+                val (parent, current) = bfs(root, visitedTypes) ?: break
                 val stack = mutableListOf<Pair<Type, Assignment>>()
                 stack.add(Pair(parent, current))
-                processAssignment(symbolTable.changeVariable(parent), stack)
+                processAssignment(symbolTable.changeVariable(parent), stack, visitedTypes)
             } while (true)
-            symbolTable.resolvingType = false
+            symbolTable.resolvingType = ResolvingMode.FUNCTION
             return root
         }
 
-        fun processAssignment(symbolTable: SymbolTable, stack: MutableList<Pair<Type, Assignment>>) {
-            // here type should be part of stack
+        fun processAssignment(
+            symbolTable: SymbolTable,
+            stack: MutableList<Pair<Type, Assignment>>,
+            visitedTypes: MutableSet<String>
+        ) {
             while (stack.isNotEmpty()) {
                 val unresolved = stack.removeLast()
                 val top = unresolved.second.getFirstUnassigned(
                     symbolTable.changeVariable(unresolved.first), unresolved.first
                 )
                 if (top.second != null) {
-                    //     if (trainingWheels && (stack + unresolved).contains(top))
-                    //        throw PositionalException("Assignment encountered recursively during initialization of $parent", top)
                     stack.add(top as Pair<Type, Assignment>)
-                } else unresolved.second.assign(unresolved.first, symbolTable.changeVariable(unresolved.first))
+                } else {
+                    unresolved.second.assign(unresolved.first, symbolTable.changeVariable(unresolved.first))
+                    val newProperty = unresolved.first.properties[unresolved.second.name]
+                    // resolve container property before moving further
+                    if (newProperty is Containerable) {
+                        val containerStack = mutableListOf<Containerable>()
+                        containerStack.add(newProperty)
+                        while (containerStack.isNotEmpty()) {
+                            val visitedContainers = mutableSetOf<Int>()
+                            val assignment = containerBfs(containerStack, visitedContainers, visitedTypes)
+                            if (assignment != null) {
+                                stack.add(assignment)
+                                processAssignment(symbolTable, stack, visitedTypes)
+                            }
+                        }
+                    }
+                }
             }
         }
 
+        private fun containerBfs(
+            containerStack: MutableList<Containerable>,
+            visited: MutableSet<Int>,
+            visitedTypes: MutableSet<String>
+        ): Pair<Type, Assignment>? {
+            for (i in containerStack.last().getCollection()) {
+                when (i) {
+                    is Type -> {
+                        if (i.toString() !in visitedTypes) {
+                            val res = bfs(i, visitedTypes)
+                            if (res != null) return res
+                        }
+                    }
+                    is Containerable -> {
+                        if (i.getContainerId() !in visited) {
+                            containerStack.add(i)
+                            val res = containerBfs(containerStack, visited, visitedTypes)
+                            if (res != null) return res
+                        }
+                    }
+                }
+            }
+            visited.add(containerStack.removeLast().getContainerId())
+            return null
+        }
+
         /**
-         * Find unresolved assignments
+         * Find unresolved assignments in type instances.
          */
-        private fun bfs(root: Type): Pair<Assignment, Type>? {
+        private fun bfs(root: Type, visited: MutableSet<String>): Pair<Type, Assignment>? {
             val stack = mutableListOf<Type>()
-            val visited = mutableListOf<Type>()
             stack.add(root)
             while (stack.isNotEmpty()) {
                 val current = stack.removeLast()
-                visited.add(current)
                 if (current.assignments.isNotEmpty())
-                    return Pair(current.assignments.first(), current)
+                    return Pair(current, current.assignments.first())
+                else visited.add(current.toString())
                 val containers = current.getProperties().getPValue().values.filterIsInstance<Type>()
-                stack.addAll(containers.filter { !visited.contains(it) })
+                stack.addAll(containers.filter { !visited.contains(it.toString()) })
             }
             return null
         }

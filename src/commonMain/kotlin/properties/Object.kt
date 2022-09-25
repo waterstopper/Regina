@@ -2,6 +2,7 @@ package properties
 
 import lexer.PositionalException
 import node.Node
+import node.invocation.ResolvingMode
 import node.statement.Assignment
 import table.FileTable
 import table.SymbolTable
@@ -17,8 +18,9 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
         val assignment = assignments.find { it.left.value == node.value }
         if (assignment != null) {
             processAssignment(
-                SymbolTable(fileTable = fileTable, resolvingType = false),
-                mutableListOf(Pair(this, assignment))
+                SymbolTable(fileTable = fileTable, resolvingType = ResolvingMode.OBJECT),
+                mutableListOf(Pair(this, assignment)),
+                mutableSetOf()
             )
             return properties[node.value]!!
         }
@@ -35,10 +37,11 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
         if (properties[name] != null)
             return properties[name]!!
         val assignment = assignments.find { it.left.value == name }
-        if (assignment != null) { // TODO is resolvingType really false? Whst if it happens inside type property and object property has type as property?
+        if (assignment != null) { // TODO is resolvingType really false? What if it happens inside type property and object property has type as property?
             processAssignment(
-                SymbolTable(fileTable = fileTable, resolvingType = false),
-                mutableListOf(Pair(this, assignment))
+                SymbolTable(fileTable = fileTable, resolvingType = ResolvingMode.OBJECT),
+                mutableListOf(Pair(this, assignment)),
+                mutableSetOf()
             )
             return properties[name]!!
         }

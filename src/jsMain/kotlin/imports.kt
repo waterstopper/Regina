@@ -1018,6 +1018,8 @@ fun addition(a, b) {
         == "imported")
     return a + b
 }
+
+class ForCheck {}
     """
     )
     write(
@@ -1035,6 +1037,32 @@ fun addition(a, b) {
         fun get() {
             log("from Same")
         }
+    """
+    )
+}
+
+fun addIsTest() {
+    write(
+        "src/commonTest/resources/isTest.rgn", """
+        import src.commonTest.resources.imported as imported
+
+fun main() {
+    fch = ForCheck()
+    log(fch is ForCheck)
+    a = A()
+    test(a !is imported.A)
+    test(a !is B)
+    test(a is A)
+    test(imported.A() is imported.A)
+    b = B()
+    test(b is A)
+    test(b is B)
+    test(b !is imported.A)
+}
+
+class A {}
+
+class B:A {}
     """
     )
 }

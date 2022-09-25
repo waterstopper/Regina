@@ -4,6 +4,7 @@ import References
 import evaluation.FunctionFactory.initializeEmbedded
 import lexer.PositionalException
 import node.Node
+import node.invocation.ResolvingMode
 import node.statement.Assignment
 import properties.*
 import utils.Utils.toVariable
@@ -13,7 +14,7 @@ class SymbolTable(
     private var scopeTable: ScopeTable? = ScopeTable(),
     private var variableTable: Variable? = null,
     private var fileTable: FileTable,
-    var resolvingType: Boolean
+    var resolvingType: ResolvingMode
 ) {
 
     companion object { // import a.b.c as imported

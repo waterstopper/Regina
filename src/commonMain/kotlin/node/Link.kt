@@ -8,6 +8,7 @@ import lexer.PositionalException
 import node.invocation.Call
 import node.invocation.Constructor
 import node.invocation.Invocation
+import node.invocation.ResolvingMode
 import node.operator.Index
 import node.statement.Assignment
 import properties.*
@@ -125,7 +126,7 @@ open class Link(
                         table.getFileTable().filePath,
                         indexToken
                     )
-                return Optional((children[index] as Index).evaluateIndex(table).toVariable(right.right))
+                return Optional((children[index] as Index).evaluateIndex(table).toVariable(children[index]))
             }
             else -> throw PositionalException("Unexpected token", table.getFileTable().filePath, children[index])
         }
@@ -205,7 +206,7 @@ open class Link(
             fileTable = if (type is Type) type.fileTable
             else table.getFileTable(),
             variableTable = table.getCurrentType(),
-            resolvingType = table.resolvingType
+            resolvingType = ResolvingMode.FUNCTION
         ) // table.changeScope(initialTable.getScope())
         (children[index] as Call).argumentsToParameters(function, initialTable, tableForEvaluation)
         val functionResult = (children[index] as Call).evaluateFunction(tableForEvaluation, function)

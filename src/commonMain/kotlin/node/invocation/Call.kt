@@ -46,6 +46,7 @@ class Call(
         val newTable = symbolTable.changeFile(
             symbolTable.getFileOfFunction(this, function)
         ).changeScope()
+        newTable.resolvingType = ResolvingMode.FUNCTION
         argumentsToParameters(function, symbolTable, newTable)
         return evaluateFunction(newTable, function)
     }
@@ -95,14 +96,6 @@ class Call(
 
     fun evaluateFunction(symbolTable: SymbolTable, function: RFunction, argTable: SymbolTable? = null): Any {
         var argTable = argTable ?: symbolTable
-        //   if (function.params.size < arguments.size)
-        //      throw PositionalException("Expected less arguments", this)
-        // wtf
-//        if (symbolTable.getVariableOrNull("this") != null)
-//            symbolTable.addVariable("this", symbolTable.getVariable("this"))
-//        if (symbolTable.getCurrentType() != null)
-//            symbolTable.addVariable("this", symbolTable.getCurrentType()!!)
-
         val res = if (function is EmbeddedFunction)
             function.executeFunction(left, symbolTable)
         else function.body.evaluate(symbolTable)

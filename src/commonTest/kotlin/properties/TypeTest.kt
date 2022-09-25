@@ -298,4 +298,47 @@ class TypeTest {
         """
         )
     }
+
+    @Test
+    fun uninitializedProperty() {
+        eval("""
+            fun main() {
+                c = C()
+                log(c.b.properties)
+                log(c.b.points[0].properties)
+                log(c.b.points[1].properties)
+                log(c.b.points[2].properties)
+            }
+
+            class A {
+                x = 0
+                y = 0
+                f = [Z(), Z(x=1),Z(y=1)]
+
+                fun toString() { return str(x) + " " + y }
+            }
+            
+            class B {
+                points = [A(), A(x=1), A(y=1)]
+                r = checkPoints()
+                
+                fun checkPoints() {
+                    z = Z()
+                    log("z: " + z.properties)
+                    log(points[0].properties)
+                    log(points[0].f[0].properties)
+                }
+            }
+            
+            class C {
+                b = B()
+                t = 1
+            }
+            
+            class Z {
+                x = 1
+                y = 2
+            }
+        """)
+    }
 }

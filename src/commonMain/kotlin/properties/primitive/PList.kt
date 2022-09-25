@@ -8,10 +8,9 @@ import lexer.PositionalException
 import node.Identifier
 import node.Node
 import node.invocation.Call
-import properties.EmbeddedFunction
-import properties.Object
-import properties.Type
-import properties.Variable
+import node.invocation.ResolvingMode
+import node.statement.Assignment
+import properties.*
 import table.FileTable
 import table.SymbolTable
 import utils.Utils.NULL
@@ -24,9 +23,10 @@ import utils.Utils.toPInt
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
-class PList(value: MutableList<Variable>, parent: Type?, private var id: Int) : Primitive(value, parent),
+class PList(value: MutableList<Variable>, parent: Type?, val id: Int) : Primitive(value, parent),
     Indexable,
-    NestableDebug {
+    NestableDebug,
+    Containerable {
     override fun getIndex() = 5
     override fun getPValue() = value as MutableList<Variable>
     override fun get(index: Any, node: Node, fileTable: FileTable): Any {
@@ -76,6 +76,9 @@ class PList(value: MutableList<Variable>, parent: Type?, private var id: Int) : 
     override fun checkIndexType(index: Variable): Boolean {
         return index is PInt
     }
+
+    override fun getCollection(): Collection<Variable> = getPValue()
+    override fun getContainerId(): Int = id
 
     companion object {
         fun initializeListProperties() {
@@ -192,7 +195,7 @@ class PList(value: MutableList<Variable>, parent: Type?, private var id: Int) : 
                                     fileTable = if (it is Type) it.fileTable
                                     else args.getFileTable(),
                                     variableTable = it,
-                                    resolvingType = args.resolvingType
+                                    resolvingType = ResolvingMode.FUNCTION
                                 )
                                 val functionResult = functionNode.evaluateFunction(tableForEvaluation, f)
                                 functionResult.toString()

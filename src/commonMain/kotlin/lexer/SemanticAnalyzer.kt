@@ -11,6 +11,7 @@ import node.TokenFactory.createSpecificInvocation
 import node.invocation.Call
 import node.invocation.Constructor
 import node.invocation.Invocation
+import node.invocation.ResolvingMode
 import node.statement.Assignment
 import node.statement.Block
 import node.statement.WordStatement
@@ -80,14 +81,14 @@ class Analyzer(fileTable: FileTable) {
         }
         for (function in fileTable.getFunctions()) {
             val table = addFunctionParametersToTable(
-                function, SymbolTable(fileTable = fileTable, resolvingType = false)
+                function, SymbolTable(fileTable = fileTable, resolvingType = ResolvingMode.FUNCTION)
             )
             changeInvocationType(function.body, table, 0)
         }
     }
 
     private fun analyzeType(type: Type, fileTable: FileTable) {
-        val table = SymbolTable(fileTable = fileTable, variableTable = type, resolvingType = false)
+        val table = SymbolTable(fileTable = fileTable, variableTable = type, resolvingType = ResolvingMode.FUNCTION)
         table.addVariable("this", type)
         table.addVariable("parent", type)
         for (assignment in type.assignments)

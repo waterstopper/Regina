@@ -2,6 +2,7 @@ package evaluation
 
 import lexer.Parser
 import lexer.analyzeSemantics
+import node.invocation.ResolvingMode
 import table.SymbolTable
 
 /**
@@ -18,11 +19,11 @@ object Evaluation {
             analyzeSemantics("@NoFile",
                 roots,
                 Parser(code, "@NoFile").statements().map { it.toNode("@NoFile") })
-        fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable, resolvingType = false))
+        fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable, resolvingType = ResolvingMode.FUNCTION))
     }
 
     fun evaluate(fileName: String, roots: List<String> = mutableListOf("")) {
         val fileTable = analyzeSemantics(fileName, roots = roots)
-        fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable, resolvingType = false))
+        fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable, resolvingType = ResolvingMode.FUNCTION))
     }
 }

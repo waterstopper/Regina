@@ -3,6 +3,7 @@ import lexer.Analyzer
 import lexer.ImportGraphCreator
 import lexer.PathBuilder.getNodes
 import lexer.initializeSuperTypes
+import node.invocation.ResolvingMode
 import table.FileTable
 import table.SymbolTable
 
@@ -52,7 +53,7 @@ fun startEvaluationJS(igc: ImportGraphCreator) {
     igc.visitedTables.first().getMain().body.evaluate(
         SymbolTable(
             fileTable = igc.visitedTables.first(),
-            resolvingType = false
+            resolvingType = ResolvingMode.FUNCTION
         )
     )
     sendMessage(Message("finished", ""))

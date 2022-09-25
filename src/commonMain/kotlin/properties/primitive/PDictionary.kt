@@ -5,6 +5,7 @@ import NestableDebug
 import References
 import elementToDebug
 import node.Node
+import properties.Containerable
 import properties.EmbeddedFunction
 import properties.Type
 import properties.Variable
@@ -18,7 +19,8 @@ import utils.Utils.toVariable
 
 class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var id: Int) : Primitive(value, parent),
     Indexable,
-    NestableDebug {
+    NestableDebug,
+    Containerable {
     override fun getIndex() = 6
     override fun getPValue() = value as MutableMap<Any, Variable>
 
@@ -78,6 +80,9 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
     override fun checkIndexType(index: Variable): Boolean {
         return true
     }
+
+    override fun getCollection(): Collection<Variable> = getPValue().values
+    override fun getContainerId(): Int = -id
 
     companion object {
         fun initializeDictionaryProperties() {
