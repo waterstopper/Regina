@@ -22,4 +22,9 @@ internal class EvaluationTest {
     fun evaluateTest() {
         evaluate("src/commonTest/resources/testCode.rgn")
     }
+
+    @Test
+    fun animalTest() {
+        evaluate("src/commonTest/resources/animal.rgn")
+    }
 }

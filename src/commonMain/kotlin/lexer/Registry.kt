@@ -23,18 +23,21 @@ class Registry {
         bp: Int,
         nud: ((token: Token, parser: Parser) -> Token)?,
         led: ((token: Token, parser: Parser, node2: Token) -> Token)?,
-        std: ((token: Token, parser: Parser) -> Token)?,
+        std: ((token: Token, parser: Parser) -> Token)?
     ) {
         if (table[symbol] != null) {
             // It is debatable whether these should be overridden on `register` call or not
             // This is initial (not my) design
             val value = table[symbol]!!
-            if (nud != null && value.nud == null)
+            if (nud != null && value.nud == null) {
                 value.nud = nud
-            if (led != null && value.led == null)
+            }
+            if (led != null && value.led == null) {
                 value.led = led
-            if (std != null && value.std == null)
+            }
+            if (std != null && value.std == null) {
                 value.std = std
+            }
         } else table[symbol] = Token(bindingPower = bp, nud = nud, led = led, std = std)
     }
 
@@ -137,7 +140,9 @@ class Registry {
 
     fun definedIdentifier(symbol: String, value: String, position: Pair<Int, Int>): Token {
         return TokenFactory.createWordToken(
-            symbol, value, position,
+            symbol,
+            value,
+            position,
             table[symbol]!!.bindingPower,
             table[symbol]!!.nud,
             table[symbol]!!.led,

@@ -23,7 +23,7 @@ import utils.Utils.toVariable
  *
  * Classes are mutable, meaning assigning same instance to different variables `a` and b` will change `a` if `b` is changed.
  */
-//@Serializable
+// @Serializable
 open class Type(
     val name: String,
     parent: Type?,
@@ -40,13 +40,15 @@ open class Type(
     fun getAssignment(name: String): Assignment? = assignments.find { it.left.value == name }
     fun getLinkedAssignment(link: Link, index: Int): Assignment? {
         val identProperty = getAssignment(link.children[index])
-        if (identProperty != null)
+        if (identProperty != null) {
             return identProperty
+        }
         for (childrenNumber in 2..link.children.size - index) {
             val searched = TokenFactory.copy(link, index, childrenNumber)
             val found = getAssignment(searched)
-            if (found != null)
+            if (found != null) {
                 return found
+            }
         }
         return null
     }
@@ -65,21 +67,24 @@ open class Type(
     fun getAllInstances(): Set<Type> {
         val res = mutableSetOf(this)
         properties.values.forEach {
-            if (it is Type)
+            if (it is Type) {
                 res.addAll(it.getAllInstances())
+            }
         }
         return res
     }
 
     private fun getInheritedFunctions(): Set<RFunction> {
-        if (supertype != null)
+        if (supertype != null) {
             return supertype!!.functions + supertype!!.getInheritedFunctions()
+        }
         return setOf()
     }
 
     private fun getInheritedAssignments(): Set<Assignment> {
-        if (supertype != null)
+        if (supertype != null) {
             return supertype!!.assignments + supertype!!.getInheritedAssignments()
+        }
         return setOf()
     }
 
@@ -99,11 +104,14 @@ open class Type(
     override fun toDebugClass(references: References): Any {
         val id = getDebugId()
         references.queue.remove(id)
-        if (references.types[id.second] != null)
+        if (references.types[id.second] != null) {
             return id
-        val res = DebugType(properties.map {
-            it.key to if (it.value == this) id else elementToDebug(it.value, references)
-        }.toMap().toMutableMap())
+        }
+        val res = DebugType(
+            properties.map {
+                it.key to if (it.value == this) id else elementToDebug(it.value, references)
+            }.toMap().toMutableMap()
+        )
         references.types[id.second as String] = res
         return id
     }
@@ -127,13 +135,15 @@ open class Type(
     }
 
     override fun toString(): String {
-        if (index == 0)
+        if (index == 0) {
             return name
-        if (fileTable.filePath.isEmpty())
+        }
+        if (fileTable.filePath.isEmpty()) {
             throw Exception("Empty fileTable name")
-        val fileLetter = if (fileTable.filePath.contains("/"))
+        }
+        val fileLetter = if (fileTable.filePath.contains("/")) {
             fileTable.filePath.split("/").last().first()
-        else fileTable.filePath.first()
+        } else fileTable.filePath.first()
         val res = StringBuilder("$name-$fileLetter${fileTable.index}$index")
 //        if (supertype != null) {
 //            res.append(":")
@@ -150,8 +160,9 @@ open class Type(
     fun inherits(other: Type): Boolean {
         var type: Type? = this
         while (type != null) {
-            if (type.equalToType(other))
+            if (type.equalToType(other)) {
                 return true
+            }
             type = type.supertype
         }
         return false
@@ -209,7 +220,8 @@ open class Type(
             while (stack.isNotEmpty()) {
                 val unresolved = stack.removeLast()
                 val top = unresolved.second.getFirstUnassigned(
-                    symbolTable.changeVariable(unresolved.first), unresolved.first
+                    symbolTable.changeVariable(unresolved.first),
+                    unresolved.first
                 )
                 if (top.second != null) {
                     stack.add(top as Pair<Type, Assignment>)
@@ -264,15 +276,26 @@ open class Type(
          */
         private fun bfs(root: Type, visited: MutableSet<String>): Pair<Type, Assignment>? {
             val stack = mutableListOf<Type>()
+            val currentlyVisited = mutableSetOf<String>()
             stack.add(root)
             while (stack.isNotEmpty()) {
                 val current = stack.removeLast()
-                if (current.assignments.isNotEmpty())
+                if (current.assignments.isNotEmpty()) {
                     return Pair(current, current.assignments.first())
-                else visited.add(current.toString())
-                val containers = current.getProperties().getPValue().values.filterIsInstance<Type>()
-                stack.addAll(containers.filter { !visited.contains(it.toString()) })
+                }
+                val currentId = current.toString()
+                if (currentId !in visited && currentId !in currentlyVisited) {
+                    currentlyVisited.add(currentId)
+                    val properties = current.properties.values.filterIsInstance<Type>()
+                    stack.addAll(
+                        properties.filter {
+                            val id = it.toString()
+                            !visited.contains(id) && !currentlyVisited.contains(id)
+                        }
+                    )
+                }
             }
+            visited.addAll(currentlyVisited)
             return null
         }
     }

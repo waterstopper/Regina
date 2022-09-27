@@ -41,31 +41,35 @@ open class Node(
             res.append(' ')
         res.append(this)
         res.append(":${this.position}")
-        if (children.size > 0)
+        if (children.size > 0) {
             for (i in children)
                 res.append('\n' + i.toTreeString(indentation + 2))
+        }
 
         return res.toString()
     }
 
     private fun find(symbol: String): Node? {
-        if (this.symbol == symbol)
+        if (this.symbol == symbol) {
             return this
+        }
         for (t in children) {
             val inChild = t.find(symbol)
-            if (inChild != null)
+            if (inChild != null) {
                 return inChild
+            }
         }
         return null
     }
 
     private fun findAndRemove(symbol: String) {
         val inChildren = children.find { it.value == symbol }
-        if (inChildren != null)
+        if (inChildren != null) {
             children.remove(inChildren)
-        else
+        } else {
             for (t in children)
                 t.findAndRemove(symbol)
+        }
     }
 
     override fun toString(): String = if (symbol == value) symbol else "$symbol:$value"
@@ -86,18 +90,21 @@ open class Node(
      */
     fun traverseUntilOptional(condition: (node: Node) -> Optional): Optional {
         val forThis = condition(this)
-        if (forThis.value != null
-            && (if (forThis.value is Node) forThis.value.symbol != "(LEAVE)" else true)
-        )
+        if (forThis.value != null &&
+            (if (forThis.value is Node) forThis.value.symbol != "(LEAVE)" else true)
+        ) {
             return forThis
-        if (!forThis.isGood)
+        }
+        if (!forThis.isGood) {
             for (i in children) {
                 val childRes = i.traverseUntilOptional(condition)
-                if (childRes.value != null
-                    && (if (childRes.value is Node) childRes.value.symbol != "(LEAVE)" else true)
-                )
+                if (childRes.value != null &&
+                    (if (childRes.value is Node) childRes.value.symbol != "(LEAVE)" else true)
+                ) {
                     return childRes
+                }
             }
+        }
         return condition(this)
     }
 
@@ -115,43 +122,48 @@ open class Node(
                     if (condition.second == null) {
                         // condition is true
                         if ((it.evaluateCondition(symbolTable.changeVariable(parent)) as PNumber).getPValue()
-                                .toDouble() != 0.0
+                            .toDouble() != 0.0
                         ) {
                             val result = it.right.traverseUnresolvedOptional(symbolTable, parent)
-                            if (result.second == null)
+                            if (result.second == null) {
                                 Optional(Node("(LEAVE)"))
-                            else Optional(result)
+                            } else Optional(result)
                         } else {
                             val result = it.children[2].traverseUnresolvedOptional(symbolTable, parent)
-                            if (result.second == null)
+                            if (result.second == null) {
                                 Optional(Node("(LEAVE)"))
-                            else Optional(result)
+                            } else Optional(result)
                         }
                     } else Optional(condition)
                 }
                 is Assignable -> {
                     val result = it.getFirstUnassigned(parent, symbolTable.changeVariable(parent))
-                    if (result.second == null)
+                    if (result.second == null) {
                         Optional(Node("(LEAVE)"))
-                    else Optional(result)
+                    } else Optional(result)
                 }
                 else -> Optional()
             }
         }
-        if (res.value is Node && res.value.symbol == "(LEAVE)")
+        if (res.value is Node && res.value.symbol == "(LEAVE)") {
             return Pair(parent, null)
-        if (res.value == null)
+        }
+        if (res.value == null) {
             return Pair(parent, null)
+        }
         return res.value as Pair<Type, Assignment?>
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other !is Node)
+        if (other !is Node) {
             return false
-        if (children.size != other.children.size)
+        }
+        if (children.size != other.children.size) {
             return false
-        if (this.value != other.value)
+        }
+        if (this.value != other.value) {
             return false
+        }
         var areEqual = true
         for (i in children.indices)
             areEqual = children[i] == other.children[i]

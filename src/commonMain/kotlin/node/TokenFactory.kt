@@ -31,7 +31,6 @@ object TokenFactory {
         }
     }
 
-
     fun copy(node: Node, childrenStart: Int = 0, childrenNumber: Int = node.children.size): Node {
         // TODO check that children of token shouldn't be copied
         if (node is Assignment) {
@@ -45,7 +44,7 @@ object TokenFactory {
             return res
         }
         // used for Link
-        if (node is Link)
+        if (node is Link) {
             return Link(
                 node.symbol,
                 node.value,
@@ -53,7 +52,7 @@ object TokenFactory {
                 node.children.subList(childrenStart, childrenStart + childrenNumber),
                 node.nullable.toList()
             )
-        else throw PositionalException("Expected assignment or link", "", node)
+        } else throw PositionalException("Expected assignment or link", "", node)
     }
 
     fun createOperator(
@@ -83,12 +82,12 @@ object TokenFactory {
         upperNode: Node,
         index: Int
     ): Invocation {
-        if (symbolTable.getFunctionOrNull(Call(nodeIdentifier)) != null)
+        if (symbolTable.getFunctionOrNull(Call(nodeIdentifier)) != null) {
             upperNode.children[index] = Call(nodeIdentifier)
-        else if (symbolTable.getTypeOrNull(nodeIdentifier.left) != null)
+        } else if (symbolTable.getTypeOrNull(nodeIdentifier.left) != null) {
             upperNode.children[index] = Constructor(nodeIdentifier)
-        else upperNode.children[index] =
-            Constructor(nodeIdentifier)//throw PositionalException("No class and function found", nodeIdentifier.left)
+        } else upperNode.children[index] =
+            Constructor(nodeIdentifier) // throw PositionalException("No class and function found", nodeIdentifier.left)
         return upperNode.children[index] as Invocation
     }
 
@@ -98,10 +97,10 @@ object TokenFactory {
         inProperty: Boolean = false
     ): Invocation {
         // a weak check
-        if (symbolTable.getAssignmentOrNull(link.left.value) != null
-            || link.left.value == "this"
-            || symbolTable.getVariableOrNull(link.left.value) != null
-            || symbolTable.getObjectOrNull(link.left) != null
+        if (symbolTable.getAssignmentOrNull(link.left.value) != null ||
+            link.left.value == "this" ||
+            symbolTable.getVariableOrNull(link.left.value) != null ||
+            symbolTable.getObjectOrNull(link.left) != null
         ) {
             link.children[1] = Call(link.right)
             return link.children[1] as Call
@@ -115,11 +114,11 @@ object TokenFactory {
                 link.children[1] = Call(link.right)
                 return link.children[1] as Call
             }
-        if (fileTable.getFunctionOrNull(Call(link.right)) != null)
+        if (fileTable.getFunctionOrNull(Call(link.right)) != null) {
             link.children[1] = Call(link.right)
-        else if (fileTable.getTypeOrNull(link.right.left.value) != null)
+        } else if (fileTable.getTypeOrNull(link.right.left.value) != null) {
             link.children[1] = Constructor(link.right)
-        else throw PositionalException(
+        } else throw PositionalException(
             "No class and function found in `${fileTable.filePath}`",
             symbolTable.getFileTable().filePath,
             link.right

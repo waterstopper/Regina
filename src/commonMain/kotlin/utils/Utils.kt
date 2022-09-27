@@ -73,43 +73,49 @@ object Utils {
     fun getIdent(node: Node, name: String, args: SymbolTable) = args.getIdentifier(createIdent(node, name))
     fun getPDictionary(args: SymbolTable, node: Node, name: String): PDictionary {
         val dictionary = getIdent(node, name, args)
-        if (dictionary !is PDictionary)
+        if (dictionary !is PDictionary) {
             throw ExpectedTypeException(listOf(PDictionary::class), args.getFileTable().filePath, node, dictionary)
+        }
         return dictionary
     }
 
     fun getPList(args: SymbolTable, node: Node, name: String): PList {
         val list = getIdent(node, name, args)
-        if (list !is PList)
+        if (list !is PList) {
             throw ExpectedTypeException(listOf(PList::class), args.getFileTable().filePath, node, list)
+        }
         return list
     }
 
     fun getPString(args: SymbolTable, node: Node, name: String): PString {
         val str = getIdent(node, name, args)
-        if (str !is PString)
+        if (str !is PString) {
             throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, node, str)
+        }
         return str
     }
 
     fun getPNumber(args: SymbolTable, node: Node, name: String? = null): PNumber {
         val num = if (name == null) node.evaluate(args) else getIdent(node, name, args)
-        if (num !is PNumber)
+        if (num !is PNumber) {
             throw ExpectedTypeException(listOf(PNumber::class), args.getFileTable().filePath, node, num)
+        }
         return num
     }
 
     fun getPInt(args: SymbolTable, node: Node, name: String): PInt {
         val int = getIdent(node, name, args)
-        if (int !is PInt)
+        if (int !is PInt) {
             throw ExpectedTypeException(listOf(PInt::class), args.getFileTable().filePath, node, int)
+        }
         return int
     }
 
     fun getPDouble(args: SymbolTable, node: Node, name: String): PDouble {
         val double = getIdent(node, name, args)
-        if (double !is PDouble)
+        if (double !is PDouble) {
             throw ExpectedTypeException(listOf(PDouble::class), args.getFileTable().filePath, node, double)
+        }
         return double
     }
 

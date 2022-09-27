@@ -31,14 +31,15 @@ object FunctionFactory {
     private var rnd = Random(randomSeed)
 
     fun createFunction(node: Node, fileTable: FileTable): RFunction {
-        if (node.left.value != "(")
+        if (node.left.value != "(") {
             throw PositionalException("Expected parentheses after function name", fileTable.filePath, node.left)
+        }
         val withoutDefault = mutableListOf<Identifier>()
         val withDefault = mutableListOf<Assignment>()
         for (i in 1..node.left.children.lastIndex) {
-            if (node.left.children[i] !is Assignment)
+            if (node.left.children[i] !is Assignment) {
                 withoutDefault.add(node.left.children[i] as Identifier)
-            else withDefault.add(node.left.children[i] as Assignment)
+            } else withDefault.add(node.left.children[i] as Assignment)
         }
         return RFunction(
             name = node.left.left.value,
@@ -50,13 +51,11 @@ object FunctionFactory {
 
     fun initializeEmbedded(): MutableMap<String, RFunction> {
         val res = mutableMapOf<String, RFunction>()
-        res["log"] = EmbeddedFunction("log", listOf("x"))
-        { token, args ->
+        res["log"] = EmbeddedFunction("log", listOf("x")) { token, args ->
             sendMessage(Message("log", getIdent(token, "x", args).toString()))
             NULL
         }
-        res["except"] = EmbeddedFunction("except", listOf("x"))
-        { token, args ->
+        res["except"] = EmbeddedFunction("except", listOf("x")) { token, args ->
             // TODO check that instances work properly. e.g. except(a())
             throw PositionalException(getIdent(token, "x", args).toString(), args.getFileTable().filePath, token)
         }
@@ -64,49 +63,55 @@ object FunctionFactory {
         res["write"] = EmbeddedFunction("write", listOf("content", "path")) { token, args ->
             val fileName = getIdent(token, "path", args)
             val content = getIdent(token, "content", args)
-            if (fileName !is PString || content !is PString)
+            if (fileName !is PString || content !is PString) {
                 throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, token)
+            }
             FileSystem.write(fileName.getPValue(), content.getPValue())
             NULL
         }
         res["read"] = EmbeddedFunction("read", listOf("path")) { token, args ->
             val fileName = getIdent(token, "path", args)
-            if (fileName !is PString)
+            if (fileName !is PString) {
                 throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, token)
+            }
             FileSystem.read(fileName.getPValue())
         }
         res["exists"] = EmbeddedFunction("exists", listOf("path")) { token, args ->
             val fileName = getIdent(token, "path", args)
-            if (fileName !is PString)
+            if (fileName !is PString) {
                 throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, token)
+            }
             FileSystem.exists(fileName.getPValue()).toPInt()
         }
         res["delete"] = EmbeddedFunction("delete", listOf("path")) { token, args ->
             val fileName = getIdent(token, "path", args)
-            if (fileName !is PString)
+            if (fileName !is PString) {
                 throw ExpectedTypeException(listOf(PString::class), args.getFileTable().filePath, token)
+            }
             FileSystem.delete(fileName.getPValue()).toPInt()
         }
         res["test"] = EmbeddedFunction("test", listOf("x")) { token, args ->
             val ident = getIdent(token, "x", args)
-            if (ident !is PNumber || ident.getPValue() == 0)
+            if (ident !is PNumber || ident.getPValue() == 0) {
                 throw PositionalException("test failed", args.getFileTable().filePath, token)
+            }
             NULL
         }
         res["rnd"] = EmbeddedFunction("rnd", namedArgs = listOf("isInt = false")) { token, args ->
-            if (getPInt(args, token, "isInt").getPValue() == 0)
-                PDouble(rnd.nextDouble()) else PInt(rnd.nextInt())
+            if (getPInt(args, token, "isInt").getPValue() == 0) {
+                PDouble(rnd.nextDouble()) 
+            }else PInt(rnd.nextInt())
         }
         res["seed"] = EmbeddedFunction("seed", listOf("x")) { token, args ->
             val seed = getIdent(token, "x", args)
-            if (seed !is PInt)
+            if (seed !is PInt) {
                 throw ExpectedTypeException(listOf(PInt::class), args.getFileTable().filePath, token)
+            }
             randomSeed = seed.getPValue()
             rnd = Random(randomSeed)
             NULL
         }
-        res["str"] = EmbeddedFunction("str", listOf("x"))
-        { token, args -> getIdent(token, "x", args).toString() }
+        res["str"] = EmbeddedFunction("str", listOf("x")) { token, args -> getIdent(token, "x", args).toString() }
         res["int"] = EmbeddedFunction("int", listOf("x")) { token, args ->
             when (val argument = getIdent(token, "x", args)) {
                 is PNumber -> PInt(argument.getPValue().toInt())
@@ -148,7 +153,8 @@ object FunctionFactory {
         }
         res["floatEquals"] =
             EmbeddedFunction(
-                "floatEquals", listOf("first", "second"),
+                "floatEquals",
+                listOf("first", "second"),
                 listOf("epsilon = 0.0000000000000000000000000001", "absTh = 0.0000001")
             ) { token, args ->
                 // https://stackoverflow.com/a/32334103
@@ -156,9 +162,9 @@ object FunctionFactory {
                 val second = getPNumber(args, token, "second").getPValue().toDouble()
                 val epsilon = getPNumber(args, token, "epsilon").getPValue().toDouble()
                 val absTh = getPNumber(args, token, "absTh").getPValue().toDouble()
-                if (first == second)
+                if (first == second) {
                     TRUE
-                else {
+                } else {
                     val diff = abs(first - second)
                     val norm = min(abs(first) + abs(second), Float.MAX_VALUE.toDouble())
                     (diff < max(absTh, epsilon * norm)).toPInt()
@@ -166,7 +172,8 @@ object FunctionFactory {
             }
         res["type"] =
             EmbeddedFunction(
-                "type", listOf("instance"),
+                "type",
+                listOf("instance")
             ) { token, args ->
                 when (val instance = getIdent(token, "instance", args)) {
                     is PInt -> "Int"
@@ -183,8 +190,9 @@ object FunctionFactory {
             val start = getPInt(args, token, "start")
             val end = getPInt(args, token, "end")
             val step = getPInt(args, token, "step")
-            if (step.getPValue() < 1)
+            if (step.getPValue() < 1) {
                 throw PositionalException("Step must be positive", args.getFileTable().filePath, token)
+            }
             mutableListOf(start, end, step).toVariable()
         }
         return res

@@ -28,7 +28,6 @@ class TokenObject(
     token: Token
 ) : Token(token.symbol, token.value, token.position, token.bindingPower, token.nud, token.led, token.std) {
 
-
     override fun toNode(filePath: String): Node {
         return ObjectNode(symbol, value, position, children.map { it.toNode(filePath) })
     }
@@ -54,8 +53,9 @@ class TokenFunction(
 
     private fun checkParameters(parameters: List<Token>, filePath: String) {
         for (parameter in parameters) {
-            if (parameter !is Assignment && parameter !is TokenIdentifier)
+            if (parameter !is Assignment && parameter !is TokenIdentifier) {
                 throw SyntaxException("Expected identifier or assignment as function parameter", filePath, this)
+            }
         }
     }
 }

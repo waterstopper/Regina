@@ -33,10 +33,12 @@ class Lexer(val source: String = "", val filePath: String) {
         nodes.add(createNextToken())
         while (index < source.length)
             addToken(createNextToken())
-        if (nodes.last().symbol != "(EOF)")
+        if (nodes.last().symbol != "(EOF)") {
             nodes.add(Token("(EOF)", "(EOF)", position))
-        if (nodes.size >= 100000)
+        }
+        if (nodes.size >= 100000) {
             Logger.addWarning(nodes.last(), "File too large")
+        }
         nodes.removeAt(0)
     }
 
@@ -51,14 +53,16 @@ class Lexer(val source: String = "", val filePath: String) {
 
     fun moveAfterSeparator() {
         tokenIndex++
-        if (nodes[tokenIndex].symbol != "(SEP)" && nodes[tokenIndex].symbol != "(EOF)")
+        if (nodes[tokenIndex].symbol != "(SEP)" && nodes[tokenIndex].symbol != "(EOF)") {
             throw SyntaxException("Expected separator", filePath, nodes[tokenIndex])
+        }
     }
 
     fun peek(): Token {
         var offset = 1
-        if (tokenIndex + offset > nodes.lastIndex)
+        if (tokenIndex + offset > nodes.lastIndex) {
             return nodes.last()
+        }
         while (nodes[tokenIndex + offset].value == "//")
             offset++
         return nodes[tokenIndex + offset]
@@ -70,8 +74,9 @@ class Lexer(val source: String = "", val filePath: String) {
      * Once is fictive now, because two separators in a row are merged in one. This behavior might change
      */
     fun moveAfterTokenLineSeparator(once: Boolean = true) {
-        if (peek().value.contains("\n") || peek().value.contains("\r"))
+        if (peek().value.contains("\n") || peek().value.contains("\r")) {
             next()
+        }
         if (!once) {
             while (peek().value.contains("\n") || peek().value.contains("\r"))
                 next()
@@ -80,34 +85,35 @@ class Lexer(val source: String = "", val filePath: String) {
 
     private fun createNextToken(): Token {
         consumeWhitespaceAndComments()
-        if (index == source.length)
+        if (index == source.length) {
             return registry.token("(EOF)", "(EOF)", position)
+        }
         // go to next line symbol - to separate long expressions
         if (source[index] == '\\') {
             index++
             consumeWhitespaceAndComments()
-            if (!isLineSeparator())
+            if (!isLineSeparator()) {
                 throw PositionalException(
                     "Expected new line after \\",
                     position = position,
                     length = 1,
                     fileName = filePath
                 )
-            else index = moveAfterLineSeparator()
+            } else index = moveAfterLineSeparator()
             consumeWhitespaceAndComments()
             position = Pair(0, position.second + 1)
         }
-        return if (source[index] == '"')
+        return if (source[index] == '"') {
             nextString()
-        else if (isFirstIdentChar(source[index]))
+        } else if (isFirstIdentChar(source[index])) {
             nextIdent()
-        else if (source[index].isDigit())
+        } else if (source[index].isDigit()) {
             nextNumber()
-        else if (isOperatorChar(source[index]))
+        } else if (isOperatorChar(source[index])) {
             nextOperator()
-        else if (source[index] == '#')
+        } else if (source[index] == '#') {
             nextMeta()
-        else throw PositionalException("Invalid character", position = position, length = 1, fileName = filePath)
+        } else throw PositionalException("Invalid character", position = position, length = 1, fileName = filePath)
     }
 
     private fun nextMeta(): Token {
@@ -126,7 +132,8 @@ class Lexer(val source: String = "", val filePath: String) {
         throw PositionalException(
             "No such meta token",
             position = Pair(position.first - res.length, position.second),
-            length = res.length, fileName = filePath
+            length = res.length,
+            fileName = filePath
         )
     }
 
@@ -139,13 +146,14 @@ class Lexer(val source: String = "", val filePath: String) {
                 move()
                 res.append(escapes[source[index]])
                 move()
-            } else if (isLineSeparator() || index == source.lastIndex)
+            } else if (isLineSeparator() || index == source.lastIndex) {
                 throw PositionalException(
                     "Unterminated string at ${position.second}:${position.first}",
                     position = Pair(position.first - res.length, position.second),
-                    length = res.length, fileName = filePath
+                    length = res.length,
+                    fileName = filePath
                 )
-            else moveAndAppend(res)
+            } else moveAndAppend(res)
         }
         moveAndAppend(res)
         return registry.string(
@@ -159,11 +167,13 @@ class Lexer(val source: String = "", val filePath: String) {
         val res = StringBuilder()
         while (index < source.length && isIdentChar(source[index]))
             moveAndAppend(res)
-        if (registry.defined(res.toString()))
+        if (registry.defined(res.toString())) {
             return registry.definedIdentifier(
-                res.toString(), res.toString(),
+                res.toString(),
+                res.toString(),
                 Pair(position.first - res.toString().length, position.second)
             )
+        }
         return registry.identifier(
             "(IDENT)",
             res.toString(),
@@ -189,8 +199,8 @@ class Lexer(val source: String = "", val filePath: String) {
             if (ind < source.length && registry.defined(source.substring(index..ind))) {
                 val value = source.substring(index..ind)
                 val operator = registry.operator(value, value, Pair(position.first - value.length, position.second))
-                if (operator.symbol == "(SEP)"
-                    && (operator.value.contains("\n") || operator.value.contains("\r"))
+                if (operator.symbol == "(SEP)" &&
+                    (operator.value.contains("\n") || operator.value.contains("\r"))
                 ) {
                     toNextLine()
                 } else for (i in index..ind)
@@ -207,8 +217,9 @@ class Lexer(val source: String = "", val filePath: String) {
         while (whitespace || comments) {
             whitespace = consumeWhitespace()
             comments = consumeComments()
-            if (comments) // TODO here (COMMENT)
+            if (comments) { // TODO here (COMMENT)
                 addToken(registry.token("(SEP)", "//", position))
+            }
             iter++
         }
         return iter > 1
@@ -218,31 +229,34 @@ class Lexer(val source: String = "", val filePath: String) {
         if (index < source.length && source[index] == '/' && index < source.lastIndex && source[index + 1] == '/') {
             while (!isLineSeparator()) {
                 move()
-                if (index == source.length)
+                if (index == source.length) {
                     return true
+                }
             }
             return true
         } else if (index < source.lastIndex && source[index] == '/' && source[index + 1] == '*') {
             val startingPosition = position
             move(2)
-            if (index + 1 >= source.length)
+            if (index + 1 >= source.length) {
                 throw PositionalException(
                     "Unterminated comment",
                     position = startingPosition,
                     length = 2,
                     fileName = filePath
                 )
+            }
             while (!(source[index] == '*' && source[index + 1] == '/')) {
-                if (isLineSeparator())
+                if (isLineSeparator()) {
                     toNextLine()
-                else move()
-                if (index >= source.lastIndex)
+                } else move()
+                if (index >= source.lastIndex) {
                     throw PositionalException(
                         "Unterminated comment",
                         position = startingPosition,
                         length = 2,
                         fileName = filePath
                     )
+                }
             }
             move(2)
             return true
@@ -259,18 +273,22 @@ class Lexer(val source: String = "", val filePath: String) {
     }
 
     private fun isLineSeparator(): Boolean {
-        if (index == source.lastIndex)
+        if (index == source.lastIndex) {
             return source[index] == '\r' || source[index] == '\n'
-        if (source[index] == '\r' && source[index + 1] == '\n')
+        }
+        if (source[index] == '\r' && source[index + 1] == '\n') {
             return true
+        }
         return source[index] == '\r' || source[index] == '\n'
     }
 
     private fun moveAfterLineSeparator(): Int {
-        if (index == source.lastIndex)
+        if (index == source.lastIndex) {
             return if (source[index] == '\r' || source[index] == '\n') index + 1 else index
-        if (source[index] == '\r' && source[index + 1] == '\n')
+        }
+        if (source[index] == '\r' && source[index + 1] == '\n') {
             return index + 2
+        }
         return if (source[index] == '\r' || source[index] == '\n') index + 1 else index
     }
 
@@ -281,8 +299,9 @@ class Lexer(val source: String = "", val filePath: String) {
      * Additionally, if-else statement denotation function in [RegistryFactory] relies on one (SEP) in a row.
      */
     private fun addToken(newNode: Token) {
-        if (nodes.last().symbol != "(SEP)" || newNode.symbol != "(SEP)")
+        if (nodes.last().symbol != "(SEP)" || newNode.symbol != "(SEP)") {
             nodes.add(newNode)
+        }
     }
 
     private fun move(step: Int = 1) {

@@ -29,7 +29,10 @@ class Parser(text: String, val filePath: String) {
         while (rbp < lexer.peek().bindingPower) {
             t = lexer.next()
             left = t.led?.let { it(t, this, left) } ?: throw PositionalException(
-                "Expected infix or suffix operator", position = t.position, length = t.value.length, fileName = filePath
+                "Expected infix or suffix operator",
+                position = t.position,
+                length = t.value.length,
+                fileName = filePath
             )
         }
         return left
@@ -37,8 +40,9 @@ class Parser(text: String, val filePath: String) {
 
     fun advance(symbol: String): Token {
         val token = lexer.next()
-        if (token.symbol == symbol)
+        if (token.symbol == symbol) {
             return token
+        }
         throw PositionalException(
             "Expected $symbol",
             position = token.position,
@@ -62,8 +66,9 @@ class Parser(text: String, val filePath: String) {
     }
 
     fun statement(): Token {
-        if (lexer.peek().symbol == "(SEP)")
+        if (lexer.peek().symbol == "(SEP)") {
             return lexer.next()
+        }
         var token = lexer.peek()
         if (token.std != null) {
             token = lexer.next()
@@ -77,8 +82,9 @@ class Parser(text: String, val filePath: String) {
         }
         token = expression(0)
         val peeked = lexer.peek()
-        if (peeked.symbol != "}")
+        if (peeked.symbol != "}") {
             advanceSeparator()
+        }
         return token
     }
 
@@ -89,8 +95,9 @@ class Parser(text: String, val filePath: String) {
                 lexer.prev()
                 val res = TokenBlock(Pair(token.position.first - 1, token.position.second))
                 res.children.add(statement())
-                if (res.children.first().symbol == "(SEP)")
+                if (res.children.first().symbol == "(SEP)") {
                     res.children.clear()
+                }
                 return res
             }
             throw PositionalException(

@@ -13,8 +13,8 @@ class TokenString(
     nud: ((token: Token, parser: Parser) -> Token)?,
     led: (
         (
-        token: Token, parser: Parser, node2: Token
-    ) -> Token
+            token: Token, parser: Parser, node2: Token
+        ) -> Token
     )?,
     std: ((token: Token, parser: Parser) -> Token)?
 ) : Token(symbol, value, position, bindingPower, nud, led, std) {

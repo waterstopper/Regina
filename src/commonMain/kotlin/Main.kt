@@ -41,9 +41,9 @@ fun addNextImportJS(importGraphCreator: ImportGraphCreator, fileName: String) {
 }
 
 fun requestNextImportJS(importGraphCreator: ImportGraphCreator) {
-    if (importGraphCreator.importStack.isNotEmpty())
+    if (importGraphCreator.importStack.isNotEmpty()) {
         sendMessage(Message("import", importGraphCreator.importStack.last().filePath))
-    else startEvaluationJS(importGraphCreator)
+    } else startEvaluationJS(importGraphCreator)
 }
 
 fun startEvaluationJS(igc: ImportGraphCreator) {

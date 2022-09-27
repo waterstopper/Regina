@@ -37,8 +37,9 @@ class Index(
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         val res = evaluateIndex(symbolTable)
-        if (res is Primitive && res !is PNumber)
+        if (res is Primitive && res !is PNumber) {
             return res.getPValue()
+        }
         return res
     }
 
@@ -56,7 +57,7 @@ class Index(
     }
 
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
-        val assignTable = if(parent != null) symbolTable.changeVariable(parent) else symbolTable
+        val assignTable = if (parent != null) symbolTable.changeVariable(parent) else symbolTable
         val indexable = left.evaluate(assignTable).toVariable(left)
         val index = right.evaluate(assignTable).toVariable(right)
         if (indexable is Indexable && indexable.checkIndexType(index)) {
@@ -74,16 +75,17 @@ class Index(
         if (fromAnother.second != null) return fromAnother
         val indexUnassigned =
             right.traverseUntilOptional {
-                if (it is Assignable
-                    && it.getFirstUnassigned(parent, symbolTable).second != null
+                if (it is Assignable &&
+                    it.getFirstUnassigned(parent, symbolTable).second != null
                 ) Optional(it) else Optional()
             }
         if (indexUnassigned.value != null) return (indexUnassigned.value as Assignable).getFirstUnassigned(
             parent,
             symbolTable
         )
-        if (parent.getAssignment(this) != null)
+        if (parent.getAssignment(this) != null) {
             return Pair(parent, parent.getAssignment(this))
+        }
         return Pair(parent, null)
     }
 

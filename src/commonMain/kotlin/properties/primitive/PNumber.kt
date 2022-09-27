@@ -15,8 +15,9 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
     override fun getPValue() = value as Number
 
     override fun equals(other: Any?): Boolean {
-        if (other !is PNumber)
+        if (other !is PNumber) {
             return false
+        }
         return getPValue().toDouble() == other.getPValue().toDouble()
     }
 
@@ -150,21 +151,36 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
                     number.getPValue().toInt() / divisor.getPValue().toInt()
                 }
             )
-            setFunction(n, EmbeddedFunction("sin") { token, args ->
-                PDouble(sin(getPNumber(args, token, "this").getPValue().toDouble()))
-            })
-            setFunction(n, EmbeddedFunction("cos") { token, args ->
-                PDouble(cos(getPNumber(args, token, "this").getPValue().toDouble()))
-            })
-            setFunction(n, EmbeddedFunction("sqrt") { token, args ->
-                PDouble(sqrt(getPNumber(args, token, "this").getPValue().toDouble()))
-            })
-            setFunction(n, EmbeddedFunction("asin") { token, args ->
-                PDouble(asin(getPNumber(args, token, "this").getPValue().toDouble()))
-            })
-            setFunction(n, EmbeddedFunction("acos") { token, args ->
-                PDouble(acos(getPNumber(args, token, "this").getPValue().toDouble()))
-            })
+            setFunction(
+                n,
+                EmbeddedFunction("sin") { token, args ->
+                    PDouble(sin(getPNumber(args, token, "this").getPValue().toDouble()))
+                }
+            )
+            setFunction(
+                n,
+                EmbeddedFunction("cos") { token, args ->
+                    PDouble(cos(getPNumber(args, token, "this").getPValue().toDouble()))
+                }
+            )
+            setFunction(
+                n,
+                EmbeddedFunction("sqrt") { token, args ->
+                    PDouble(sqrt(getPNumber(args, token, "this").getPValue().toDouble()))
+                }
+            )
+            setFunction(
+                n,
+                EmbeddedFunction("asin") { token, args ->
+                    PDouble(asin(getPNumber(args, token, "this").getPValue().toDouble()))
+                }
+            )
+            setFunction(
+                n,
+                EmbeddedFunction("acos") { token, args ->
+                    PDouble(acos(getPNumber(args, token, "this").getPValue().toDouble()))
+                }
+            )
         }
     }
 }

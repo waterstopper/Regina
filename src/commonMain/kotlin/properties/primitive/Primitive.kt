@@ -51,9 +51,11 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
         else -> getAllProperties()[getIndex()][name]?.let { it(this) }
-            ?: (if (getIndex() in 2..3)
-                getAllProperties()[1][name]?.let { it(this) } ?: getAllProperties()[0][name]?.let { it(this) }
-            else getAllProperties()[0][name]?.let { it(this) })
+            ?: (
+                if (getIndex() in 2..3) {
+                    getAllProperties()[1][name]?.let { it(this) } ?: getAllProperties()[0][name]?.let { it(this) }
+                } else getAllProperties()[0][name]?.let { it(this) }
+                )
     }
 
     override fun getProperty(node: Node, fileTable: FileTable): Property = when (node.value) {
@@ -61,10 +63,12 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         "parent" -> getParentOrNull()
         "properties" -> getProperties()
         else -> getAllProperties()[getIndex()][node.value]?.let { it(this) }
-            ?: (if (getIndex() in 2..3)
-                getAllProperties()[1][node.value]?.let { it(this) }
-                    ?: getAllProperties()[0][node.value]?.let { it(this) }
-            else getAllProperties()[0][node.value]?.let { it(this) })
+            ?: (
+                if (getIndex() in 2..3) {
+                    getAllProperties()[1][node.value]?.let { it(this) }
+                        ?: getAllProperties()[0][node.value]?.let { it(this) }
+                } else getAllProperties()[0][node.value]?.let { it(this) }
+                )
             ?: throw NotFoundException(node, fileTable.filePath, variable = this)
     }
 
@@ -73,8 +77,9 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
      */
     override fun getProperties(): PDictionary {
         val res = getAllProperties()[0].toMutableMap()
-        if (getIndex() in 2..3)
+        if (getIndex() in 2..3) {
             res.putAll(getAllProperties()[1])
+        }
         res.putAll(getAllProperties()[getIndex()])
         return PDictionary(res.mapValues { it.value(this) }.toMutableMap(), null, dictionaryId++)
     }
@@ -84,8 +89,9 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
 
     override fun getFunctionOrNull(node: Node): RFunction? = RFunction.getFunctionOrNull(
         node as Call,
-        if (getIndex() in 2..3)
-            (functions[getIndex()] + functions[1]) + functions[0] else functions[getIndex()]
+        if (getIndex() in 2..3) {
+            (functions[getIndex()] + functions[1]) + functions[0] 
+        }else functions[getIndex()]
     )
 
     private fun formatClassName() = this::class.toString().split('.').last().substring(1)
@@ -112,7 +118,9 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
                 is List<*> -> PList(value as MutableList<Variable>, parent, listId++)
                 is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent, dictionaryId++)
                 else -> throw PositionalException(
-                    "Cannot create variable of type `${value::class}`", "", node
+                    "Cannot create variable of type `${value::class}`",
+                    "",
+                    node
                 )
             }
         }

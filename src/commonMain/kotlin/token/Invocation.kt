@@ -14,10 +14,10 @@ open class Invocation(
     nud: ((node: Token, parser: Parser) -> Token)?,
     led: (
         (
-        node: Token, parser: Parser, node2: Token
-    ) -> Token
+            node: Token, parser: Parser, node2: Token
+        ) -> Token
     )?,
-    std: ((node: Token, parser: Parser) -> Token)?,
+    std: ((node: Token, parser: Parser) -> Token)?
 ) : Token(symbol, value, position, bindingPower, nud, led, std), Linkable {
     val name: Token
         get() = left
@@ -35,8 +35,9 @@ open class Invocation(
         for (param in params)
             when (param) {
                 is Assignment -> wasAssignment = true
-                is TokenIdentifier -> if (wasAssignment)
+                is TokenIdentifier -> if (wasAssignment) {
                     throw SyntaxException("Default params should be after other", filePath, param)
+                }
                 else -> if (wasAssignment) throw SyntaxException("Named args should be after other", filePath, param)
             }
     }

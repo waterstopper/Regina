@@ -1,136 +1,97 @@
+fun createHeader(node) {
+    res = StringBuilder(string=["<" + getName(node)] + " ")
+    foreach(attr in (node?.svgArgs["attributes"].entries ?? [])) {
+        res.add(str(attr["key"]) + "=\"" + attr["value"] + "\"")
+    }
+    res.add(">")
+    return res.toString()
+}
+
+fun createFooter(node) { return "\n</" + getName(node) + ">" }
+
+fun getName(node, default="g") {
+    return node?.svgArgs["name"] ?? default
+}
+
+fun createBody(node, stack, created) {
+    res = StringBuilder()
+    foreach(child in node.properties.entries) {
+        if((child["value"] !is Class) \
+            || child["value"] == node \
+            || created[str(child["value"])] != null) continue
+        if(child["value"]?.svgArgs["inParent"] ?? false) {
+            res.add("\t\n" + createNode(child["value"], stack, created))
+        } else stack.add(createNode(child["value"], stack, created))
+    }
+    return res.toString()
+}
+
+fun createNode(node, stack, created) {
+    created[str(node)] = true
+    return createHeader(node) + createBody(node, stack, created) \
+        + createFooter(node)
+}
+
+fun createSVG(root, width=100, height=100) {
+    res = StringBuilder(string=["<svg width=\"" + width \
+        + "\" height=\"" + height + "\">\n"])
+    stack = []
+    res.add(createNode(root, stack, {}))
+    stack.reverse()
+    foreach(i in stack)
+        res.add(i)
+    res.add("\n</svg>")
+    return res.toString()
+}
+
 /**
-    exportArgs:
-        export: Bool = true - export or not
-        type: String = "element" - "attribute" or "element"
-        inParent: String = false - nest element inside parent element,
-            if both instances' type is "element"
-        name: String - name of exported attribute/element
-        value: Any - value of attribute node
-        attributes - Dictionary<String, Any> - all attributes are
-            added from dictionary to element
-
+exportArgs:
+    export: Bool = false - export or not
+    type: String = "element" - "attribute" or "element"
+    inParent: String = false - nest element inside parent element,
+        if both instances' type is "element"
+    name: String - name of exported attribute/element
+    value: Any - value of attribute node
+    attributes - Dictionary<String, Any> - all attributes are
+        added from dictionary to element
 */
-object usedValues {
-    containers = ["group", "svg"]
+
+fun transform(type, value, node) {
+    if(node?.svgArgs == null)
+        node.svgArgs = {"attributes":{"transform":{}}}
+    else if(node.svgArgs["attributes"] == null)
+        node.svgArgs.attributes = {"transform":{}}
+    else if(!node.svgArgs["attributes"].has("transform"))
+        node.svgArgs["attributes"]["transform"] = {}
+    node.svgArgs["transform"][type] = value
 }
 
-// should have a name
-class SvgNode {
-    name = "svg"
-    header = StringBuilder()
-    content = StringBuilder()
-    attributes = []
-    children = []
-
-    fun toString() {
-        res = StringBuilder()
-        res.add("<" + this.name)
-        i = 0
-        while(i < attributes.size) {
-            res.add(" ")
-            res.add(attributes[i].toString())
-            i = i + 1
-        }
-        res.add(if(children.size == 0) "/>" else ">")
-        i = 0
-        while(i < children.size) {
-            res.add(children[i].toString())
-            i = i + 1
-        }
-        if(children.size != 0) {
-            res.add("<" + this.name + "/>")
+/* create attibute string for transform
+ and transform-origin, if exists */
+fun transformToString(transform) {
+    res = StringBuilder("transform=\"")
+    foreach(entry in transform) {
+        if(entry["key"] != "transform-origin") {
+            res.add(entry["key"])
+            res.add("(" + if(entry["value"] !is String) entry["value"].toString() \
+                else value + ")")
         }
     }
-
-    fun addTextToHeader(text) {
+    res.add("\"")
+    if(transform.has("transform-origin")) {
+        res.add("transform-origin=\"(")
+        res.add(transform["transform-origin"].toString())
+        res.add(")")
     }
-
-    fun addTextToContent(text, toStart = false) {
-
-    }
-}
-
-class Transform {
-    scale = ""
-}
-
-// should have a name and a value
-class Attribute {
-    fun toString() {
-        return name + "=\"" + value + "\""
-    }
-}
-
-fun add(node, sb) {
-    containers = ["group, svg"]
-    log(node)
-    #stop
-    added = node.exportArgs["exported"]
-    propertiesArray = list(node.properties)
-    attributes = list(node.exportArgs["attributes"])
-    if(added != 0) {
-        sb.add("<" + added)
-        i = 0
-        while(i < attributes.size) {
-
-            sb.add(attributes[i]["key"] + "=\"" + attributes[i]["value"] + "\"")
-            i = i + 1
-        }
-        sb.add(if(containers.has(added)) ">" else "/>")
-    }
-    if(containers.has(added)) {
-        i = 0
-        #stop
-        while(i < propertiesArray.size) {
-            if(propertiesArray[i]["value"].exportArgs["type"] == "node" \
-                && propertiesArray[i]["value"].exportArgs["inParent"]) {
-                add(propertiesArray[i]["value"], sb)
-                propertiesArray.removeAt(i)
-                i = i - 1
-            }
-            i = i + 1
-        }
-        sb.add("<" + added + "/>\n")
-    }
-    i = 0
-
-    while(i < propertiesArray.size) {
-        if((propertiesArray[i]["value"]?.properties["exportArgs"] != null) \
-            && propertiesArray[i]["value"].exportArgs["type"] == "node" \
-            && (propertiesArray[i]["value"].exportArgs["inParent"] != null && !containers.has(added))) {
-            if(propertiesArray[i]["key"]!="parent" && propertiesArray[i]["key"] != "this") {
-                add(propertiesArray[i]["value"], sb)
-               }
-            propertiesArray.removeAt(i)
-            i = i - 1
-        }
-        i = i + 1
-    }
-}
-
-fun addAttribute(node, sb) {
-    sb.add(" ")
-    sb.add(node.name)
-    sb.add("=\"" + node.properties["value"] + "\"")
-}
-
-fun create(root, width, height) {
-    sb = StringBuilder()
-    sb.add("<svg \"" + width + "\" height \"" + height + "\">\n")
-    add(root, sb)
-    sb.add("</svg>")
-    log(sb.toString())
+    return res.toString()
 }
 
 class StringBuilder {
     string = []
-    fun add(s, index=string.size) {
-        string.add(s, index)
+    fun add(s) {
+        string.add(s)
     }
-
     fun toString(sep="") {
         return string.joinToString(sep)
     }
 }
-
-// class A : B -> ["exported":"svg", "inParent": true] {}

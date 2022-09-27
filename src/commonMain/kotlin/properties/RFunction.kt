@@ -21,8 +21,9 @@ open class RFunction(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is RFunction) return false
-        if ((nonDefaultParams.size + defaultParams.size) != (other.nonDefaultParams.size + other.defaultParams.size))
+        if ((nonDefaultParams.size + defaultParams.size) != (other.nonDefaultParams.size + other.defaultParams.size)) {
             return false
+        }
         if (name != other.name) return false
         return true
     }
@@ -43,8 +44,8 @@ open class RFunction(
         fun getFunctionOrNull(call: Call, functions: Iterable<RFunction>): RFunction? {
             var candidates = functions.filter {
                 it.name == call.name.value &&
-                        it.nonDefaultParams.size <= call.allArgs.size &&
-                        it.nonDefaultParams.size + it.defaultParams.size >= call.allArgs.size
+                    it.nonDefaultParams.size <= call.allArgs.size &&
+                    it.nonDefaultParams.size + it.defaultParams.size >= call.allArgs.size
             }
             var unnamedArgsRemoved = 0
             // filter functions by named arguments - if there is name argument
@@ -52,8 +53,9 @@ open class RFunction(
             candidates = candidates.filter { cand ->
                 unnamedArgsRemoved = 0
                 call.namedArgs.all { arg ->
-                    if (cand.nonDefaultParams.find { it.value == arg.name } != null)
+                    if (cand.nonDefaultParams.find { it.value == arg.name } != null) {
                         unnamedArgsRemoved++
+                    }
                     cand.hasParam(arg.name)
                 } && cand.nonDefaultParams.size - unnamedArgsRemoved <= call.unnamedArgs.size
             }

@@ -1,0 +1,107 @@
+//import std.geometry2D as geom
+import std.math as math
+import std.svg as svg
+import std.geometry2D as geom
+
+fun main() {
+  //  r = RegularPolygon(center=Point(x=50,y=50), q=7, convex=false)
+   // r.svgArgs["attributes"]["fill"] = "goldenrod"
+   // write(svg.createSVG(r), "result.svg")
+
+
+    b = Body(center=Point(x=50,y=50))
+   // b.head.eye.iris.svgArgs["attributes"]["fill"] = "beige"
+    a = svg.createSVG(b)
+    write(a, "result.svg")
+}
+
+object Constants {
+    palette = {"black":"#000000",\
+        "blue":"#253092",\
+        "red":"#bf3011",\
+        "orange":"#df8022",\
+        "yellow":"#e5b527",\
+        "green":"#06694a",\
+        "purple":"#820d7c",\
+        "white":"#fffafb"}
+}
+
+class Body: Rectangle {
+    fill = Constants.palette.values[\
+        rndInt(0, Constants.palette.size-1)]
+    width = rndInt(25, 50)
+    height = 25
+    head = if(rndInt(0,1)) Head() else RoundHead()
+    leg = Limb(start = downLeft())
+}
+
+class Head: Polyline {
+    fill = parent.fill
+    points = [Point(x=parent.center.x+parent.width*rndDouble(1, 2),y=parent.center.y),\
+        parent.downRight(),\
+        parent.upRight()]
+    eye = Eye(center=center())
+}
+
+class RoundHead: Polyline {
+    center = parent.center.plus(\
+        Point(x=parent.width/2))
+    eye = Eye(center=center)
+    circle = Circle(center=center,\
+        r=parent.height/2,\
+        fill=parent.fill)
+}
+
+class Eye {
+    center = Point()
+    pupil = Circle(r=5,center=center)
+    iris = Circle(r=7,center=center,\
+    fill=Constants.palette["white"])
+}
+
+class Limb {
+    start = Point()
+    first = Segment(p1=start,p2=Point(),\
+        stroke=parent.fill,strokeWidth=5)\
+        .rotate(rndInt(-15,15),start)
+    second = Segment(p1=first.p2,\
+    p2=Point(x=first.p2.x+rndInt(5,10),\
+    y=first.p2.y),\
+        stroke=parent.fill,strokeWidth=5)
+}
+
+class Flower {
+
+}
+
+object Globals {
+    petalsNum = rndInt(3, 10)
+}
+class FlowerHead {
+    svgArgs = {"group": true}
+    iter = parent?.iter + 1
+
+    fun createPetals() {
+        this.polygon = Polyline()
+        circle = []
+        bigCircle = []
+        bigRadius = rndInt(7, 10)
+      //  foreach(i in range(1, Globals.petalsNum)) {
+       //     circle.add(Point(x=parent.x + 5, y=parent.y))
+       //     bigCircle.add(Point(x=parent.x + bigRadius, y=parent.y))
+       //     circle[circle.size - 1].rotate(i * (360 / Global.petalsNum))
+       //     bigCircle[circle.size - 1].rotate(i * (360 / Global.petalsNum))
+     //   }
+    }
+}
+
+// The maximum and the minimum are inclusive
+fun rndInt(min, max) {
+    min = min.ceil()
+    max = max.floor() + 1
+    return (rnd() * (max - min) + min).floor()
+}
+
+fun rndDouble(min, max) {
+    return (rnd() * (max - min) + min)
+}

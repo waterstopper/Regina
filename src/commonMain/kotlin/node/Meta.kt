@@ -8,7 +8,7 @@ import utils.Utils.NULL
 class Meta(
     symbol: String,
     value: String,
-    position: Pair<Int, Int>,
+    position: Pair<Int, Int>
 ) : Node(symbol, value, position) {
     override fun evaluate(symbolTable: SymbolTable): Any {
         val content = symbolTable.getDictionaryFromTable()

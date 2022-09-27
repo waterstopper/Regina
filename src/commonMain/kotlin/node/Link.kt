@@ -50,27 +50,30 @@ open class Link(
         }
     }
 
-
     override fun evaluate(symbolTable: SymbolTable): Any {
         var table = symbolTable.copy()
         var (index, currentVariable) = checkFirstVariable(0, symbolTable.copy(), symbolTable)
-        if (currentVariable == null)
+        if (currentVariable == null) {
             throw NotFoundException(left, symbolTable.getFileTable().filePath)
+        }
         table = table.changeVariable(currentVariable)
         index++
         while (index < children.size) {
             val isResolved =
                 checkNextVariable(index = index, table = table, initialTable = symbolTable, currentVariable!!)
-            if (isResolved.value is NullValue)
+            if (isResolved.value is NullValue) {
                 return NULL
-            if (isResolved.value !is Variable)
+            }
+            if (isResolved.value !is Variable) {
                 throw PositionalException("Link not resolved", symbolTable.getFileTable().filePath, children[index])
+            }
             currentVariable = isResolved.value
             table = table.changeVariable(currentVariable)
             index++
         }
-        return if (currentVariable!! is Primitive && currentVariable !is PNumber)
-            (currentVariable as Primitive).getPValue() else currentVariable
+        return if (currentVariable!! is Primitive && currentVariable !is PNumber) {
+            (currentVariable as Primitive).getPValue()
+        } else currentVariable
     }
 
     private fun checkNextVariable(
@@ -82,14 +85,16 @@ open class Link(
         when (children[index]) {
             is Call -> {
                 val function = variable.getFunctionOrNull((children[index] as Call))
-                if (function == null && nullable.contains(index))
+                if (function == null && nullable.contains(index)) {
                     return Optional(NullValue())
-                if (function == null)
+                }
+                if (function == null) {
                     throw PositionalException(
                         "Variable does not contain function",
                         table.getFileTable().filePath,
                         children[index]
                     )
+                }
                 return Optional(
                     resolveFunctionCall(
                         index = index,
@@ -103,12 +108,14 @@ open class Link(
             is Identifier -> {
                 if (variable is Type && variable !is Object) {
                     val assignment = variable.getLinkedAssignment(this, index)
-                    if (assignment != null)
+                    if (assignment != null) {
                         return Optional(assignment)
+                    }
                 }
                 val property = variable.getPropertyOrNull(children[index].value)
-                if (property == null && nullable.contains(index))
+                if (property == null && nullable.contains(index)) {
                     return Optional(NullValue())
+                }
                 return Optional(property)
             }
             is Index -> {
@@ -117,8 +124,9 @@ open class Link(
                 while (indexToken is Index)
                     indexToken = indexToken.left
                 val property = variable.getPropertyOrNull(indexToken.value)
-                if (property == null && nullable.contains(index))
+                if (property == null && nullable.contains(index)) {
                     return Optional(NullValue())
+                }
                 property
                     ?: if (variable is Type) (return Optional(variable.getAssignment(indexToken)))
                     else if (nullable.contains(index)) return Optional(NullValue()) else throw PositionalException(
@@ -159,8 +167,11 @@ open class Link(
             is Call -> return Pair(
                 index,
                 resolveFunctionCall(
-                    index, table, initialTable,
-                    null, table.getFunction(children[index])
+                    index,
+                    table,
+                    initialTable,
+                    null,
+                    table.getFunction(children[index])
                 ).first
             )
             is Constructor -> {
@@ -172,8 +183,9 @@ open class Link(
             }
             // unary minus, (1+2).max(...)
             else -> {
-                if (!canBeFile)
+                if (!canBeFile) {
                     throw PositionalException("Unexpected token", table.getFileTable().filePath, children[index])
+                }
                 return Pair(index, children[index].evaluate(table).toVariable(children[index]))
             }
         }
@@ -200,8 +212,9 @@ open class Link(
         function: RFunction
     ): Pair<Variable, Variable?> {
         var type = table.getCurrentType()
-        if (type !is Type)
+        if (type !is Type) {
             type = null
+        }
         val tableForEvaluation = SymbolTable(
             fileTable = if (type is Type) type.fileTable
             else table.getFileTable(),
@@ -218,46 +231,57 @@ open class Link(
         val (_, currentParent, _, index) = safeEvaluate(
             parent ?: Type(
                 "@Fictive",
-                null, mutableSetOf(), symbolTable.getImport(Node(value = "Global")),
+                null,
+                mutableSetOf(),
+                symbolTable.getImport(Node(value = "Global")),
                 index = -1
             ),
             symbolTable
         )
-        if (currentParent !is Type || index != children.lastIndex)
+        if (currentParent !is Type || index != children.lastIndex) {
             throw PositionalException("Link not resolved", symbolTable.getFileTable().filePath, children.last())
-        if (children.last() is Index)
+        }
+        if (children.last() is Index) {
             (children.last() as Index).assign(assignment, currentParent, symbolTable, value)
-        else currentParent.setProperty(children.last().value, value.toProperty(assignment.right))
+        } else currentParent.setProperty(children.last().value, value.toProperty(assignment.right))
     }
 
     /**
      * @return currentVariable, its parent, assignment in parent if currentVariable is null, index of currentVariable
      */
     private fun safeEvaluate(parent: Type, symbolTable: SymbolTable): Tuple4<Variable?, Variable?, Assignment?, Int> {
+        if (right is Call && right.left.value == "rotate") {
+            println("Rotate")
+        }
         var currentParent: Variable? = null
         var table = symbolTable.copy()
         val initialTable = symbolTable.changeVariable(parent)
         var (index, currentVariable) = checkFirstVariable(0, table, initialTable)
         // first variable in link is not assigned => there is no such property in class if assignment not found
-        if (currentVariable == null)
+        if (currentVariable == null) {
             return Tuple4(
-                null, parent,
+                null,
+                parent,
                 parent.getAssignment(left)
                     ?: throw PositionalException("Assignment not found", symbolTable.getFileTable().filePath, left),
                 index
             )
+        }
         table = table.changeVariable(currentVariable)
         index++
         while (index < children.size) {
             val res = checkNextVariable(index, table = table, initialTable = initialTable, currentVariable!!)
-            if (res.value is NullValue)
+            if (res.value is NullValue) {
                 return Tuple4(NullValue(), currentVariable, null, index)
+            }
             // if property not yet assigned and assignment is found, return parent
-            if (res.isGood && res.value is Assignment)
+            if (res.isGood && res.value is Assignment) {
                 return Tuple4(null, currentVariable, res.value, index)
+            }
             // property not assigned and assignment not found
-            if (res.value !is Variable)
+            if (res.value !is Variable) {
                 return Tuple4(null, currentVariable, null, index)
+            }
             currentParent = currentVariable
             table = table.changeVariable(res.value)
             currentVariable = res.value
@@ -272,8 +296,9 @@ open class Link(
         val (type, assignment) = getFirstUnassignedOrNull(parent, symbolTable)
         // Happens if both type nad assignment are null.
         // It means that it's import link with two children and Type of Function is imported => all is assigned
-        if (type == null)
+        if (type == null) {
             return Pair(parent, assignment)
+        }
         return Pair(type, assignment)
     }
 
@@ -286,22 +311,26 @@ open class Link(
         forLValue: Boolean = false
     ): Pair<Type?, Assignment?> {
         val (currentVariable, currentParent, assignment, index) = safeEvaluate(parent, symbolTable)
-        if (currentVariable is NullValue)
+        if (currentVariable is NullValue) {
             return Pair(null, null)
-        if (currentParent != null && currentParent !is Type)
+        }
+        if (currentParent != null && currentParent !is Type) {
             return Pair(null, null)
+        }
 //            throw PositionalException(
 //                "Expected class instance, got ${mapToString(currentParent::class)}",
 //                symbolTable.getFileTable().filePath,
 //                children[index - 1]
 //            )
         // left hand-side can be assigned if last link child is not assigned
-        if (forLValue && index == children.lastIndex)
+        if (forLValue && index == children.lastIndex) {
             return Pair(parent, null)
+        }
         // nor assignment, nor property is found
         if (currentVariable == null && assignment == null && index < children.size) {
             return Pair(
-                parent, parent.getLinkedAssignment(this, 0)
+                parent,
+                parent.getLinkedAssignment(this, 0)
                     ?: throw PositionalException("Assignment not found", symbolTable.getFileTable().filePath)
             )
         }

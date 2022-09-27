@@ -31,10 +31,14 @@ open class Link(
     children: List<Token> = listOf()
 ) : Token(symbol, value, position, bindingPower, nud, led, std) {
     constructor(node: Token) : this(
-        node.symbol, node.value,
-        node.position, node.bindingPower,
-        node.nud, node.led,
-        node.std, node.children
+        node.symbol,
+        node.value,
+        node.position,
+        node.bindingPower,
+        node.nud,
+        node.led,
+        node.std,
+        node.children
     )
 
     val nullable = mutableListOf<Int>()

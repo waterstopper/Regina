@@ -16,9 +16,11 @@ object Evaluation {
 
     fun eval(code: String, roots: List<String> = mutableListOf("")) {
         val fileTable =
-            analyzeSemantics("@NoFile",
+            analyzeSemantics(
+                "@NoFile",
                 roots,
-                Parser(code, "@NoFile").statements().map { it.toNode("@NoFile") })
+                Parser(code, "@NoFile").statements().map { it.toNode("@NoFile") }
+            )
         fileTable.getMain().body.evaluate(SymbolTable(fileTable = fileTable, resolvingType = ResolvingMode.FUNCTION))
     }
 

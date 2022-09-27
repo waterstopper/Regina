@@ -18,10 +18,12 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
     override fun getIndex() = 4
     override fun getPValue() = value as String
     override fun get(index: Any, node: Node, fileTable: FileTable): Any {
-        if (!isInt(index))
+        if (!isInt(index)) {
             throw PositionalException("Expected integer", fileTable.filePath, node)
-        if ((index as Int) < 0 || index >= getPValue().length)
+        }
+        if ((index as Int) < 0 || index >= getPValue().length) {
             throw PositionalException("Index out of bounds", fileTable.filePath, node)
+        }
         return getPValue()[index]
     }
 

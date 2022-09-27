@@ -24,35 +24,39 @@ import utils.Utils.subList
 
 fun initializeSuperTypes(superTypes: Map<Type, Node?>) {
     for ((type, node) in superTypes) {
-        if (node == null)
+        if (node == null) {
             continue
+        }
         var localSuperType: Type? = null
         val superType = when (node) {
             is Identifier -> superTypes.filter { (t, _) ->
-                if (t.fileTable == type.fileTable && t.name == node.value)
+                if (t.fileTable == type.fileTable && t.name == node.value) {
                     localSuperType = t
+                }
                 t.name == node.value
             }
             is Link -> {
-                if (node.children.size != 2)
+                if (node.children.size != 2) {
                     throw PositionalException(
                         "Expected imported file name and type name",
                         type.fileTable.filePath,
                         node
                     )
+                }
                 val importedFileTable = type.fileTable.getImportOrNull(node.left.value)
-                    ?: throw  PositionalException("Import not found", type.fileTable.filePath, node.left)
+                    ?: throw PositionalException("Import not found", type.fileTable.filePath, node.left)
                 superTypes.filter { (t, _) ->
                     t.fileTable == importedFileTable && t.name == node.right.value
                 }
             }
             else -> throw PositionalException("Expected identifier or link", type.fileTable.filePath, node)
         }
-        if (localSuperType != null)
+        if (localSuperType != null) {
             type.supertype = localSuperType
-        else {
-            if (superType.size != 1)
+        } else {
+            if (superType.size != 1) {
                 throw PositionalException("One super type not found", type.fileTable.filePath, node)
+            }
             type.supertype = superType.keys.first()
         }
     }
@@ -81,7 +85,8 @@ class Analyzer(fileTable: FileTable) {
         }
         for (function in fileTable.getFunctions()) {
             val table = addFunctionParametersToTable(
-                function, SymbolTable(fileTable = fileTable, resolvingType = ResolvingMode.FUNCTION)
+                function,
+                SymbolTable(fileTable = fileTable, resolvingType = ResolvingMode.FUNCTION)
             )
             changeInvocationType(function.body, table, 0)
         }
@@ -106,36 +111,41 @@ class Analyzer(fileTable: FileTable) {
         for ((index, child) in node.children.withIndex()) {
             when (child) {
                 is WordStatement -> {
-                    if (cycles < 1 && (child.symbol == "break" || child.symbol == "continue"))
+                    if (cycles < 1 && (child.symbol == "break" || child.symbol == "continue")) {
                         throw PositionalException(
                             "${child.symbol} out of cycle",
                             symbolTable.getFileTable().filePath,
                             child
                         )
+                    }
                 }
                 is Block -> {
-                    if (child.symbol == "foreach")
+                    if (child.symbol == "foreach") {
                         symbolTable.addVariableOrNot(child.left)
+                    }
                 }
                 is Assignment -> {
-                    if (node !is Invocation && node !is Block && node !is Assignment)
+                    if (node !is Invocation && node !is Block && node !is Assignment) {
                         throw PositionalException(
                             "unexpected assignment ${node.value}, ${node::class}",
-                            symbolTable.getFileTable().filePath, child
+                            symbolTable.getFileTable().filePath,
+                            child
                         )
+                    }
                     symbolTable.addVariableOrNot(child.left)
                 }
-                is Invocation -> if (isInvocation(child))
+                is Invocation -> if (isInvocation(child)) {
                     createSpecificInvocation(child, symbolTable, node, index)
+                }
                 is Link -> changeInvocationsInLink(child, symbolTable, inProperty)
                 is Meta -> sendMessage(Message("breakpoint", child.position))
             }
         }
         for (child in node.children)
             if (child !is Link) {
-                if (child is Block && (child.symbol == "foreach" || child.symbol == "while"))
+                if (child is Block && (child.symbol == "foreach" || child.symbol == "while")) {
                     changeInvocationType(child, symbolTable, cycles + 1)
-                else changeInvocationType(child, symbolTable, cycles)
+                } else changeInvocationType(child, symbolTable, cycles)
             } else {
                 for (linkChild in child.children)
                     changeInvocationType(linkChild, symbolTable, cycles)
@@ -146,16 +156,17 @@ class Analyzer(fileTable: FileTable) {
         if (isInvocation(node.left)) createSpecificInvocation(node.left, symbolTable, node, 0)
         if (isInvocation(node.right)) {
             // the only case in Link when Invocation might be a Constructor
-            if (node.left is Identifier)
+            if (node.left is Identifier) {
                 changeInvocationOnSecondPositionInLink(symbolTable, node, inProperty)
-            else {
+            } else {
                 node.children[1] = Call(node.right)
                 return changeInvocationType(node.left, symbolTable, 0)
             }
         }
         for ((index, child) in node.children.subList(2).withIndex())
-            if (isInvocation(child))
+            if (isInvocation(child)) {
                 node.children[index + 2] = Call(child)
+            }
     }
 
     private fun isInvocation(node: Node) = node is Invocation && node !is Call && node !is Constructor

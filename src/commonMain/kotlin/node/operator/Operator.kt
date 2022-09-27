@@ -41,8 +41,9 @@ open class Operator(
                 res
             }
         }
-        if (this is String)
+        if (this is String) {
             return this.toString() + other.toString()
+        }
         if (this is PNumber && other is PNumber) {
             // to make MAX_VALUE + n equal to MIN_VALUE + n - 1
             return this + other
@@ -54,21 +55,25 @@ open class Operator(
     }
 
     private fun Any.eq(other: Any): Boolean {
-        if (this is PNumber && other is PNumber)
+        if (this is PNumber && other is PNumber) {
             return this == other
+        }
         if (this is MutableList<*> && other is MutableList<*>) {
-            if (this.size != other.size)
+            if (this.size != other.size) {
                 return false
+            }
             var res = true
             this.forEachIndexed { index, _ ->
-                if (!this[index]!!.eq(other[index]!!))
+                if (!this[index]!!.eq(other[index]!!)) {
                     res = false
+                }
             }
             return res
         }
         if (this is MutableMap<*, *> && other is MutableMap<*, *>) {
-            if (this.size != other.size)
+            if (this.size != other.size) {
                 return false
+            }
             var res = true
             this.forEach { (key, value) ->
                 if (!other.contains(key)) res = false

@@ -43,10 +43,12 @@ class Null : Property(null) {
         private val functions = mutableListOf<RFunction>()
 
         fun initializeNullFunctions() {
-            functions.add(EmbeddedFunction("toString") { token, args ->
-                val n = Utils.getPDictionary(args, token, "this")
-                n.getPValue().toString()
-            })
+            functions.add(
+                EmbeddedFunction("toString") { token, args ->
+                    val n = Utils.getPDictionary(args, token, "this")
+                    n.getPValue().toString()
+                }
+            )
         }
     }
 }

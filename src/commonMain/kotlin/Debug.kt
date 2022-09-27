@@ -6,18 +6,18 @@ import properties.primitive.PList
 // used for js. Debug classes are classes without references
 interface Debug
 
-fun elementToDebug(element: Variable, references: References) = if (element !is NestableDebug)
+fun elementToDebug(element: Variable, references: References) = if (element !is NestableDebug) {
     element.toDebugClass(references)
-else {
+} else {
     val resolved = when (element) {
         is Type -> references.types[element.getDebugId().toString()]
         is PList -> references.lists[element.getDebugId().second]
         is PDictionary -> references.dictionaries[element.getDebugId().second]
         else -> throw Exception("Unexpected type")
     }
-    if (resolved != null)
+    if (resolved != null) {
         resolved
-    else {
+    } else {
         references.queue[element.getDebugId()] = element
         element.getDebugId()
     }

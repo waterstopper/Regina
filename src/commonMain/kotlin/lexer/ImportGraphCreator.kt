@@ -47,7 +47,8 @@ class ImportGraphCreator(
                 }
                 else -> throw PositionalException(
                     "Only class, object or function can be top level declaration",
-                    fileTable.filePath, node
+                    fileTable.filePath,
+                    node
                 )
             }
     }

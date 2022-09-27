@@ -35,7 +35,7 @@ class Block(node: Node) :
         if (isRange) {
             iterable = (iterable as List<PInt>).map { it.getPValue() }
             for (i in (if (iterable[0] < iterable[1]) iterable[0]..iterable[1] else iterable[0] downTo iterable[1])
-                    step iterable[2]) {
+                step iterable[2]) {
                 symbolTable.addVariable(left.value, PInt(i).toVariable(left))
                 when (val res = children[2].evaluate(symbolTable)) {
                     CycleStatement.CONTINUE -> continue
@@ -43,7 +43,7 @@ class Block(node: Node) :
                     !is Unit -> return res
                 }
             }
-        } else
+        } else {
             for (i in iterable) {
                 symbolTable.addVariable(left.value, i!!.toVariable(left))
                 when (val res = children[2].evaluate(symbolTable)) {
@@ -52,22 +52,26 @@ class Block(node: Node) :
                     !is Unit -> return res
                 }
             }
+        }
         return Unit
     }
 
     private fun getIterable(symbolTable: SymbolTable): Pair<Iterable<*>, Boolean> {
         var iterable: Any = right.evaluate(symbolTable).toVariable(right)
-        if (right is Call && (right as Call).name.value == "range")
+        if (right is Call && (right as Call).name.value == "range") {
             return Pair((iterable as Primitive).getPValue() as Iterable<*>, true)
-        if (iterable !is Indexable || iterable is PDictionary)
+        }
+        if (iterable !is Indexable || iterable is PDictionary) {
             throw PositionalException(
                 "Expected list, string or range",
                 symbolTable.getFileTable().filePath,
                 right
             )
+        }
         iterable = (iterable as Primitive).getPValue()
-        if (iterable is String)
+        if (iterable is String) {
             iterable = iterable.map { it.toString() }
+        }
         return Pair(iterable as Iterable<*>, false)
     }
 
@@ -89,30 +93,33 @@ class Block(node: Node) :
     private fun evaluateConditional(symbolTable: SymbolTable): Any {
         val condition = left
         val trueBlock = right
-        if (condition.evaluate(symbolTable).toBoolean(condition, symbolTable.getFileTable()))
+        if (condition.evaluate(symbolTable).toBoolean(condition, symbolTable.getFileTable())) {
             return trueBlock.evaluate(symbolTable)
-        else if (children.size == 3)
+        } else if (children.size == 3) {
             return children[2].evaluate(symbolTable)
+        }
         return Unit
     }
 
     private fun evaluateBlock(symbolTable: SymbolTable): Any {
         for (token in children) {
             if (token is Block) {
-                if (token.value == "{")
+                if (token.value == "{") {
                     throw PositionalException(
                         "Block within a block. Maybe `if`, `else` or `while` was omitted?",
                         symbolTable.getFileTable().filePath,
                         token
                     )
+                }
                 val res = token.evaluate(symbolTable)
-                if (res !is Unit)
+                if (res !is Unit) {
                     return res
+                }
             } else when (token.symbol) {
                 "return" -> {
-                    return if (token.children.size == 0)
+                    return if (token.children.size == 0) {
                         Unit
-                    else token.left.evaluate(symbolTable)
+                    } else token.left.evaluate(symbolTable)
                 }
                 "break" -> return CycleStatement.BREAK
                 "continue" -> return CycleStatement.CONTINUE

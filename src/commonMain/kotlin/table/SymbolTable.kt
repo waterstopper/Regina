@@ -47,7 +47,8 @@ class SymbolTable(
 
     fun changeFile(fileTable: FileTable): SymbolTable {
         return SymbolTable(
-            scopeTable?.copy(), variableTable,
+            scopeTable?.copy(),
+            variableTable,
             fileTable,
             resolvingType = resolvingType
         )
@@ -81,8 +82,9 @@ class SymbolTable(
     fun getFunction(node: Node): RFunction {
         val res = fileTable.getFunctionOrNull(node)
         if (res == null) {
-            if (variableTable == null)
+            if (variableTable == null) {
                 throw PositionalException("Function `${node.left.value}` not found", fileTable.filePath, node)
+            }
             return variableTable!!.getFunction(node, fileTable)
         }
         return res
@@ -109,11 +111,13 @@ class SymbolTable(
 
     fun getIdentifierOrNull(node: Node): Variable? {
         val variable = getVariableOrNull(node.value)
-        if (variable != null)
+        if (variable != null) {
             return variable
+        }
         val property = variableTable?.getPropertyOrNull(node.value)
-        if (property != null)
+        if (property != null) {
             return property
+        }
         return getObjectOrNull(node)
     }
 
@@ -144,12 +148,13 @@ class SymbolTable(
         for (i in imports.keys) {
             res.append("\n")
             res.append(i.stringNotation())
-            if (imports[i]?.isNotEmpty() == true)
+            if (imports[i]?.isNotEmpty() == true) {
                 res.append(
                     "\n\timports: ${
-                        imports[i]!!.map { Pair(it.value, it.key) }.joinToString(separator = ",")
+                    imports[i]!!.map { Pair(it.value, it.key) }.joinToString(separator = ",")
                     }\n"
                 )
+            }
         }
         return res.toString()
     }
@@ -160,8 +165,9 @@ class SymbolTable(
         scopeTable?.getVariables()?.forEach { (name, variable) ->
             res[name] = variable.toDebugClass(references)
         }
-        if (variableTable is Type)
+        if (variableTable is Type) {
             res["@this"] = variableTable!!.toDebugClass(references)
+        }
         while (references.queue.isNotEmpty()) {
             references.queue.values.last().toDebugClass(references)
         }
@@ -177,11 +183,13 @@ class SymbolTable(
                 res.append("\t$fieldName:$fieldValue\n")
             }
         }
-        if (scopeTable != null)
+        if (scopeTable != null) {
             for ((fieldName, fieldValue) in scopeTable!!.getVariables())
                 res.append("\t$fieldName:$fieldValue\n")
-        if (res.isEmpty())
+        }
+        if (res.isEmpty()) {
             return ""
+        }
         return res.deleteAt(res.lastIndex).toString()
     }
 }

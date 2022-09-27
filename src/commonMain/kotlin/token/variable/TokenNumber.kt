@@ -10,8 +10,9 @@ class TokenNumber(value: String, position: Pair<Int, Int>) :
     override fun toNode(filePath: String): Node {
         val number: Number = if (isInteger()) {
             val parsedDouble = value.toDouble()
-            if (parsedDouble < Int.MIN_VALUE || parsedDouble > Int.MAX_VALUE)
+            if (parsedDouble < Int.MIN_VALUE || parsedDouble > Int.MAX_VALUE) {
                 throw SyntaxException("Integer can be in range [${Int.MIN_VALUE}, ${Int.MAX_VALUE}]", filePath, this)
+            }
             value.toInt()
         } else value.toDouble()
         return NodeNumber(value, position, number, !isInteger())

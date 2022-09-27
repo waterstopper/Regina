@@ -12,8 +12,8 @@ class ArithmeticOperator(
     nud: ((node: Token, parser: Parser) -> Token)?,
     led: (
         (
-        node: Token, parser: Parser, node2: Token
-    ) -> Token
+            node: Token, parser: Parser, node2: Token
+        ) -> Token
     )?,
     std: ((node: Token, parser: Parser) -> Token)?
 ) : Operator(symbol, value, position, bindingPower, nud, led, std) {

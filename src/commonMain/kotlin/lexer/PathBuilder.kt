@@ -25,29 +25,35 @@ object PathBuilder {
         if (candidates.isEmpty()) {
             throw PositionalException(
                 "File not found ${
-                    if (importName is Link) importName.children.joinToString(
-                        separator = "/"
-                    ) else importName.value
-                }", fileTable.filePath, importName
+                if (importName is Link) importName.children.joinToString(
+                    separator = "/"
+                ) else importName.value
+                }",
+                fileTable.filePath,
+                importName
             )
         }
-        if (candidates.size > 1)
+        if (candidates.size > 1) {
             throw PositionalException(
                 "Impossible to import ${
-                    if (importName is Link) importName.children.joinToString(
-                        separator = "/"
-                    ) else importName.value
+                if (importName is Link) importName.children.joinToString(
+                    separator = "/"
+                ) else importName.value
                 }. Found ${candidates.size} files: " +
-                        candidates.joinToString(separator = ", "), fileTable.filePath, importName
+                    candidates.joinToString(separator = ", "),
+                fileTable.filePath,
+                importName
             )
+        }
         return candidates.first()
     }
 
     private fun checkFiles(path: String, roots: List<String>): List<String> {
         val candidates = mutableListOf<String>()
         for (root in roots) {
-            if (FileSystem.exists("$root$path"))
+            if (FileSystem.exists("$root$path")) {
                 candidates.add("$root$path")
+            }
         }
         return candidates
     }

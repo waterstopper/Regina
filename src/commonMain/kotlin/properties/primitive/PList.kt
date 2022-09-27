@@ -9,7 +9,6 @@ import node.Identifier
 import node.Node
 import node.invocation.Call
 import node.invocation.ResolvingMode
-import node.statement.Assignment
 import properties.*
 import table.FileTable
 import table.SymbolTable
@@ -23,28 +22,34 @@ import utils.Utils.toPInt
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
-class PList(value: MutableList<Variable>, parent: Type?, val id: Int) : Primitive(value, parent),
+class PList(value: MutableList<Variable>, parent: Type?, val id: Int) :
+    Primitive(value, parent),
     Indexable,
     NestableDebug,
     Containerable {
     override fun getIndex() = 5
     override fun getPValue() = value as MutableList<Variable>
     override fun get(index: Any, node: Node, fileTable: FileTable): Any {
-        if (index !is PInt)
+        if (index !is PInt) {
             throw PositionalException("Expected integer as index", fileTable.filePath, node)
-        if (index.getPValue() < 0 || index.getPValue() >= getPValue().size)
+        }
+        if (index.getPValue() < 0 || index.getPValue() >= getPValue().size) {
             throw PositionalException("Index out of bounds", fileTable.filePath, node)
+        }
         return getPValue()[index.getPValue()]
     }
 
     override fun toDebugClass(references: References): Any {
         val id = getDebugId()
         references.queue.remove(id)
-        if (references.lists[id.second] != null)
+        if (references.lists[id.second] != null) {
             return id
-        val res = DebugList(getPValue().map {
-            if (it == this) id else elementToDebug(it, references)
-        })
+        }
+        val res = DebugList(
+            getPValue().map {
+                if (it == this) id else elementToDebug(it, references)
+            }
+        )
         references.lists[id.second as Int] = res
         return id
     }
@@ -59,15 +64,17 @@ class PList(value: MutableList<Variable>, parent: Type?, val id: Int) : Primitiv
         val res = StringBuilder("[")
         for (e in getPValue())
             res.append("${if (e == this) "this" else e.toString()}, ")
-        if (res.toString() == "[")
+        if (res.toString() == "[") {
             return "[]"
+        }
         return res.removeRange(res.lastIndex - 1..res.lastIndex).toString() + ']'
     }
 
     override fun equals(other: Any?): Boolean {
         if (other !is PList) return false
-        if (getPValue() == other.getPValue())
+        if (getPValue() == other.getPValue()) {
             return true
+        }
         return false
     }
 
@@ -98,17 +105,20 @@ class PList(value: MutableList<Variable>, parent: Type?, val id: Int) : Primitiv
             setFunction(
                 p,
                 EmbeddedFunction(
-                    "add", listOf("element"), listOf("index = this.size")
+                    "add",
+                    listOf("element"),
+                    listOf("index = this.size")
                 ) { token, args ->
                     val list = castToPList(args.getPropertyOrNull("this")!!)
                     val argument = getIdent(token, "element", args)
                     val index = getPInt(args, token, "index")
-                    if (index.getPValue() < 0 || index.getPValue() > list.getPValue().size)
+                    if (index.getPValue() < 0 || index.getPValue() > list.getPValue().size) {
                         throw PositionalException(
                             "Index out of bounds",
                             args.getFileTable().filePath,
                             token.children[1]
                         )
+                    }
                     list.getPValue().add(index.getPValue(), argument)
                     NULL
                 }
@@ -116,7 +126,8 @@ class PList(value: MutableList<Variable>, parent: Type?, val id: Int) : Primitiv
             setFunction(
                 p,
                 EmbeddedFunction(
-                    "remove", args = listOf("element"),
+                    "remove",
+                    args = listOf("element")
                 ) { token, args ->
                     val list = castToPList(args.getPropertyOrNull("this")!!)
                     val argument = getIdent(token, "element", args)
@@ -132,8 +143,9 @@ class PList(value: MutableList<Variable>, parent: Type?, val id: Int) : Primitiv
                         PInt(removedIndex)
                     } else {
                         val removedIndex = list.getPValue().indexOf(argument)
-                        if (removedIndex != -1)
+                        if (removedIndex != -1) {
                             list.getPValue().removeAt(removedIndex)
+                        }
                         PInt(removedIndex)
                     }
                 }
@@ -234,12 +246,14 @@ class PList(value: MutableList<Variable>, parent: Type?, val id: Int) : Primitiv
                     val desc = getPInt(args, token, "desc")
                     val comparator = Comparator<Variable> { a, b -> compareVariables(a, b) }
                     list.getPValue().sortWith(comparator)
-                    if (desc.getPValue() != 0)
+                    if (desc.getPValue() != 0) {
                         list.getPValue().reverse()
+                    }
                     NULL
                 }
             )
-            setFunction(p,
+            setFunction(
+                p,
                 EmbeddedFunction("sorted", namedArgs = listOf("desc = false")) { token, args ->
                     val list = getPList(args, token, "this")
                     val desc = getPInt(args, token, "desc")
@@ -255,8 +269,9 @@ class PList(value: MutableList<Variable>, parent: Type?, val id: Int) : Primitiv
         }
 
         private fun compareType(type: Type, variable: Variable): Int {
-            if (type is Object && variable is Object)
+            if (type is Object && variable is Object) {
                 return compareValues(type.name, variable.name)
+            }
             return when (variable) {
                 is Object -> -1
                 is Type -> if (type.equalToType(variable)) 0 else compareValues(type.name, variable.name)
@@ -265,12 +280,15 @@ class PList(value: MutableList<Variable>, parent: Type?, val id: Int) : Primitiv
         }
 
         private fun comparePrimitive(primitive: Primitive, variable: Variable): Int {
-            if (variable is Type)
+            if (variable is Type) {
                 return -1
-            if (primitive is PNumber && variable is PNumber)
+            }
+            if (primitive is PNumber && variable is PNumber) {
                 return primitive.compareTo(variable)
-            if (primitive.getIndex() != (variable as Primitive).getIndex())
+            }
+            if (primitive.getIndex() != (variable as Primitive).getIndex()) {
                 return compareValues(primitive.getIndex(), variable.getIndex())
+            }
             return when (variable) {
                 is PList -> compareValues((primitive as PList).getPValue().size, variable.getPValue().size)
                 is PDictionary -> compareValues((primitive as PDictionary).getPValue().size, variable.getPValue().size)

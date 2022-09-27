@@ -22,4 +22,3 @@ expect fun isDouble(num: Any): Boolean
 data class Message(val type: String, val content: Any)
 
 expect fun sendMessage(m: Message)
-

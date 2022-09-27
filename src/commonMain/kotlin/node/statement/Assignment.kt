@@ -17,8 +17,9 @@ class Assignment(
     init {
         this.children.clear()
         this.children.addAll(children)
-        if (left !is Assignable)
+        if (left !is Assignable) {
             throw PositionalException("Left operand is not assignable", "", left) // TODO filepath is empty
+        }
     }
 
     var parent: Type? = null
@@ -30,7 +31,8 @@ class Assignment(
         (left as Assignable).assign(
             this,
             if (symbolTable.getCurrentType() is Type) (symbolTable.getCurrentType() as Type) else null,
-            symbolTable, value
+            symbolTable,
+            value
         )
         return value
     }
@@ -45,8 +47,9 @@ class Assignment(
     fun getFirstUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment?> {
         if (left is Link) {
             val leftUnassigned = (left as Link).getFirstUnassignedOrNull(parent, symbolTable, forLValue = true)
-            if (leftUnassigned.second != null)
+            if (leftUnassigned.second != null) {
                 return leftUnassigned as Pair<Type, Assignment?>
+            }
         }
         return right.traverseUnresolvedOptional(symbolTable, parent)
     }
@@ -60,8 +63,9 @@ class Assignment(
      * To automatically replace assignments in type with constructor arguments
      */
     override fun equals(other: Any?): Boolean {
-        if (other !is Assignment)
+        if (other !is Assignment) {
             return false
+        }
         return left == other.left
     }
 

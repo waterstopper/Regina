@@ -17,7 +17,8 @@ import utils.Utils.toPInt
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
-class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var id: Int) : Primitive(value, parent),
+class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var id: Int) :
+    Primitive(value, parent),
     Indexable,
     NestableDebug,
     Containerable {
@@ -34,21 +35,23 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
 
     override fun equals(other: Any?): Boolean {
         if (other !is PDictionary) return false
-        if (getPValue() == other.getPValue())
+        if (getPValue() == other.getPValue()) {
             return true
+        }
         return false
     }
 
     override fun hashCode(): Int = getPValue().hashCode()
 
     override fun toString(): String {
-        if (getPValue().isEmpty())
+        if (getPValue().isEmpty()) {
             return "{}"
+        }
         val res = StringBuilder("{")
         for ((key, value) in getPValue()) {
-            if (key == this)
+            if (key == this) {
                 res.append("this")
-            else res.append(key)
+            } else res.append(key)
             res.append("=")
             res.append(if (value == this) "this" else value)
             res.append(", ")
@@ -62,15 +65,17 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
     override fun toDebugClass(references: References): Any {
         val id = getDebugId()
         references.queue.remove(id)
-        if (references.dictionaries[id.second] != null)
+        if (references.dictionaries[id.second] != null) {
             return id
-        val res = DebugDictionary(getPValue().map {
-            when (it.key) {
-                is Variable -> if (it.key == this) id else elementToDebug(it.key as Variable, references)
-                else -> it.key
-            } to if (it.value == this) id else elementToDebug(it.value, references)
-
-        }.toMap().toMutableMap())
+        }
+        val res = DebugDictionary(
+            getPValue().map {
+                when (it.key) {
+                    is Variable -> if (it.key == this) id else elementToDebug(it.key as Variable, references)
+                    else -> it.key
+                } to if (it.value == this) id else elementToDebug(it.value, references)
+            }.toMap().toMutableMap()
+        )
         references.dictionaries[id.second as Int] = res
         return id
     }
@@ -109,20 +114,29 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
 
         fun initializeDictionaryFunctions() {
             val p = PDictionary(mutableMapOf(), null, -1)
-            setFunction(p, EmbeddedFunction("toString") { token, args ->
-                val dict = getPDictionary(args, token, "this")
-                dict.getPValue().toString()
-            })
-            setFunction(p, EmbeddedFunction("remove", listOf("key")) { token, args ->
-                val dict = getPDictionary(args, token, "this")
-                val key = getIdent(token, "key", args)
-                dict.getPValue().remove(key) ?: NULL
-            })
-            setFunction(p, EmbeddedFunction("has", listOf("key")) { token, args ->
-                val dict = getPDictionary(args, token, "this")
-                val key = getIdent(token, "key", args)
-                dict.getPValue().contains(key).toPInt()
-            })
+            setFunction(
+                p,
+                EmbeddedFunction("toString") { token, args ->
+                    val dict = getPDictionary(args, token, "this")
+                    dict.getPValue().toString()
+                }
+            )
+            setFunction(
+                p,
+                EmbeddedFunction("remove", listOf("key")) { token, args ->
+                    val dict = getPDictionary(args, token, "this")
+                    val key = getIdent(token, "key", args)
+                    dict.getPValue().remove(key) ?: NULL
+                }
+            )
+            setFunction(
+                p,
+                EmbeddedFunction("has", listOf("key")) { token, args ->
+                    val dict = getPDictionary(args, token, "this")
+                    val key = getIdent(token, "key", args)
+                    dict.getPValue().contains(key).toPInt()
+                }
+            )
         }
     }
 }

@@ -14,7 +14,8 @@ import utils.Utils.toVariable
 class Call(
     node: Node
 ) : Invocation(
-    node.symbol, node.value,
+    node.symbol,
+    node.value,
     node.position,
     node.children
 ) {
@@ -55,32 +56,43 @@ class Call(
      * Write arguments to parameters
      */
     fun argumentsToParameters(function: RFunction, argTable: SymbolTable, paramTable: SymbolTable) {
+        val argResolvingMode = argTable.resolvingType
+        val paramResolvingMode = paramTable.resolvingType
+        argTable.resolvingType = ResolvingMode.FUNCTION
+        paramTable.resolvingType = ResolvingMode.FUNCTION
         val assigned = mutableMapOf<String, Variable>()
         for ((index, arg) in unnamedArgs.withIndex()) {
             val paramName = getParamName(index, function, argTable.getFileTable())
-            if (assigned[paramName] != null)
+            if (assigned[paramName] != null) {
                 throw PositionalException("Argument already assigned", argTable.getFileTable().filePath, arg)
+            }
             assigned[paramName] = arg.evaluate(argTable).toVariable(arg)
         }
         for (nArg in namedArgs) {
-            if (!function.hasParam(nArg.name))
+            if (!function.hasParam(nArg.name)) {
                 throw PositionalException(
                     "Parameter with name `${nArg.name}` absent",
                     argTable.getFileTable().filePath,
                     nArg
                 )
-            if (assigned[nArg.name] != null)
+            }
+            if (assigned[nArg.name] != null) {
                 throw PositionalException("Argument already assigned", argTable.getFileTable().filePath, nArg)
+            }
             assigned[nArg.name] = nArg.right.evaluate(argTable).toVariable(nArg)
         }
         for (defaultParam in function.defaultParams)
-            if (assigned[defaultParam.name] == null)
+            if (assigned[defaultParam.name] == null) {
                 assigned[defaultParam.name] = defaultParam.right.evaluate(paramTable).toVariable(defaultParam)
+            }
         for (param in function.nonDefaultParams)
-            if (assigned[param.value] == null)
+            if (assigned[param.value] == null) {
                 throw PositionalException("Parameter not assigned", paramTable.getFileTable().filePath, param)
+            }
         for (i in assigned)
             paramTable.addVariable(i.key, i.value)
+        argTable.resolvingType = argResolvingMode
+        paramTable.resolvingType = paramResolvingMode
         // TODO exceptions only to calls, not to params
 //        for ((index, arg) in arguments.withIndex())
 //            paramTable.addVariable(function.params[index].value, arg.evaluate(argTable).toVariable(arg))
@@ -88,17 +100,17 @@ class Call(
 
     private fun getParamName(index: Int, function: RFunction, fileTable: FileTable): String {
         return if (function.nonDefaultParams.lastIndex < index) {
-            if (function.nonDefaultParams.size + function.defaultParams.lastIndex < index)
+            if (function.nonDefaultParams.size + function.defaultParams.lastIndex < index) {
                 throw PositionalException("More arguments than parameters", fileTable.filePath, children[index])
-            else function.defaultParams[index - function.nonDefaultParams.size].name
+            } else function.defaultParams[index - function.nonDefaultParams.size].name
         } else function.nonDefaultParams[index].value
     }
 
     fun evaluateFunction(symbolTable: SymbolTable, function: RFunction, argTable: SymbolTable? = null): Any {
         var argTable = argTable ?: symbolTable
-        val res = if (function is EmbeddedFunction)
+        val res = if (function is EmbeddedFunction) {
             function.executeFunction(left, symbolTable)
-        else function.body.evaluate(symbolTable)
+        } else function.body.evaluate(symbolTable)
         // this is because Unit variables are not allowed and in Links variable is assigned
         return if (res is Unit) NULL else res
     }

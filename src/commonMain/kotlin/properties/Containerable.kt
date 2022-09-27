@@ -1,7 +1,5 @@
 package properties
 
-import node.statement.Assignment
-
 /**
  * Might contain other instances with unresolved assignments
  */

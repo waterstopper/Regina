@@ -81,7 +81,7 @@ fun main() {
     //a.add(0,a)
     //a = Something()
     a = Segment()
-    svg.create(a,100,100)
+    svg.createSVG(a, 100, 100)
     log(a)
     a = DoubleSegment()
     log(a)
