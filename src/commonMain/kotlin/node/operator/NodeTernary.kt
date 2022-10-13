@@ -2,6 +2,8 @@ package node.operator
 
 import lexer.PositionalException
 import node.Node
+import node.statement.Assignment
+import properties.Type
 import table.SymbolTable
 import utils.Utils.FALSE
 
@@ -19,4 +21,16 @@ class NodeTernary(node: Node) :
     }
 
     fun evaluateCondition(symbolTable: SymbolTable): Any = left.evaluate(symbolTable)
+
+    /**
+     * This method finds unassigned fields in ternary condition.
+     * Ternary branches are not checked for unassigned fields.
+     */
+    override fun findUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment>? {
+        val found = left.findUnassigned(symbolTable, parent)
+        if (found != null) {
+            return found
+        }
+        return null
+    }
 }

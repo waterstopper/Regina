@@ -13,7 +13,8 @@ internal class EvaluationTest {
                 "src/commonTest/resources/testCode.rgn",
                 "std/math.rgn",
                 "std/svg.rgn",
-                "std/geometry2D.rgn"
+                "std/geometry2D.rgn",
+                "src/commonTest/resources/animal.rgn"
             )
         )
     }

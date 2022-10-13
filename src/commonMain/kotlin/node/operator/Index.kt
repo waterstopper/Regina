@@ -56,6 +56,13 @@ class Index(
         }
     }
 
+    fun getDeepestLeft(): Node {
+        var res = left
+        while (res is Index)
+            res = res.left
+        return res
+    }
+
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
         val assignTable = if (parent != null) symbolTable.changeVariable(parent) else symbolTable
         val indexable = left.evaluate(assignTable).toVariable(left)
@@ -90,4 +97,14 @@ class Index(
     }
 
     override fun getPropertyName(): Node = (left as Assignable).getPropertyName()
+
+    override fun findUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment>? {
+        // find in index value
+        val found = right.findUnassigned(symbolTable, parent)
+        if (found != null) {
+            return found
+        }
+        // find in indexed value
+        return left.findUnassigned(symbolTable, parent)
+    }
 }

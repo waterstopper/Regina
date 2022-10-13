@@ -35,7 +35,7 @@ class FileTable(
 
         val (assignments, functions) = createAssignmentsAndFunctions(node.children[2])
         // copied types get index 0
-        val added = Type(name, null, assignments, this, 0)
+        val added = Type(name, assignments, this, 0)
         added.functions.addAll(functions)
         if (types.find { it.name == name } != null) {
             throw PositionalException("Two classes with same name in `$filePath`", filePath, node)
@@ -77,7 +77,7 @@ class FileTable(
     }
 
     fun getTypeOrNull(name: String): Type? = getFromFilesOrNull {
-        it.types.find { type -> type.name == name }?.copy()
+        it.types.find { type -> type.name == name }?.copyRoot()
     } as Type?
 
     fun getType(node: Node): Type = getTypeOrNull(node.value)

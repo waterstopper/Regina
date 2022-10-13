@@ -4,6 +4,8 @@ import evaluation.Evaluation.eval
 import preload
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertFails
+import kotlin.test.assertTrue
 
 class LinkTest {
     @BeforeTest
@@ -17,7 +19,8 @@ class LinkTest {
 
     @Test
     fun doubleIndexedLink() {
-        eval("""
+        eval(
+            """
         fun main() {
             a = A()
             a.p["a"]["b"] = 1
@@ -26,12 +29,14 @@ class LinkTest {
         class A{
             p = {"a":{}}
         }
-        """)
+        """
+        )
     }
 
     @Test
     fun unassignedNonTypeTest() {
-        eval("""
+        eval(
+            """
             fun main() {
                 fsd = fsd()
             }
@@ -39,7 +44,8 @@ class LinkTest {
                 a = []
                 b = a.joinToString(", ")
             }
-        """)
+        """
+        )
     }
 
     @Test
@@ -85,6 +91,40 @@ class LinkTest {
         class A {}
         """
         )
+    }
+
+    @Test
+    fun testLinkOnTheLeftOfAssignment() {
+        val thrown = assertFails {
+            eval(
+                """
+            fun main() {
+                a = A()
+                log(a.n())
+                a.n()[0][0] = 2
+            }
+            
+            class A {
+                fun n() {
+                    return [[1]]
+                }
+            }
+        """
+            )
+        }
+        assertTrue(thrown.message!!.contains("Invocation or ternary cannot be on the left of the assignment"))
+        val thrown2 = assertFails {
+            eval(
+                """
+            fun main() {
+                a = A()
+                a?.b = 1
+            }
+            class A {}
+        """
+            )
+        }
+        assertTrue(thrown2.message!!.contains("Null safe calls are prohibited on the left of the assignment"))
     }
 
     @Test

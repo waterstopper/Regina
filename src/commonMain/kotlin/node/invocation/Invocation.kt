@@ -3,6 +3,8 @@ package node.invocation
 import lexer.PositionalException
 import node.Linkable
 import node.Node
+import node.statement.Assignment
+import properties.Type
 import table.SymbolTable
 
 open class Invocation(
@@ -20,5 +22,15 @@ open class Invocation(
             symbolTable.getFileTable().filePath,
             this
         )
+    }
+
+    override fun findUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment>? {
+        for (arg in children.subList(1, children.size)) {
+            val found = left.findUnassigned(symbolTable, parent)
+            if (found != null) {
+                return found
+            }
+        }
+        return null
     }
 }

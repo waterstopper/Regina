@@ -47,10 +47,10 @@ object Utils {
     }
 
     fun Any.toVariable(node: Node = Node()): Variable =
-        if (this is Variable) this else Primitive.createPrimitive(this, null, node)
+        if (this is Variable) this else Primitive.createPrimitive(this, node)
 
-    fun Any.toProperty(node: Node = Node(), parent: Type? = null): Property =
-        if (this is Property) this else Primitive.createPrimitive(this, parent, node)
+    fun Any.toProperty(node: Node = Node()): Property =
+        if (this is Property) this else Primitive.createPrimitive(this, node)
 
     fun parseAssignment(assignment: String) =
         Parser(assignment, "@NoFile").statements().first().toNode("@NoFile") as Assignment
@@ -117,6 +117,14 @@ object Utils {
             throw ExpectedTypeException(listOf(PDouble::class), args.getFileTable().filePath, node, double)
         }
         return double
+    }
+
+    fun getInstance(args: SymbolTable, node: Node, name: String): Type {
+        val instance = getIdent(node, name, args)
+        if (instance !is Type) {
+            throw ExpectedTypeException(listOf(PInt::class), args.getFileTable().filePath, node, instance)
+        }
+        return instance
     }
 
     fun <T> List<T>.subList(start: Int): List<T> = this.subList(start, this.size)

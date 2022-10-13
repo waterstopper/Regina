@@ -47,11 +47,13 @@ class Assignment(
     fun getFirstUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment?> {
         if (left is Link) {
             val leftUnassigned = (left as Link).getFirstUnassignedOrNull(parent, symbolTable, forLValue = true)
-            if (leftUnassigned.second != null) {
+            if (leftUnassigned.second != null)
                 return leftUnassigned as Pair<Type, Assignment?>
-            }
         }
-        return right.traverseUnresolvedOptional(symbolTable, parent)
+        return right.findUnassigned(symbolTable.changeVariable(parent), parent) ?: Pair(
+            parent,
+            null
+        ) // right.traverseUnresolvedOptional(symbolTable.changeVariable(parent), parent)
     }
 
     fun assign(parent: Type, symbolTable: SymbolTable) {

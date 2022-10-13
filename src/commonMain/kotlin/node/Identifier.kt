@@ -32,7 +32,7 @@ open class Identifier(
 
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
         if (parent != null && assignment.isProperty) {
-            parent.setProperty(this.value, value.toProperty(assignment.right, parent))
+            parent.setProperty(this.value, value.toProperty(assignment.right))
             val property = parent.getProperty(this, symbolTable.getFileTable())
             if (property is Type) {
                 if (property.index == 0 && property !is Object) {
@@ -42,7 +42,6 @@ open class Identifier(
                         this
                     )
                 }
-                property.parent = parent
                 property.setProperty("parent", parent)
             }
         }
@@ -54,4 +53,12 @@ open class Identifier(
     }
 
     override fun getPropertyName(): Node = this
+
+    override fun findUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment>? {
+        val found = parent.getAssignment(this)
+        if (found != null) {
+            return Pair(parent, found)
+        }
+        return null
+    }
 }

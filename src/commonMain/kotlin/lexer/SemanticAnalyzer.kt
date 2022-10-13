@@ -12,6 +12,8 @@ import node.invocation.Call
 import node.invocation.Constructor
 import node.invocation.Invocation
 import node.invocation.ResolvingMode
+import node.operator.Index
+import node.operator.NodeTernary
 import node.statement.Assignment
 import node.statement.Block
 import node.statement.WordStatement
@@ -100,7 +102,6 @@ class Analyzer(fileTable: FileTable) {
             table.addVariableOrNot(assignment.left)
         for (assignment in type.assignments)
             changeInvocationType(assignment, table.copy(), 0, inProperty = true)
-
         for (function in type.functions) {
             val functionTable = addFunctionParametersToTable(function, table.copy())
             changeInvocationType(function.body, functionTable, 0)
@@ -132,6 +133,9 @@ class Analyzer(fileTable: FileTable) {
                             child
                         )
                     }
+                    if (child.left is Link) {
+                        checkLinkAsLValue(child.left as Link, symbolTable.getFileTable())
+                    }
                     symbolTable.addVariableOrNot(child.left)
                 }
                 is Invocation -> if (isInvocation(child)) {
@@ -150,6 +154,28 @@ class Analyzer(fileTable: FileTable) {
                 for (linkChild in child.children)
                     changeInvocationType(linkChild, symbolTable, cycles)
             }
+    }
+
+    private fun checkLinkAsLValue(link: Link, fileTable: FileTable) {
+        if (link.nullable.isNotEmpty()) {
+            throw PositionalException(
+                "Null safe calls are prohibited on the left of the assignment",
+                fileTable.filePath,
+                link
+            )
+        }
+        for (child in link.children) {
+            if (child is Invocation ||
+                (child is Index && child.getDeepestLeft() is Invocation) ||
+                child is NodeTernary
+            ) {
+                throw PositionalException(
+                    "Invocation or ternary cannot be on the left of the assignment",
+                    fileTable.filePath,
+                    child
+                )
+            }
+        }
     }
 
     private fun changeInvocationsInLink(node: Link, symbolTable: SymbolTable, inProperty: Boolean = false) {

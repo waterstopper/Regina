@@ -16,6 +16,7 @@ import properties.primitive.Primitive
 import table.FileTable
 import table.SymbolTable
 import utils.Utils.NULL
+import utils.Utils.toProperty
 import utils.Utils.toVariable
 
 /**
@@ -26,29 +27,27 @@ import utils.Utils.toVariable
 // @Serializable
 open class Type(
     val name: String,
-    parent: Type?,
     val assignments: MutableSet<Assignment>,
     val fileTable: FileTable,
     val index: Int,
-    var supertype: Type? = null
+    var supertype: Type? = null,
+    protected val properties: MutableMap<String, Property> = mutableMapOf()
 ) :
-    Property(parent), NestableDebug {
-    protected val properties = mutableMapOf<String, Property>()
+    Property(), NestableDebug {
+
     val functions = mutableSetOf<RFunction>()
 
     fun getAssignment(node: Node): Assignment? = assignments.find { it.left == node }
     fun getAssignment(name: String): Assignment? = assignments.find { it.left.value == name }
     fun getLinkedAssignment(link: Link, index: Int): Assignment? {
         val identProperty = getAssignment(link.children[index])
-        if (identProperty != null) {
+        if (identProperty != null)
             return identProperty
-        }
         for (childrenNumber in 2..link.children.size - index) {
             val searched = TokenFactory.copy(link, index, childrenNumber)
             val found = getAssignment(searched)
-            if (found != null) {
+            if (found != null)
                 return found
-            }
         }
         return null
     }
@@ -97,16 +96,14 @@ open class Type(
     override fun getProperties() =
         PDictionary(
             properties.mapKeys { (key, _) -> key.toVariable() }.toMutableMap(),
-            this,
             Primitive.dictionaryId++
         )
 
-    override fun toDebugClass(references: References): Any {
+    override fun toDebugClass(references: References, copying: Boolean): Pair<String, Any> {
         val id = getDebugId()
         references.queue.remove(id)
-        if (references.types[id.second] != null) {
+        if (references.types[id.second] != null)
             return id
-        }
         val res = DebugType(
             properties.map {
                 it.key to if (it.value == this) id else elementToDebug(it.value, references)
@@ -119,13 +116,11 @@ open class Type(
     override fun getDebugId(): Pair<String, Any> = Pair("Type", toString())
 
     override fun getPropertyOrNull(name: String) = when (name) {
-        "parent" -> getParentOrNull()
         "properties" -> getProperties()
         else -> properties[name]
     }
 
     override fun getProperty(node: Node, fileTable: FileTable) = when (node.value) {
-        "parent" -> getParentOrNull()
         "properties" -> getProperties()
         else -> properties[node.value] ?: throw PositionalException("Property not found", fileTable.filePath, node)
     }
@@ -172,13 +167,31 @@ open class Type(
         return name == other.name && fileTable == other.fileTable && other !is Object
     }
 
-    fun copy(): Type {
+    override fun copy(deep: Boolean): Type {
+        fileTable.numberInstances += 1
+        val index = fileTable.numberInstances
+        val copy = Type(
+            name = name,
+            assignments = (assignments + getInheritedAssignments()).map { TokenFactory.copy(it) as Assignment }
+                .toMutableSet(),
+            fileTable = fileTable,
+            supertype = supertype,
+            index = index,
+            properties = if (!deep) properties.toMutableMap() else mutableMapOf()
+        )
+        if (deep)
+            copy.properties.putAll(properties.entries.associate {
+                it.key to it.value.copy(true).toProperty()
+            })
+        return copy
+    }
+
+    fun copyRoot(): Type {
         fileTable.numberInstances += 1
         val index = fileTable.numberInstances
         val copy =
             Type(
                 name = name,
-                parent = parent?.copy(),
                 assignments = (assignments + getInheritedAssignments()).map { TokenFactory.copy(it) as Assignment }
                     .toMutableSet(),
                 fileTable = fileTable,

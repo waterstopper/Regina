@@ -99,8 +99,8 @@ object FunctionFactory {
         }
         res["rnd"] = EmbeddedFunction("rnd", namedArgs = listOf("isInt = false")) { token, args ->
             if (getPInt(args, token, "isInt").getPValue() == 0) {
-                PDouble(rnd.nextDouble()) 
-            }else PInt(rnd.nextInt())
+                PDouble(rnd.nextDouble())
+            } else PInt(rnd.nextInt())
         }
         res["seed"] = EmbeddedFunction("seed", listOf("x")) { token, args ->
             val seed = getIdent(token, "x", args)
@@ -140,10 +140,9 @@ object FunctionFactory {
                     .map {
                         PDictionary(
                             mutableMapOf(
-                                PString("key", null) to it.key.toVariable(token),
-                                PString("value", null) to it.value.toVariable(token)
+                                PString("key") to it.key.toVariable(token),
+                                PString("value") to it.value.toVariable(token)
                             ),
-                            null,
                             Primitive.dictionaryId++
                         )
                     }
@@ -194,6 +193,11 @@ object FunctionFactory {
                 throw PositionalException("Step must be positive", args.getFileTable().filePath, token)
             }
             mutableListOf(start, end, step).toVariable()
+        }
+        res["copy"] = EmbeddedFunction("copy", listOf("instance"), listOf("deep = true")) { token, args ->
+            val instance = getIdent(token, "instance", args)
+            val deep = getPInt(args, token, "deep")
+            instance.copy(deep.getPValue() != 0)
         }
         return res
     }

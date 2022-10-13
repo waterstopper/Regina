@@ -6,12 +6,11 @@ import node.invocation.ResolvingMode
 import node.statement.Assignment
 import table.FileTable
 import table.SymbolTable
-
 /**
  * Object is a [singleton][https://en.wikipedia.org/wiki/Singleton_pattern] Type
  */
 class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileTable) :
-    Type(name, null, assignments, fileTable, 0) {
+    Type(name, assignments, fileTable, 0) {
     override fun getProperty(node: Node, fileTable: FileTable): Property {
         if (properties[node.value] != null) {
             return properties[node.value]!!
@@ -32,7 +31,9 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
         return "$name-Object"
     }
 
-    override fun getDebugId(): Pair<String, Any> = Pair("object", toString())
+    override fun getDebugId(): Pair<String, Any> = Pair("Object", toString())
+
+    override fun copy(deep: Boolean) = this
 
     override fun getPropertyOrNull(name: String): Property? {
         if (properties[name] != null) {
@@ -55,3 +56,4 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
 
     override fun equals(other: Any?) = this === other
 }
+

@@ -10,6 +10,7 @@ import node.invocation.Constructor
 import node.invocation.Invocation
 import node.invocation.ResolvingMode
 import node.operator.Index
+import node.operator.NodeTernary
 import node.statement.Assignment
 import properties.*
 import properties.primitive.PDictionary
@@ -80,10 +81,14 @@ open class Link(
         index: Int,
         table: SymbolTable,
         initialTable: SymbolTable,
-        variable: Variable
+        variable: Variable,
+        findingUnresolved: Boolean = false
     ): Optional {
         when (children[index]) {
             is Call -> {
+                if (findingUnresolved) {
+                    return Optional(NullValue())
+                }
                 val function = variable.getFunctionOrNull((children[index] as Call))
                 if (function == null && nullable.contains(index)) {
                     return Optional(NullValue())
@@ -100,9 +105,8 @@ open class Link(
                         index = index,
                         table = table,
                         initialTable = initialTable,
-                        currentVariable = variable,
                         function = function
-                    ).first
+                    )
                 )
             }
             is Identifier -> {
@@ -141,13 +145,14 @@ open class Link(
     }
 
     /**
-     * Get first variable and index of it
+     * Get first variable and child index of it
      */
     private fun checkFirstVariable(
         index: Int,
         table: SymbolTable,
         initialTable: SymbolTable,
-        canBeFile: Boolean = true
+        canBeFile: Boolean = true,
+        findingUnresolved: Boolean = false
     ): Pair<Int, Variable?> {
         when (children[index]) {
             is Identifier -> {
@@ -159,23 +164,28 @@ open class Link(
                             index + 1,
                             table = nextTable,
                             initialTable = initialTable,
-                            canBeFile = false
+                            canBeFile = false,
+                            findingUnresolved = findingUnresolved
                         )
                     } else Pair(index, null)
                 } else Pair(index, identifier)
             }
-            is Call -> return Pair(
+            is Call -> if (findingUnresolved) {
+                return Pair(index, NullValue())
+            } else return Pair(
                 index,
                 resolveFunctionCall(
                     index,
                     table,
                     initialTable,
-                    null,
                     table.getFunction(children[index])
-                ).first
+                )
             )
             is Constructor -> {
-                val type = table.getType(children[index].left).copy()
+                if (findingUnresolved) {
+                    return Pair(index, NullValue())
+                }
+                val type = table.getType(children[index].left).copyRoot()
                 return Pair(
                     index,
                     (children[index] as Constructor).evaluateType(type, initialTable).toVariable(children[index])
@@ -208,9 +218,8 @@ open class Link(
         index: Int,
         table: SymbolTable,
         initialTable: SymbolTable,
-        currentVariable: Variable?,
         function: RFunction
-    ): Pair<Variable, Variable?> {
+    ): Variable {
         var type = table.getCurrentType()
         if (type !is Type) {
             type = null
@@ -223,7 +232,7 @@ open class Link(
         ) // table.changeScope(initialTable.getScope())
         (children[index] as Call).argumentsToParameters(function, initialTable, tableForEvaluation)
         val functionResult = (children[index] as Call).evaluateFunction(tableForEvaluation, function)
-        return Pair(functionResult.toVariable(children[index]), currentVariable)
+        return functionResult.toVariable(children[index])
     }
 
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
@@ -231,7 +240,6 @@ open class Link(
         val (_, currentParent, _, index) = safeEvaluate(
             parent ?: Type(
                 "@Fictive",
-                null,
                 mutableSetOf(),
                 symbolTable.getImport(Node(value = "Global")),
                 index = -1
@@ -250,13 +258,13 @@ open class Link(
      * @return currentVariable, its parent, assignment in parent if currentVariable is null, index of currentVariable
      */
     private fun safeEvaluate(parent: Type, symbolTable: SymbolTable): Tuple4<Variable?, Variable?, Assignment?, Int> {
-        if (right is Call && right.left.value == "rotate") {
-            println("Rotate")
-        }
         var currentParent: Variable? = null
         var table = symbolTable.copy()
         val initialTable = symbolTable.changeVariable(parent)
-        var (index, currentVariable) = checkFirstVariable(0, table, initialTable)
+        var (index, currentVariable) = checkFirstVariable(0, table, initialTable, findingUnresolved = true)
+        if (currentVariable is NullValue) {
+            return Tuple4(NullValue(), currentVariable, null, index)
+        }
         // first variable in link is not assigned => there is no such property in class if assignment not found
         if (currentVariable == null) {
             return Tuple4(
@@ -270,7 +278,13 @@ open class Link(
         table = table.changeVariable(currentVariable)
         index++
         while (index < children.size) {
-            val res = checkNextVariable(index, table = table, initialTable = initialTable, currentVariable!!)
+            val res = checkNextVariable(
+                index,
+                table = table,
+                initialTable = initialTable,
+                currentVariable!!,
+                findingUnresolved = true
+            )
             if (res.value is NullValue) {
                 return Tuple4(NullValue(), currentVariable, null, index)
             }
@@ -337,9 +351,25 @@ open class Link(
         return Pair(currentParent as Type?, assignment)
     }
 
+    override fun findUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment>? {
+        if (left is NodeTernary) {
+            val found = left.findUnassigned(symbolTable, parent)
+            if (found != null) {
+                return found
+            }
+        }
+        val (type, assignment) = getFirstUnassignedOrNull(parent, symbolTable)
+        // Happens if both type nad assignment are null.
+        // It means that it's import link with two children and Type of Function is imported => all is assigned
+        if (type == null || assignment == null) {
+            return null
+        }
+        return Pair(type, assignment)
+    }
+
     override fun getPropertyName(): Node = (children.last() as Assignable).getPropertyName()
 
-    class NullValue : Variable(null) {
+    class NullValue : Variable() {
         override fun getPropertyOrNull(name: String): Property? {
             TODO("Not yet implemented")
         }
@@ -360,7 +390,11 @@ open class Link(
             TODO("Not yet implemented")
         }
 
-        override fun toDebugClass(references: References): Any {
+        override fun toDebugClass(references: References, copying: Boolean): Pair<String, Any> {
+            TODO("Not yet implemented")
+        }
+
+        override fun copy(deep: Boolean): Variable {
             TODO("Not yet implemented")
         }
     }

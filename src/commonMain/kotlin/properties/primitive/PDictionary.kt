@@ -17,13 +17,13 @@ import utils.Utils.toPInt
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
-class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var id: Int) :
-    Primitive(value, parent),
+class PDictionary(value: MutableMap<out Any, out Variable>, var id: Int) :
+    Primitive(value),
     Indexable,
     NestableDebug,
     Containerable {
     override fun getIndex() = 6
-    override fun getPValue() = value as MutableMap<Any, Variable>
+    override fun getPValue() = value as MutableMap<Variable, Variable>
 
     override fun get(index: Any, node: Node, fileTable: FileTable): Variable {
         return getPValue()[index.toVariable(node)] ?: NULL
@@ -62,7 +62,7 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
         return res.toString()
     }
 
-    override fun toDebugClass(references: References): Any {
+    override fun toDebugClass(references: References, copying: Boolean): Pair<String, Any> {
         val id = getDebugId()
         references.queue.remove(id)
         if (references.dictionaries[id.second] != null) {
@@ -70,11 +70,11 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
         }
         val res = DebugDictionary(
             getPValue().map {
-                when (it.key) {
-                    is Variable -> if (it.key == this) id else elementToDebug(it.key as Variable, references)
-                    else -> it.key
-                } to if (it.value == this) id else elementToDebug(it.value, references)
-            }.toMap().toMutableMap()
+                (if (it.key == this) id else elementToDebug(
+                    it.key, references
+                )) to if (it.value == this) id else elementToDebug(it.value, references)
+            }.toMap().toMutableMap(),
+            blankCopy = if (copying) PDictionary(mutableMapOf(), dictionaryId++) else null
         )
         references.dictionaries[id.second as Int] = res
         return id
@@ -86,12 +86,17 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
         return true
     }
 
+    override fun copy(deep: Boolean): PDictionary {
+        return PDictionary(if (deep) getPValue().entries.associate { it.key.copy(deep) to it.value.copy(deep) }
+            .toMutableMap() else getPValue().toMutableMap(), dictionaryId++)
+    }
+
     override fun getCollection(): Collection<Variable> = getPValue().values
     override fun getContainerId(): Int = -id
 
     companion object {
         fun initializeDictionaryProperties() {
-            val p = PDictionary(mutableMapOf(), null, -1)
+            val p = PDictionary(mutableMapOf(),  -1)
             setProperty(p, "size") { pr: Primitive ->
                 PInt((pr as PDictionary).getPValue().size).toProperty()
             }
@@ -105,7 +110,6 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
                 (pr as PDictionary).getPValue().map {
                     PDictionary(
                         mutableMapOf("key".toVariable() to it.key.toVariable(), "value".toVariable() to it.value),
-                        null,
                         dictionaryId++
                     )
                 }.toProperty()
@@ -113,7 +117,7 @@ class PDictionary(value: MutableMap<out Any, out Variable>, parent: Type?, var i
         }
 
         fun initializeDictionaryFunctions() {
-            val p = PDictionary(mutableMapOf(), null, -1)
+            val p = PDictionary(mutableMapOf(), -1)
             setFunction(
                 p,
                 EmbeddedFunction("toString") { token, args ->

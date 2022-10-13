@@ -2,7 +2,8 @@ import FileSystem.write
 
 fun addGeometry2D() {
     write(
-        "std/geometry2D.rgn", """
+        "std/geometry2D.rgn",
+        """
         // also a vector class
 class Point {
     x = 0
@@ -14,7 +15,7 @@ class Point {
     fun scale(coeff) { return Point(x=x * coeff, y=y * coeff) }
 
     // angle in degrees // TODO invocation in function args
-    fun rotate(angle, pivot = Point()) {
+    fun rotate(angle, pivot=Point()) {
         s = toRadians(angle).sin()
         c = toRadians(angle).cos()
         this.x = this.x - pivot.x
@@ -27,11 +28,26 @@ class Point {
         return this
     }
 
+    fun translate(vec) {
+        this.x = this.x + vec.x
+        this.y = this.y + vec.y
+        return this
+    }
+
+    fun scale(coeff, origin) {
+        this.x = this.x + (this.x - origin.x) * coeff
+        this.y = this.y + (this.y - origin.y) * coeff
+        return this
+    }
+
     fun distance(p) {
         if(p is Point)
-            return ((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y)).sqrt()
+            return sqrt((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y))
     }
+
+    fun toString() { return str(x) + " " + y}
 }
+
 object Constants {
     PI = 3.1415926539
 }
@@ -47,16 +63,26 @@ fun toDegrees(angle) {
 class Segment {
     p1 = Point()
     p2 = Point()
+    stroke = "#000000"
+    strokeWidth = 1
 
-    fun length() { p1;
-
-
-    return p1.distance(p2) }
+    fun length() { return p1.distance(p2) }
     fun vec() { return p2.minus(p1) }
     fun isPerpendicular(other) { return dotProduct(other) == 0 }
 
-    fun center() { return centerFigure(this) }
-    fun rotate(angle, pivot = center()) { rotateFigure(this, angle, pivot) }
+    fun center() { return centerFromPointsList([p1, p2]) }
+    fun rotate(angle, pivot=center()) {
+        log(this)
+        rotatePointsList([p1, p2], angle, pivot)
+        return this
+    }
+    fun scale(coeff, origin=Point()) {
+        scalePointsList([p1, p2], coeff, origin)
+        return this
+    }
+    fun translate(vec) {
+        translatePointsList([p1, p2], vec)
+    }
 
     fun dotProduct(other) {
         vec = this.vec()
@@ -66,9 +92,9 @@ class Segment {
 
     fun angleBetween(other) {
         if(other is Segment)
-            return cosAngleBetweenSegments(this, other).acos()
+            return acos(cosAngleBetweenSegments(this, other))
         if(other is Line)
-            return cosAngleBetweenSegments(this, other.segment).acos()
+            return acos(cosAngleBetweenSegments(this, other.segment))
     }
 
     fun getLine() {
@@ -83,6 +109,12 @@ class Segment {
         inY = if(point.y > p1.y) point.y <= p2.y else point.y > p2.y
         return inX && inY
     }
+
+    svgArgs = {"name":"line", \
+        "attributes": {"x1":p1.x, "y1":p1.y, \
+        "x2":p2.x, "y2":p2.y,\
+        "stroke":stroke,\
+        "stroke-width":strokeWidth}}
 }
 
 class Line {
@@ -92,7 +124,7 @@ class Line {
     c = 0
 
     fun inLine(point) {
-        return a*point.x + b*point.y + c == 0
+        return a * point.x + b * point.y + c == 0
     }
 
     // get a base of the perpendicular from `point` to this line
@@ -134,63 +166,143 @@ class Line {
         return double(a) / b == double(other.a) / other.b
     }
 }
-
-class Rectangle {
-    width = 1
-    height = 1
-    center = Point()
-    rotation = 0
-
-    fun center() { return center }
-    fun rotate(angle, pivot = center()) { rotateFigure(this, angle, pivot) }
-    fun length() { return }
-}
-
-class Triangle {
-    p1 = Point()
-    p2 = Point()
-    p3 = Point()
-
-    fun center() { return centerFigure(this) }
-    fun rotate(angle, pivot = center()) { rotateFigure(this, angle, pivot) }
-}
-
-class Circle {
-    r = 1
-    center = Point()
-}
-
-class Ellipse {
-    a = 1
-    b = 1
-    center = Point()
-    rotation = 0
-
-    fun coefficients() {}
-    fun rotate(angle, pivot = center) { rotateFigure(this, angle, pivot) }
-}
-
-class Polyline {
+/* Base class for geometry with `points` property */
+class ArrayGeom {
+    svgName = "g"
     points = []
+    fill = "#000000"
+    stroke = "none"
 
-    fun center() { return centerFromPointsArray(points) }
-    fun rotate(angle, pivot = center()) { rotateFigure(this, angle, pivot) }
+    fun center() {return centerFromPointsList(points)}
+    fun translate(vec) { translatePointsList() }
+
+    fun rotate(angle, pivot=Point()) {
+        rotatePointsList(points, angle, pivot)
+    }
+
+    fun scale(coeff, origin=Point()) {
+        scalePointsList(list, coeff, origin)
+    }
+
+    svgArgs = {"name":svgName, "attributes":\
+        {"points":points.joinToString(", "),\
+        "stroke":stroke,"fill":fill}}
 }
 
+/* Polygon and polyline */
+class Polyline: ArrayGeom {
+    svgName = "polygon"
+    points = []
+    isClosed = false
+}
+
+class RegularPolygon: ArrayGeom {
+    r = 35
+    q = 4 // >= 3
+    svgName = "polygon"
+    convex = true // works for odd q
+    center = Point(x=0, y=0)
+    points = createPolygon()
+
+    fun createPolygon() {
+        res = []
+        angle = 360 / q
+        cur = 0
+        foreach(i in range(1, q)) {
+            p = Point(x = center.x + r, y = center.y)
+            res.add(p.rotate(cur, center))
+            cur = cur + (if(convex) angle else 2 * angle)
+        }
+        return res
+    }
+}
+/* Similar to <g> tag in svg. */
 class Plane {
+    objects = []
 
     fun center() {
         points = []
-        foreach(i in objects) {
-            points.add(centerFigure(i))
-        }
+        i = 0
+    }
 
-    }
     fun rotate(angle, pivot = center()) {
-        foreach(i in range(0, objects.size-1)) {
-            rotateFigure(this, angle, pivot)
-        }
+        foreach(i in objects) { rotateFigure(i, angle, pivot) }
     }
+}
+
+/*
+    Classes below can be rotated with svg.transform only
+*/
+class PointGeom {
+    center = Point()
+    fill = "#000000"
+    stroke = "none"
+    fun rotate(angle, pivot=Point()) {} // does nothing
+    fun translate(vec) { this.center.translate(vec) }
+    fun scalePointGeom(coeff, origin=center) {
+        this.center.scale(coeff, origin)
+    }
+}
+
+class Rectangle: PointGeom {
+    width = 1
+    height = 1
+
+    fun center() { return center }
+    fun length() { return }
+    fun scale(coeff, origin=center) {
+        scalePointGeom(coeff, origin)
+        this.width = this.width * coeff
+        this.height = this.height * coeff
+    }
+
+    fun downLeft() {
+        return Point(x=center.x-width/2,y=center.y+height/2)
+    }
+    fun upLeft() {
+        return Point(x=center.x-width/2,y=center.y-height/2)
+    }
+    fun upRight() {
+        return Point(x=center.x+width/2,y=center.y-height/2)
+    }
+    fun downRight() {
+        return Point(x=center.x+width/2,y=center.y+height/2)
+    }
+
+    svgArgs = {"name":"rect", \
+        "attributes":{"width":width, "height":height, \
+        "x":center.x - width / 2,\
+        "y":center.y - height / 2,\
+        "stroke":stroke,"fill":fill}}
+}
+
+class Circle: PointGeom {
+    r = 1
+
+    fun scale(coeff, origin=center) {
+        scale(coeff, origin)
+        this.r = this.r * coeff
+    }
+
+    svgArgs = {"name":"circle", \
+        "attributes":{"cx":center.x, "cy":center.y,\
+        "r":r,\
+        "stroke":stroke,"fill":fill}}
+}
+
+class Ellipse: PointGeom {
+    width = 1
+    height = 1
+    fun scale(coeff, origin=center) {
+        scalePointGeom(coeff, origin)
+        this.width = this.width * coeff
+        this.height = this.height * coeff
+    }
+
+    svgArgs = {"name":"ellipse", "attributes":\
+        {"cx":center.x, "cy":center.y,\
+        "rx":width, "ry":height,\
+        "stroke":stroke,"fill":fill}}
 }
 
 fun insCircles(c1, c2) {
@@ -201,59 +313,36 @@ fun cosAngleBetweenSegments(a, b) {
     return double(a.dotProduct(b)) / a.length() / b.length()
 }
 
-fun rotateFigure(fig, angle, pivot) {
-    props = fig.properties
-    foreach(i in range(0, props.size-1)) {
-        if(props[i] is Point)
-            props[i] = props[i].rotate(angle, pivot)
-    }
+fun rotatePointsList(list, angle, pivot=Point()) {
+    foreach(point in list)
+        point.rotate(angle, pivot)
 }
 
-fun translateFigure(fig, vec) {
-    props = fig.properties
-    foreach(i in range(0, props.size-1))
-        if(props[i] is Point)
-            props[i] = props[i].plus(vec)
+fun translatePointsList(list, vec) {
+    foreach(point in list)
+        point.translate(vec)
 }
 
-fun scaleArrayFromLine(points, segment, coeff) {
-//    i = 0
-//    while(i < points.size) {
-//        if(points[i] is Point) {
-//            vec = points[i].minus(point).scale(coeff)
-//            points[i] = point.plus(vec)
-//        }
-//        i = i + 1
-//    }
+fun scalePointsList(list, coeff, origin=Point()) {
+    foreach(point in list)
+        point.scale(origin, coeff)
 }
 
-fun scaleArrayFromPoint(points, point, coeff) {
-    foreach(i in range(0, points.size-1)) {
-        if(points[i] is Point) {
-            vec = points[i].minus(point).scale(coeff)
-            points[i] = point.plus(vec)
-        }
-    }
+fun scalePointsListFromLine(list, segment, coeff) {
+    except("not implemented")
 }
 
-fun centerFigure(fig) {
-    props = list(fig.properties)
-    array = []
-    foreach(i in range(0, props.size-1)) {
-        if(props[i]["value"] is Point)
-            array.add(props[i]["value"])
-    }
-    return centerFromPointsArray(array)
-}
-
-fun centerFromPointsArray(array) {
+// get center mass of points
+fun centerFromPointsList(list) {
     res = Point()
-    foreach(i in range(0, array.size-1)) {
-        res.x = res.x + array[i].x
-        res.y = res.y + array[i].y
+    i = 0
+    while(i < list.size) {
+        res.x = res.x + list[i].x
+        res.y = res.y + list[i].y
+        i = i + 1
     }
-    res.x = double(res.x) / array.size
-    res.y = double(res.y) / array.size
+    res.x = double(res.x) / list.size
+    res.y = double(res.y) / list.size
     return res
 }
    """
@@ -262,7 +351,8 @@ fun centerFromPointsArray(array) {
 
 fun addMath() {
     write(
-        "std/math.rgn", """
+        "std/math.rgn",
+        """
        fun rotate(point, angle, pivot) {
     return point
 }
@@ -464,7 +554,8 @@ fun solveSquare(a, b, c) {
 
 fun addSvg() {
     write(
-        "std/svg.rgn", """
+        "std/svg.rgn",
+        """
        /**
     exportArgs:
         export: Bool = true - export or not
@@ -607,7 +698,8 @@ class StringBuilder {
 
 fun addMathTest() {
     write(
-        "src/commonTest/resources/std/mathTest.rgn", """
+        "src/commonTest/resources/std/mathTest.rgn",
+        """
         import std.math as math
 
 fun main() {
@@ -658,7 +750,8 @@ fun roundArr(array) {
 
 fun addGeometryTest() {
     write(
-        "src/commonTest/resources/std/geometry2DTest.rgn", """
+        "src/commonTest/resources/std/geometry2DTest.rgn",
+        """
         import std.geometry2D as geometry2D
 
         fun main() {
@@ -701,7 +794,8 @@ fun addGeometryTest() {
 
 fun addGenericTest() {
     write(
-        "src/commonTest/resources/testCode.rgn", """
+        "src/commonTest/resources/testCode.rgn",
+        """
         import src.commonTest.resources.imported as imported
 import std.svg as svg
 import std.math as math
@@ -1001,7 +1095,8 @@ fun all(classRef) {
     """
     )
     write(
-        "src/commonTest/resources/imported.rgn", """
+        "src/commonTest/resources/imported.rgn",
+        """
         import src.commonTest.resources.same as same
 
 class A {}
@@ -1023,7 +1118,8 @@ class ForCheck {}
     """
     )
     write(
-        "src/commonTest/resources/same.rgn", """
+        "src/commonTest/resources/same.rgn",
+        """
         fun getFileName() {
             return "same"
         }
@@ -1043,7 +1139,8 @@ class ForCheck {}
 
 fun addIsTest() {
     write(
-        "src/commonTest/resources/isTest.rgn", """
+        "src/commonTest/resources/isTest.rgn",
+        """
         import src.commonTest.resources.imported as imported
 
 fun main() {
@@ -1063,6 +1160,144 @@ fun main() {
 class A {}
 
 class B:A {}
+    """
+    )
+}
+
+fun addAnimal() {
+    write(
+        "src/commonTest/resources/animal.rgn",
+        """
+        //import std.geometry2D as geom
+        import std.math as math
+        import std.svg as svg
+        import std.geometry2D as geom
+
+
+        class A {
+            iter = (parent?.iter ?? 0) + 1
+            next = if(iter < 3) A() else null
+
+            fun n() {
+                return "a"
+            }
+        }
+
+        fun main() {
+          //  r = RegularPolygon(center=Point(x=50,y=50), q=7, convex=false)
+           // r.svgArgs["attributes"]["fill"] = "goldenrod"
+           // write(svg.createSVG(r), "result.svg")
+
+
+            b = Body(center=Point(x=50,y=50))
+           // b.head.eye.iris.svgArgs["attributes"]["fill"] = "beige"
+
+           //b= Test()
+         //   a = svg.createSVG(b)
+           // write(a, "result.svg")
+        }
+
+        class Test {
+            b = Testing(f=a)
+            a = 2
+
+            fun testing(t) {
+                return t
+            }
+        }
+
+        class Testing {}
+
+        object Constants {
+            palette = {"black":"#000000",\
+                "blue":"#253092",\
+                "red":"#bf3011",\
+                "orange":"#df8022",\
+                "yellow":"#e5b527",\
+                "green":"#06694a",\
+                "purple":"#820d7c",\
+                "white":"#fffafb"}
+        }
+
+        class Body: Rectangle {
+            fill = Constants.palette.values[\
+                rndInt(0, Constants.palette.size-1)]
+            width = rndInt(25, 50)
+            height = 25
+            head = if(rndInt(0,1)) Head() else RoundHead()
+            leg = Limb(start = downLeft())
+        }
+
+        class Head: Polyline {
+            fill = parent.fill
+            points = [Point(x=parent.center.x+parent.width*rndDouble(1, 2),y=parent.center.y),\
+                parent.downRight(),\
+                parent.upRight()]
+            eye = Eye(center=center())
+        }
+
+        class RoundHead: Polyline {
+            center = parent.center.plus(\
+                Point(x=parent.width/2))
+            eye = Eye(center=center)
+            circle = Circle(center=center,\
+                r=parent.height/2,\
+                fill=parent.fill)
+        }
+
+        class Eye {
+            center = Point()
+            pupil = Circle(r=5,center=center)
+            iris = Circle(r=7,center=center,\
+            fill=Constants.palette["white"])
+        }
+
+        class Limb {
+            start = Point()
+            first = Segment(p1=start,p2=Point(),\
+                stroke=parent.fill,strokeWidth=5)\
+                .rotate(rndInt(-15,15),start)
+            second = Segment(p1=first.p2,\
+            p2=Point(x=first.p2.x+rndInt(5,10),\
+            y=first.p2.y),\
+                stroke=parent.fill,strokeWidth=5)
+        }
+
+        class Flower {
+
+        }
+
+        object Globals {
+            petalsNum = rndInt(3, 10)
+        }
+        class FlowerHead {
+            svgArgs = {"group": true}
+            iter = parent?.iter + 1
+
+            fun createPetals() {
+                this.polygon = Polyline()
+                circle = []
+                bigCircle = []
+                bigRadius = rndInt(7, 10)
+              //  foreach(i in range(1, Globals.petalsNum)) {
+               //     circle.add(Point(x=parent.x + 5, y=parent.y))
+               //     bigCircle.add(Point(x=parent.x + bigRadius, y=parent.y))
+               //     circle[circle.size - 1].rotate(i * (360 / Global.petalsNum))
+               //     bigCircle[circle.size - 1].rotate(i * (360 / Global.petalsNum))
+             //   }
+            }
+        }
+
+        // The maximum and the minimum are inclusive
+        fun rndInt(min, max) {
+            min = min.ceil()
+            max = max.floor() + 1
+            return (rnd() * (max - min) + min).floor()
+        }
+
+        fun rndDouble(min, max) {
+            return (rnd() * (max - min) + min)
+        }
     """
     )
 }

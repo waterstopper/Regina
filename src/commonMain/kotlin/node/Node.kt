@@ -6,10 +6,8 @@ package node
 
 import Optional
 import lexer.PositionalException
-import node.operator.NodeTernary
 import node.statement.Assignment
 import properties.Type
-import properties.primitive.PNumber
 import table.SymbolTable
 
 /**
@@ -108,50 +106,13 @@ open class Node(
         return condition(this)
     }
 
-    /**
-     * Find unresolved property and return class instance with this property and corresponding assignment
-     */
-    fun traverseUnresolvedOptional(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment?> {
-        val res = traverseUntilOptional {
-            when (it) {
-                // Second part of ternary might be unresolved. Say, `if(parent == 0) 0 else parent.someProperty`.
-                // If parent == 0, then someProperty is unresolved, but it is fine
-                is NodeTernary -> {
-                    val condition = it.left.traverseUnresolvedOptional(symbolTable, parent)
-                    // condition resolved
-                    if (condition.second == null) {
-                        // condition is true
-                        if ((it.evaluateCondition(symbolTable.changeVariable(parent)) as PNumber).getPValue()
-                            .toDouble() != 0.0
-                        ) {
-                            val result = it.right.traverseUnresolvedOptional(symbolTable, parent)
-                            if (result.second == null) {
-                                Optional(Node("(LEAVE)"))
-                            } else Optional(result)
-                        } else {
-                            val result = it.children[2].traverseUnresolvedOptional(symbolTable, parent)
-                            if (result.second == null) {
-                                Optional(Node("(LEAVE)"))
-                            } else Optional(result)
-                        }
-                    } else Optional(condition)
-                }
-                is Assignable -> {
-                    val result = it.getFirstUnassigned(parent, symbolTable.changeVariable(parent))
-                    if (result.second == null) {
-                        Optional(Node("(LEAVE)"))
-                    } else Optional(result)
-                }
-                else -> Optional()
-            }
+    open fun findUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment>? {
+        for(c in children) {
+            val found = c.findUnassigned(symbolTable, parent)
+            if(found != null)
+                return found
         }
-        if (res.value is Node && res.value.symbol == "(LEAVE)") {
-            return Pair(parent, null)
-        }
-        if (res.value == null) {
-            return Pair(parent, null)
-        }
-        return res.value as Pair<Type, Assignment?>
+        return null
     }
 
     override fun equals(other: Any?): Boolean {

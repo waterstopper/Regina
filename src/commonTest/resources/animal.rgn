@@ -3,7 +3,18 @@ import std.math as math
 import std.svg as svg
 import std.geometry2D as geom
 
+class A {
+    iter = (parent?.iter ?? 0) + 1
+    next = if(iter < 3) A() else null
+
+    fun n() {
+        return "a"
+    }
+}
+
 fun main() {
+    a = A()
+    log(a)
   //  r = RegularPolygon(center=Point(x=50,y=50), q=7, convex=false)
    // r.svgArgs["attributes"]["fill"] = "goldenrod"
    // write(svg.createSVG(r), "result.svg")
@@ -11,9 +22,23 @@ fun main() {
 
     b = Body(center=Point(x=50,y=50))
    // b.head.eye.iris.svgArgs["attributes"]["fill"] = "beige"
+
+    f= Test()
     a = svg.createSVG(b)
     write(a, "result.svg")
+    #stop
 }
+
+class Test {
+    a = 2
+    b = Testing(f=a)
+
+    fun testing(t) {
+        return t
+    }
+}
+
+class Testing {}
 
 object Constants {
     palette = {"black":"#000000",\
@@ -56,14 +81,14 @@ class Eye {
     center = Point()
     pupil = Circle(r=5,center=center)
     iris = Circle(r=7,center=center,\
-    fill=Constants.palette["white"])
+    fill = Constants.palette["white"])
 }
 
 class Limb {
-    start = Point()
+    start = Point(x=1, y=1)
     first = Segment(p1=start,p2=Point(),\
         stroke=parent.fill,strokeWidth=5)\
-        .rotate(rndInt(-15,15),start)
+        .rotate(rndInt(-15,15), start)
     second = Segment(p1=first.p2,\
     p2=Point(x=first.p2.x+rndInt(5,10),\
     y=first.p2.y),\

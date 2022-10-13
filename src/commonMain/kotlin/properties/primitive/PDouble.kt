@@ -4,12 +4,14 @@ import References
 import properties.Type
 import utils.Utils.toProperty
 
-class PDouble(value: Double, parent: Type? = null) : PNumber(value, parent) {
+class PDouble(value: Double) : PNumber(value) {
     override fun getIndex() = 3
     override fun getPValue() = value as Double
-    override fun toDebugClass(references: References): Any {
+    override fun toDebugClass(references: References, copying: Boolean): Pair<String, Any> {
         return Pair("Double", getPValue())
     }
+
+    override fun copy(deep: Boolean): PDouble = PDouble(value as Double)
 
     override operator fun plus(number: PNumber): PNumber {
         return PDouble(getPValue() + number.getPValue().toDouble())

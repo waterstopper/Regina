@@ -7,8 +7,9 @@ import node.invocation.Call
 import properties.primitive.PDictionary
 import table.FileTable
 import utils.Utils
+import utils.Utils.NULL
 
-class Null : Property(null) {
+class Null : Property() {
     override fun getPropertyOrNull(name: String): Property? {
         return null
     }
@@ -33,8 +34,12 @@ class Null : Property(null) {
         TODO("Not yet implemented")
     }
 
-    override fun toDebugClass(references: References): Any {
+    override fun toDebugClass(references: References, copying: Boolean): Pair<String, Any> {
         return Pair("Null", "")
+    }
+
+    override fun copy(deep: Boolean): Variable {
+        return NULL
     }
 
     override fun toString() = "null"

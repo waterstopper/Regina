@@ -48,9 +48,7 @@ actual fun round(num: Double, digits: Int): Double = js(
 """
 ) as Double
 
-suspend fun jsEvaluate() {
-
-}
+suspend fun jsEvaluate() {}
 
 actual fun preload(fileNames: List<String>) {
     for (name in fileNames) {
@@ -62,6 +60,7 @@ actual fun preload(fileNames: List<String>) {
             "src/commonTest/resources/std/mathTest.rgn" -> addMathTest()
             "src/commonTest/resources/testCode.rgn" -> addGenericTest()
             "src/commonTest/resources/isTest.rgn" -> addIsTest()
+            "src/commonTest/resources/animal.rgn" -> addAnimal()
             else -> throw Exception("File not found $name")
         }
     }

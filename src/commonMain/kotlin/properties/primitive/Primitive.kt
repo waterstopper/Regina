@@ -19,7 +19,7 @@ import table.FileTable
  *
  * List and Dictionary are mutable**, unlike other primitive classes
  */
-abstract class Primitive(protected open var value: Any, parent: Type?) : Property(parent) {
+abstract class Primitive(protected open var value: Any) : Property() {
     open fun getIndex() = 0
     open fun getPValue() = value
     override fun toString() = "$value"
@@ -48,7 +48,6 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
 
     override fun getPropertyOrNull(name: String) = when (name) {
         "this" -> this
-        "parent" -> getParentOrNull()
         "properties" -> getProperties()
         else -> getAllProperties()[getIndex()][name]?.let { it(this) }
             ?: (
@@ -60,7 +59,6 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
 
     override fun getProperty(node: Node, fileTable: FileTable): Property = when (node.value) {
         "this" -> this
-        "parent" -> getParentOrNull()
         "properties" -> getProperties()
         else -> getAllProperties()[getIndex()][node.value]?.let { it(this) }
             ?: (
@@ -81,7 +79,7 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
             res.putAll(getAllProperties()[1])
         }
         res.putAll(getAllProperties()[getIndex()])
-        return PDictionary(res.mapValues { it.value(this) }.toMutableMap(), null, dictionaryId++)
+        return PDictionary(res.mapValues { it.value(this) }.toMutableMap(), dictionaryId++)
     }
 
     override fun getFunction(node: Node, fileTable: FileTable): RFunction = getFunctionOrNull(node)
@@ -112,11 +110,11 @@ abstract class Primitive(protected open var value: Any, parent: Type?) : Propert
         private val properties = List(7) { mutableMapOf<String, (s: Primitive) -> Property>() }
         fun getAllProperties() = properties.map { it.toMutableMap() }
         private val functions = List(7) { mutableSetOf<RFunction>() }
-        fun createPrimitive(value: Any, parent: Type? = null, node: Node = Node()): Primitive {
+        fun createPrimitive(value: Any, node: Node = Node()): Primitive {
             return when (value) {
-                is String -> PString(value, parent)
-                is List<*> -> PList(value as MutableList<Variable>, parent, listId++)
-                is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, parent, dictionaryId++)
+                is String -> PString(value)
+                is List<*> -> PList(value as MutableList<Variable>,  listId++)
+                is MutableMap<*, *> -> PDictionary(value as MutableMap<out Any, out Variable>, dictionaryId++)
                 else -> throw PositionalException(
                     "Cannot create variable of type `${value::class}`",
                     "",

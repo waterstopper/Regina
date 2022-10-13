@@ -22,8 +22,8 @@ import utils.Utils.toPInt
 import utils.Utils.toProperty
 import utils.Utils.toVariable
 
-class PList(value: MutableList<Variable>, parent: Type?, val id: Int) :
-    Primitive(value, parent),
+class PList(value: MutableList<Variable>, val id: Int) :
+    Primitive(value),
     Indexable,
     NestableDebug,
     Containerable {
@@ -39,7 +39,7 @@ class PList(value: MutableList<Variable>, parent: Type?, val id: Int) :
         return getPValue()[index.getPValue()]
     }
 
-    override fun toDebugClass(references: References): Any {
+    override fun toDebugClass(references: References, copying: Boolean): Pair<String, Any> {
         val id = getDebugId()
         references.queue.remove(id)
         if (references.lists[id.second] != null) {
@@ -55,6 +55,11 @@ class PList(value: MutableList<Variable>, parent: Type?, val id: Int) :
     }
 
     override fun getDebugId(): Pair<String, Any> = Pair("List", id)
+
+    override fun copy(deep: Boolean): PList {
+        return PList(if (deep) getPValue().map { it.copy().toProperty() }
+            .toMutableList() else getPValue().toMutableList(), listId++)
+    }
 
     override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node, fileTable: FileTable) {
         getPValue()[(index as PInt).getPValue()] = value.toVariable(nodeIndex)
@@ -89,12 +94,12 @@ class PList(value: MutableList<Variable>, parent: Type?, val id: Int) :
 
     companion object {
         fun initializeListProperties() {
-            val p = PList(mutableListOf(), null, listId++)
+            val p = PList(mutableListOf(), listId++)
             setProperty(p, "size") { pr: Primitive -> PInt((pr as PList).getPValue().size).toProperty() }
         }
 
         fun initializeEmbeddedListFunctions() {
-            val p = PList(mutableListOf(), null, listId++)
+            val p = PList(mutableListOf(), listId++)
             setFunction(
                 p,
                 EmbeddedFunction("toString") { _, args ->

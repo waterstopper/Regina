@@ -9,5 +9,5 @@ class NodeNumber(value: String, position: Pair<Int, Int>, val number: Number, va
     Node("(NUMBER)", value, position) {
 
     override fun evaluate(symbolTable: SymbolTable) =
-        if (isDouble) PDouble(number.toDouble(), null) else PInt(number.toInt(), null)
+        if (isDouble) PDouble(number.toDouble()) else PInt(number.toInt())
 }

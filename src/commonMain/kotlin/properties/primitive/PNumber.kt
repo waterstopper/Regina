@@ -2,7 +2,7 @@ package properties.primitive
 
 import References
 import properties.EmbeddedFunction
-import properties.Type
+import properties.Variable
 import round
 import utils.Utils.castToPNumber
 import utils.Utils.getPInt
@@ -10,9 +10,13 @@ import utils.Utils.getPNumber
 import utils.Utils.toPInt
 import kotlin.math.*
 
-open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
+open class PNumber(value: Number) : Primitive(value) {
     override fun getIndex() = 1
     override fun getPValue() = value as Number
+
+    override fun copy(deep: Boolean): Variable {
+        TODO("Not implemented")
+    }
 
     override fun equals(other: Any?): Boolean {
         if (other !is PNumber) {
@@ -29,7 +33,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
         return getPValue().hashCode()
     }
 
-    override fun toDebugClass(references: References): Any {
+    override fun toDebugClass(references: References, copying: Boolean): Pair<String, Any> {
         throw Exception("class is not instantiable")
     }
 
@@ -42,7 +46,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
     }
 
     operator fun div(number: PNumber): PNumber {
-        return PDouble(getPValue().toDouble() / number.getPValue().toDouble(), null)
+        return PDouble(getPValue().toDouble() / number.getPValue().toDouble())
     }
 
     open operator fun plus(number: PNumber): PNumber {
@@ -67,7 +71,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
 
     companion object {
         fun initializeEmbeddedNumberFunctions() {
-            val n = PNumber(0, null)
+            val n = PNumber(0)
             setFunction(
                 n,
                 EmbeddedFunction("toString") { _, args ->
@@ -118,7 +122,7 @@ open class PNumber(value: Number, parent: Type?) : Primitive(value, parent) {
                     val digits = getPInt(args, token, "digits")
                     if (digits.getPValue() < 0) {
                         val divisor = 10.0.pow(-digits.getPValue())
-                        PDouble((number.getPValue().toDouble() / divisor).roundToInt() * divisor, null)
+                        PDouble((number.getPValue().toDouble() / divisor).roundToInt() * divisor)
                     } else PDouble(round(number.getPValue().toDouble(), digits.getPValue()))
                 }
             )

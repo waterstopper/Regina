@@ -5,7 +5,6 @@ import isInt
 import lexer.PositionalException
 import node.Node
 import properties.EmbeddedFunction
-import properties.Type
 import properties.Variable
 import table.FileTable
 import utils.Utils.castToPString
@@ -14,9 +13,12 @@ import utils.Utils.getPString
 import utils.Utils.toPInt
 import utils.Utils.toProperty
 
-class PString(value: String, parent: Type? = null) : Primitive(value, parent), Indexable {
+class PString(value: String) : Primitive(value), Indexable {
     override fun getIndex() = 4
     override fun getPValue() = value as String
+
+    override fun copy(deep: Boolean) = PString(value as String)
+
     override fun get(index: Any, node: Node, fileTable: FileTable): Any {
         if (!isInt(index)) {
             throw PositionalException("Expected integer", fileTable.filePath, node)
@@ -27,7 +29,7 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
         return getPValue()[index]
     }
 
-    override fun toDebugClass(references: References): Any {
+    override fun toDebugClass(references: References, copying: Boolean): Pair<String, Any> {
         return Pair("String", getPValue())
     }
 
@@ -45,7 +47,7 @@ class PString(value: String, parent: Type? = null) : Primitive(value, parent), I
 
     companion object {
         fun initializeStringProperties() {
-            val s = PString("", null)
+            val s = PString("")
             setProperty(s, "size") { p: Primitive -> PInt((p as PString).getPValue().length).toProperty() }
         }
 

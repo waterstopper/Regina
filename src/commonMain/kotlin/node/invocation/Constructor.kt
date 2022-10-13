@@ -29,7 +29,7 @@ class Constructor(
             throw PositionalException("Expected type", symbolTable.getFileTable().filePath, left)
         }
         if (type.index == 0) {
-            return evaluateType(type.copy(), symbolTable)
+            return evaluateType(type.copyRoot(), symbolTable)
         }
         return evaluateType(type, symbolTable)
     }
@@ -53,7 +53,10 @@ class Constructor(
             if (arg.left !is Identifier) {
                 throw PositionalException("Expected property name", symbolTable.getFileTable().filePath, arg)
             }
-            type.setProperty(arg.left.value, arg.right.evaluate(symbolTable).toProperty(arg.left, type))
+            type.setProperty(arg.left.value, arg.right.evaluate(symbolTable).toProperty(arg.left))
+            val prop = type.getPropertyOrNull(arg.left.value)!!
+            if(prop is Type)
+                prop.setProperty("parent", type)
             type.removeAssignment(arg.left)
         }
         symbolTable.resolvingType = resolvingMode
