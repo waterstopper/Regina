@@ -9,14 +9,15 @@ import node.Link
 import node.Node
 import node.TokenFactory
 import node.invocation.Call
+import node.invocation.Invocation
 import node.invocation.ResolvingMode
 import node.statement.Assignment
 import properties.primitive.PDictionary
 import properties.primitive.Primitive
 import table.FileTable
 import table.SymbolTable
+import utils.Utils
 import utils.Utils.NULL
-import utils.Utils.toProperty
 import utils.Utils.toVariable
 
 /**
@@ -200,11 +201,18 @@ open class Type(
     }
 
     override fun equals(other: Any?): Boolean = this === other
-// StackOverFlow on js test if it's uncommented
+
+    // StackOverFlow on js test if it's uncommented
 //    override fun hashCode(): Int {
 //        println("Hash")
 //        return super.hashCode()
 //    }
+    fun callAfter(symbolTable: SymbolTable) {
+        val afterNode = Call(Utils.parseOneNode("after()") as Invocation)
+        val afterResolving = getFunctionOrNull(afterNode)
+        if (afterResolving != null)
+            afterNode.evaluateFunction(symbolTable, afterResolving)
+    }
 
     companion object {
         fun resolveTree(root: Type, symbolTable: SymbolTable): Type {
@@ -250,6 +258,8 @@ open class Type(
                             }
                         }
                     }
+                    if (unresolved.first.assignments.isEmpty())
+                        unresolved.first.callAfter(symbolTable)
                 }
             }
         }

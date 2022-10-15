@@ -7,6 +7,7 @@ import node.statement.Assignment
 import properties.Type
 import properties.Type.Companion.resolveTree
 import table.SymbolTable
+import utils.Utils.parseOneNode
 import utils.Utils.toProperty
 
 class Constructor(
@@ -36,6 +37,12 @@ class Constructor(
 
     fun evaluateType(type: Type, symbolTable: SymbolTable): Any {
         resolveArguments(type, symbolTable)
+        val beforeNode = Call(parseOneNode("before()") as Invocation)
+        val beforeResolving = type.getFunctionOrNull(beforeNode)
+        if (beforeResolving != null)
+            beforeNode.evaluateFunction(symbolTable, beforeResolving)
+        if (type.assignments.isEmpty())
+            type.callAfter(symbolTable)
         return if (symbolTable.resolvingType == ResolvingMode.TYPE) type else resolveTree(
             type,
             symbolTable.changeVariable(type).changeScope()
@@ -55,7 +62,7 @@ class Constructor(
             }
             type.setProperty(arg.left.value, arg.right.evaluate(symbolTable).toProperty(arg.left))
             val prop = type.getPropertyOrNull(arg.left.value)!!
-            if(prop is Type)
+            if (prop is Type)
                 prop.setProperty("parent", type)
             type.removeAssignment(arg.left)
         }

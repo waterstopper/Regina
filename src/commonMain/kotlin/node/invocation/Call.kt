@@ -106,8 +106,7 @@ class Call(
         } else function.nonDefaultParams[index].value
     }
 
-    fun evaluateFunction(symbolTable: SymbolTable, function: RFunction, argTable: SymbolTable? = null): Any {
-        var argTable = argTable ?: symbolTable
+    fun evaluateFunction(symbolTable: SymbolTable, function: RFunction): Any {
         val res = if (function is EmbeddedFunction) {
             function.executeFunction(left, symbolTable)
         } else function.body.evaluate(symbolTable)

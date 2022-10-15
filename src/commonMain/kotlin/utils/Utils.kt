@@ -55,6 +55,8 @@ object Utils {
     fun parseAssignment(assignment: String) =
         Parser(assignment, "@NoFile").statements().first().toNode("@NoFile") as Assignment
 
+    fun parseOneNode(node: String) = Parser(node, "@NoFile").statements().first().toNode("@NoFile")
+
     /**
      * Prints AST with indentation to  show children.
      * **For debug**.

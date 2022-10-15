@@ -341,4 +341,23 @@ class TypeTest {
             }
         """)
     }
+
+    @Test
+    fun beforeAfterTest() {
+        eval("""
+            fun main() {a = A()}    
+            object test {p = 0}
+            
+            class A {
+                fun before() {
+                    test(test.p == 0)
+                    test.p = 1
+                }
+                a = initProp()
+                b = a
+                fun after() {test(test.p == 2)}
+                fun initProp() {test(test.p == 1);test.p = 2; return 3;}
+            }
+        """)
+    }
 }
