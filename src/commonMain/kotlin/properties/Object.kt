@@ -28,7 +28,12 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
     }
 
     override fun toString(): String {
-        return "$name-Object"
+        if (fileTable.filePath.isEmpty())
+            throw Exception("Empty fileTable name")
+        val fileLetter = if (fileTable.filePath.contains("/")) {
+            fileTable.filePath.split("/").last().first()
+        } else fileTable.filePath.first()
+        return "$name-${fileLetter}O"
     }
 
     override fun getDebugId(): Pair<String, Any> = Pair("Object", toString())

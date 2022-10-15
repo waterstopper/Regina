@@ -147,12 +147,10 @@ open class Type(
     }
 
     override fun toString(): String {
-        if (index == 0) {
+        if (index == 0)
             return name
-        }
-        if (fileTable.filePath.isEmpty()) {
+        if (fileTable.filePath.isEmpty())
             throw Exception("Empty fileTable name")
-        }
         val fileLetter = if (fileTable.filePath.contains("/")) {
             fileTable.filePath.split("/").last().first()
         } else fileTable.filePath.first()
