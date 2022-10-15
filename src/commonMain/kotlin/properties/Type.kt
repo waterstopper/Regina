@@ -33,8 +33,7 @@ open class Type(
     val index: Int,
     var supertype: Type? = null,
     protected val properties: MutableMap<String, Property> = mutableMapOf()
-) :
-    Property(), NestableDebug {
+) : Property(), NestableDebug {
 
     val functions = mutableSetOf<RFunction>()
 
@@ -120,6 +119,8 @@ open class Type(
                 )
             copy.functions.addAll(functions)
         } else copy = null
+        if (this is Object)
+            resolveAllProperties()
         val res = DebugType(
             properties.map {
                 it.key to if (it.value == this) id else elementToDebug(it.value, references)
@@ -207,8 +208,8 @@ open class Type(
 //        println("Hash")
 //        return super.hashCode()
 //    }
-    fun callAfter(symbolTable: SymbolTable) {
-        val afterNode = Call(Utils.parseOneNode("after()") as Invocation)
+    fun callAfter(symbolTable: SymbolTable, all: Boolean = false) {
+        val afterNode = Call(Utils.parseOneNode(if (all) "afterAll()" else "after()") as Invocation)
         val afterResolving = getFunctionOrNull(afterNode)
         if (afterResolving != null)
             afterNode.evaluateFunction(symbolTable, afterResolving)
@@ -226,6 +227,7 @@ open class Type(
                 processAssignment(symbolTable.changeVariable(parent), stack, visitedTypes)
             } while (true)
             symbolTable.resolvingType = ResolvingMode.FUNCTION
+            afterAllBfs(mutableSetOf(), mutableListOf(), symbolTable)
             return root
         }
 
@@ -299,9 +301,9 @@ open class Type(
             stack.add(root)
             while (stack.isNotEmpty()) {
                 val current = stack.removeLast()
-                if (current.assignments.isNotEmpty()) {
+                if (current.assignments.isNotEmpty())
                     return Pair(current, current.assignments.first())
-                }
+
                 val currentId = current.toString()
                 if (currentId !in visited && currentId !in currentlyVisited) {
                     currentlyVisited.add(currentId)
@@ -316,6 +318,24 @@ open class Type(
             }
             visited.addAll(currentlyVisited)
             return null
+        }
+
+        private fun afterAllBfs(visited: MutableSet<Any>, stack: MutableList<Any>, symbolTable: SymbolTable) {
+            val condition = { it: Variable ->
+                it is Containerable && it.getContainerId() !in visited
+                        || it is Type && it.toString() !in visited
+            }
+            while (stack.isNotEmpty()) {
+                val current = stack.removeLast()
+                if (current is Type && current.toString() !in visited) {
+                    visited.add(current)
+                    current.callAfter(symbolTable, all = true)
+                    stack.addAll(current.properties.values.filter(condition))
+                } else if (current is Containerable && current.getContainerId() !in visited) {
+                    visited.add(current)
+                    stack.addAll(current.getCollection().filter(condition))
+                }
+            }
         }
     }
 }

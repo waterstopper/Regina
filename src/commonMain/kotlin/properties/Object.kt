@@ -49,6 +49,11 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
         return null
     }
 
+    fun resolveAllProperties() {
+        for(a in assignments)
+            getPropertyOrNull(a.name)
+    }
+
     override fun getFunction(node: Node, fileTable: FileTable) = getFunctionOrNull(node)
         ?: throw PositionalException("Object `$name` does not contain function", fileTable.filePath, node)
 

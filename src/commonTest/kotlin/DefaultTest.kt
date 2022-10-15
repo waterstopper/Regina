@@ -29,6 +29,7 @@ e*/
     d.add(d)
     c =  {b:"S", t:d, "a":"b"}
     c[1] = c
+    o = Obj
     f = [c, 1, 2]
     #stop
     log("a " + 1)
@@ -46,6 +47,10 @@ class B {
 
 fun C() {
     q = 1
+}
+
+object Obj {
+    objProp = 1
 }
         """
         )
