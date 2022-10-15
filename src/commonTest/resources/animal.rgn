@@ -23,7 +23,7 @@ fun main() {
     b = Body(center=Point(x=50,y=50))
    // b.head.eye.iris.svgArgs["attributes"]["fill"] = "beige"
 
-    f= Test()
+    f = Test()
     a = svg.createSVG(b)
     write(a, "result.svg")
     #stop
@@ -86,7 +86,7 @@ class Eye {
 
 class Limb {
     start = Point(x=1, y=1)
-    first = Segment(p1=start,p2=Point(),\
+    first = Segment(p1=copy(start),p2=Point(),\
         stroke=parent.fill,strokeWidth=5)\
         .rotate(rndInt(-15,15), start)
     second = Segment(p1=first.p2,\

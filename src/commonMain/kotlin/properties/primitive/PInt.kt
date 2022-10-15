@@ -10,8 +10,6 @@ class PInt(value: Int) : PNumber(value) {
         return Pair("Int", getPValue())
     }
 
-    override fun copy(deep: Boolean): PInt = PInt(value as Int)
-
     override operator fun plus(number: PNumber): PNumber {
         if (number is PDouble) {
             return number.plus(this)

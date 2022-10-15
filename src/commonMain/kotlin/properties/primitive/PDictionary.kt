@@ -86,11 +86,6 @@ class PDictionary(value: MutableMap<out Any, out Variable>, var id: Int) :
         return true
     }
 
-    override fun copy(deep: Boolean): PDictionary {
-        return PDictionary(if (deep) getPValue().entries.associate { it.key.copy(deep) to it.value.copy(deep) }
-            .toMutableMap() else getPValue().toMutableMap(), dictionaryId++)
-    }
-
     override fun getCollection(): Collection<Variable> = getPValue().values
     override fun getContainerId(): Int = -id
 

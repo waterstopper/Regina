@@ -38,10 +38,6 @@ class Null : Property() {
         return Pair("Null", "")
     }
 
-    override fun copy(deep: Boolean): Variable {
-        return NULL
-    }
-
     override fun toString() = "null"
 
     companion object {

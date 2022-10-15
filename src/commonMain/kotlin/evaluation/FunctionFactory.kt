@@ -2,6 +2,7 @@ package evaluation
 
 import FileSystem
 import Message
+import References
 import lexer.ExpectedTypeException
 import lexer.PositionalException
 import node.Identifier
@@ -197,7 +198,9 @@ object FunctionFactory {
         res["copy"] = EmbeddedFunction("copy", listOf("instance"), listOf("deep = true")) { token, args ->
             val instance = getIdent(token, "instance", args)
             val deep = getPInt(args, token, "deep")
-            instance.copy(deep.getPValue() != 0)
+            val r = References()
+            r.copy(instance)
+            // instance.copy(deep.getPValue() != 0)
         }
         return res
     }

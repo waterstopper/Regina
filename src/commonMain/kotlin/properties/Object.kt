@@ -33,8 +33,6 @@ class Object(name: String, assignments: MutableSet<Assignment>, fileTable: FileT
 
     override fun getDebugId(): Pair<String, Any> = Pair("Object", toString())
 
-    override fun copy(deep: Boolean) = this
-
     override fun getPropertyOrNull(name: String): Property? {
         if (properties[name] != null) {
             return properties[name]!!

@@ -48,18 +48,13 @@ class PList(value: MutableList<Variable>, val id: Int) :
         val res = DebugList(
             getPValue().map {
                 if (it == this) id else elementToDebug(it, references)
-            }
+            }, if(copying) PList(mutableListOf(), listId++) else null
         )
         references.lists[id.second as Int] = res
         return id
     }
 
     override fun getDebugId(): Pair<String, Any> = Pair("List", id)
-
-    override fun copy(deep: Boolean): PList {
-        return PList(if (deep) getPValue().map { it.copy().toProperty() }
-            .toMutableList() else getPValue().toMutableList(), listId++)
-    }
 
     override fun set(index: Any, value: Any, nodeIndex: Node, nodeValue: Node, fileTable: FileTable) {
         getPValue()[(index as PInt).getPValue()] = value.toVariable(nodeIndex)

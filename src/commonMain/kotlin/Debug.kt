@@ -41,7 +41,9 @@ class References(
     val queue: MutableMap<Any, Variable> = mutableMapOf()
 ) {
     fun copy(v: Variable): Variable {
-        val root = v.toDebugClass(this)
+        val root = v.toDebugClass(this, copying = true)
+        while (queue.isNotEmpty())
+            queue.values.last().toDebugClass(this, copying = true)
         types.forEach { type ->
             type.value.properties.forEach {
                 type.value.blankCopy!!.setProperty(
@@ -62,7 +64,7 @@ class References(
         return getReference(root)
     }
 
-    private fun getReference(pair: Pair<String, Any>, parent: Type? = null): Variable {
+    private fun getReference(pair: Pair<String, Any>): Variable {
         return when (pair.first) {
             "Int" -> PInt(pair.second as Int)
             "Double" -> PDouble(pair.second as Double)
@@ -70,7 +72,7 @@ class References(
             "List" -> lists[pair.second]!!.blankCopy!!
             "Dictionary" -> dictionaries[pair.second]!!.blankCopy!!
             "Null" -> NULL
-            "Type", "Object" -> types[pair.first]!!.blankCopy!!
+            "Type", "Object" -> types[pair.second]!!.blankCopy!!
             else -> throw Exception("Unexpected reference name")
         }
     }

@@ -14,10 +14,6 @@ open class PNumber(value: Number) : Primitive(value) {
     override fun getIndex() = 1
     override fun getPValue() = value as Number
 
-    override fun copy(deep: Boolean): Variable {
-        TODO("Not implemented")
-    }
-
     override fun equals(other: Any?): Boolean {
         if (other !is PNumber) {
             return false

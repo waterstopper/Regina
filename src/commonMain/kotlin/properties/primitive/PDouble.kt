@@ -11,8 +11,6 @@ class PDouble(value: Double) : PNumber(value) {
         return Pair("Double", getPValue())
     }
 
-    override fun copy(deep: Boolean): PDouble = PDouble(value as Double)
-
     override operator fun plus(number: PNumber): PNumber {
         return PDouble(getPValue() + number.getPValue().toDouble())
     }

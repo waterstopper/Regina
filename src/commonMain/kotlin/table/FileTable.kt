@@ -37,9 +37,8 @@ class FileTable(
         // copied types get index 0
         val added = Type(name, assignments, this, 0)
         added.functions.addAll(functions)
-        if (types.find { it.name == name } != null) {
+        if (types.find { it.name == name } != null)
             throw PositionalException("Two classes with same name in `$filePath`", filePath, node)
-        }
         types.add(added)
         for (assignment in added.assignments)
             assignment.parent = added

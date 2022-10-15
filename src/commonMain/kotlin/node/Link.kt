@@ -393,9 +393,5 @@ open class Link(
         override fun toDebugClass(references: References, copying: Boolean): Pair<String, Any> {
             TODO("Not yet implemented")
         }
-
-        override fun copy(deep: Boolean): Variable {
-            TODO("Not yet implemented")
-        }
     }
 }

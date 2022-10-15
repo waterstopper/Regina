@@ -17,8 +17,6 @@ class PString(value: String) : Primitive(value), Indexable {
     override fun getIndex() = 4
     override fun getPValue() = value as String
 
-    override fun copy(deep: Boolean) = PString(value as String)
-
     override fun get(index: Any, node: Node, fileTable: FileTable): Any {
         if (!isInt(index)) {
             throw PositionalException("Expected integer", fileTable.filePath, node)

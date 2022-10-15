@@ -104,10 +104,25 @@ open class Type(
         references.queue.remove(id)
         if (references.types[id.second] != null)
             return id
+        val copy: Type?
+        if (copying) {
+            fileTable.numberInstances += 1
+            val index = fileTable.numberInstances
+            copy =
+                Type(
+                    name = name,
+                    assignments = (assignments + getInheritedAssignments()).map { TokenFactory.copy(it) as Assignment }
+                        .toMutableSet(),
+                    fileTable = fileTable,
+                    supertype = supertype,
+                    index = index
+                )
+            copy.functions.addAll(functions)
+        } else copy = null
         val res = DebugType(
             properties.map {
                 it.key to if (it.value == this) id else elementToDebug(it.value, references)
-            }.toMap().toMutableMap()
+            }.toMap().toMutableMap(), copy
         )
         references.types[id.second as String] = res
         return id
@@ -165,25 +180,6 @@ open class Type(
 
     fun equalToType(other: Type): Boolean {
         return name == other.name && fileTable == other.fileTable && other !is Object
-    }
-
-    override fun copy(deep: Boolean): Type {
-        fileTable.numberInstances += 1
-        val index = fileTable.numberInstances
-        val copy = Type(
-            name = name,
-            assignments = (assignments + getInheritedAssignments()).map { TokenFactory.copy(it) as Assignment }
-                .toMutableSet(),
-            fileTable = fileTable,
-            supertype = supertype,
-            index = index,
-            properties = if (!deep) properties.toMutableMap() else mutableMapOf()
-        )
-        if (deep)
-            copy.properties.putAll(properties.entries.associate {
-                it.key to it.value.copy(true).toProperty()
-            })
-        return copy
     }
 
     fun copyRoot(): Type {
