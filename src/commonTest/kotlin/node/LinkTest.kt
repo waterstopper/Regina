@@ -54,7 +54,7 @@ class LinkTest {
             """
         fun main() {
             arr = [[0], [0]]
-            log(arr[0][0])
+            print(arr[0][0])
             arr[1][0] = 1
             test(arr[1][0] == 1)
             a = A()
@@ -80,10 +80,10 @@ class LinkTest {
         fun main() {
             a = A()
             a.b = 1
-            log(a.b)
-            log(a.b?.c)
-            log(a.b?.c)
-            log(a.b?.c.d)
+            print(a.b)
+            print(a.b?.c)
+            print(a.b?.c)
+            print(a.b?.c.d)
             test(a.b?.c.d == null)
             test(a.b?.c?.d == null)
         }
@@ -100,7 +100,7 @@ class LinkTest {
                 """
             fun main() {
                 a = A()
-                log(a.n())
+                print(a.n())
                 a.n()[0][0] = 2
             }
             
@@ -135,7 +135,7 @@ class LinkTest {
             
             fun main() {
             a = A()
-                log(geom.Constants.PI)
+                print(geom.Constants.PI)
             }
             
             class A {

@@ -2,7 +2,7 @@ import src.commonTest.resources.imported as imported
 
 fun main() {
     fch = ForCheck()
-    log(fch is ForCheck)
+    print(fch is ForCheck)
     a = A()
     test(a !is imported.A)
     test(a !is B)

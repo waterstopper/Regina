@@ -9,5 +9,5 @@ fun addition(a, b) {
 }
 
 fun get() {
-    log("from Same")
+    print("from Same")
 }

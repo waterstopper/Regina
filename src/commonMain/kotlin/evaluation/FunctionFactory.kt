@@ -52,7 +52,7 @@ object FunctionFactory {
 
     fun initializeEmbedded(): MutableMap<String, RFunction> {
         val res = mutableMapOf<String, RFunction>()
-        res["log"] = EmbeddedFunction("log", listOf("x")) { token, args ->
+        res["print"] = EmbeddedFunction("print", listOf("x")) { token, args ->
             sendMessage(Message("log", getIdent(token, "x", args).toString()))
             NULL
         }

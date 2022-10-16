@@ -10,19 +10,19 @@ class PDictionaryTest {
             """
            fun main() {
                 b = {1:2, 2:2}
-                log(b)
-                log(b.values)
-                log("before")
-                log(b.keys)
-                log(1)
+                print(b)
+                print(b.values)
+                print("before")
+                print(b.keys)
+                print(1)
                 test(b.values == [2, 2])
-                log(2)
-                log(b.keys)
+                print(2)
+                print(b.keys)
                 test(b.keys == [1,2])
                 a = {}
                 a[1] = 2
                 a[2] = 3
-                log(a[1])
+                print(a[1])
                 test(a[1] == 2)
                 test(a[2] == 3)
                 test(a.size == 2)
@@ -30,7 +30,7 @@ class PDictionaryTest {
                 test(a.remove(1) == 2)
                 test(a[1] == null)
                 test(a.size == 1)
-                log(a.keys)
+                print(a.keys)
                 test(a.keys == [2])
                 test(a.values == [3])
                 

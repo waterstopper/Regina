@@ -34,6 +34,7 @@ class TypeOperator(
             "Int" -> checked is PInt
             "Double" -> checked is PDouble
             "List" -> checked is PList
+            "Dictionary" -> checked is PDictionary
             "Number" -> checked is PNumber
             "Class" -> checked is Type
             "Primitive" -> checked is Primitive

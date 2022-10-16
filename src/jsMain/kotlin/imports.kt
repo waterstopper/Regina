@@ -72,7 +72,6 @@ class Segment {
 
     fun center() { return centerFromPointsList([p1, p2]) }
     fun rotate(angle, pivot=center()) {
-        log(this)
         rotatePointsList([p1, p2], angle, pivot)
         return this
     }
@@ -621,7 +620,7 @@ class Attribute {
 
 fun add(node, sb) {
     containers = ["group, svg"]
-    log(node)
+    print(node)
     #stop
     added = node.exportArgs["exported"]
     propertiesArray = list(node.properties)
@@ -677,7 +676,7 @@ fun create(root, width, height) {
     sb.add("<svg \"" + width + "\" height \"" + height + "\">\n")
     add(root, sb)
     sb.add("</svg>")
-    log(sb.toString())
+    print(sb.toString())
 }
 
 class StringBuilder {
@@ -727,7 +726,7 @@ fun testSolve3() {
 fun testSolve4() {
     test(solve([1, 0, 0, 0, 0]) == [0, 0, 0, 0])
     test(solve([1, -1, 0, 0, 0]) == [0, 0, 0, 1])
-    log(solve([2, -1, 0, 0, 0]))// == [0, 0, 0, 0.5])
+    print(solve([2, -1, 0, 0, 0]))// == [0, 0, 0, 0.5])
     test(solve([1, -4, 6, -4, 1]) == [1, 1, 1, 1])
     test(roundArr(solve([1, 4, -4, -20, -5])) == [-3.7321, -2.2361, -0.2679, 2.2361])
     test(solve([1, -6, 11, -6, 0]) == [0, 1, 2, 3])
@@ -785,7 +784,7 @@ fun addGeometryTest() {
             test(p.y == 2)
 
             rotated = s.rotate(45)
-            log(rotated)
+            print(rotated)
         }
 
     """
@@ -811,7 +810,7 @@ fun checkMultipleCalls(a)
         res = 1
     }
     test(a == b)
-    log("res: " +res + ", a: "+ a)
+    print("res: " +res + ", a: "+ a)
     return res
 }
 
@@ -846,46 +845,46 @@ class DoubleSegment {
 }
 
 fun main() {
-    log(geom.Constants.PI)
+    print(geom.Constants.PI)
     a = imported.A()
     s = Segment()
     attributes = list(s.exportArgs["attributes"])
-    log([1,2,3].has(1))
+    print([1,2,3].has(1))
     testing = 1
     if(1) {
         testing = 2
         }
-    log(testing)
+    print(testing)
     prim = 123.123
     r = prim
     r = r.round()
-    log(r)
-    log(A() is B)
+    print(r)
+    print(A() is B)
     a = Point(x = 5, y = 3)
     b = a.rotate(90)
     b.x = 2
-    log(a.x)
-    log(str(a.x) + " " + a.y)
+    print(a.x)
+    print(str(a.x) + " " + a.y)
     a = [1,2,3,4]
-    log(a.joinToString(""))
+    print(a.joinToString(""))
 
 
 
     B() is A
     m = {"a":1,2:"c"}
-    log(m)
+    print(m)
     //a = []
     //a.add(0,a)
     //a = Something()
     a = Segment()
     svg.create(a,100,100)
-    log(a)
+    print(a)
     a = DoubleSegment()
-    log(a)
+    print(a)
     a = TestClass()
-    log(a)
+    print(a)
     a = Something()
-    log(a)
+    print(a)
     assignmentTest()
 
 
@@ -893,50 +892,50 @@ fun main() {
     a = [2]
     a.add([1])
     a.add(a)
-    log(a)
+    print(a)
     checkLink()
     checkType()
     test(checkMultipleCalls(3) == 3)
     test(checkNestedReturn() == 1)
     primitiveTest()
   //  b = i()
-//	log([0] + 1)
-//	log(("t" + "t")[0])
-//	log(5 / 2)
+//	print([0] + 1)
+//	print(("t" + "t")[0])
+//	print(5 / 2)
 //	a = toRadians(32)
-//	log(rndInt(64,999))
-//	log(rndInt(64,999))
+//	print(rndInt(64,999))
+//	print(rndInt(64,999))
 //	c = Something()
 //	arr = [c,"a",1]
-//	log(arr)
+//	print(arr)
 //	add(arr,2)
 //	add(arr,1,2)
-//	log(arr)
-//	log(remove(arr,c))
-//	log(arr)
+//	print(arr)
+//	print(remove(arr,c))
+//	print(arr)
 //	removeAt(arr,1)
-//	log(arr)
-//	log(has(arr,2))
+//	print(arr)
+//	print(has(arr,2))
 //	a = []
 //	b = []
-//	log(a == b)
-//	log([0] == [0.0])
+//	print(a == b)
+//	print([0] == [0.0])
 //	whileFun()
 	//Root()
 	//c = Something()
 	//d = c
 	//c.e = Something()
-//	log(c)
-//	log(d)
+//	print(c)
+//	print(d)
 
 	a = [5,2]
 	a[0] = "fads"
-	log(a)
+	print(a)
 	testMath()
 }
 
 fun testMath() {
-    log(solveSquare(2,1))
+    print(solveSquare(2,1))
 }
 
 fun checkLink() {
@@ -990,7 +989,7 @@ fun checkType() {
 	test("" is String)
 	test([] is List)
 	test(A() is A)
-	log(B() is A)
+	print(B() is A)
 	test(B() is A)
 	test(0 !is List)
 }
@@ -1006,13 +1005,13 @@ fun whileFun() {
 	a = 1
 	while(a < 5) {
 		if(a % 2 == 0){
-			log(a)
+			print(a)
 		} else{
-			log(a + 1)
+			print(a + 1)
 		}
 		a = a + 1
 	}
-	log(a)
+	print(a)
 }
 
 class A {
@@ -1063,7 +1062,7 @@ fun abs(x) {
 
 // here two blocks inside each other. Return won't be passed.
 fun toRadians(deg) {
-    log("FIEFNEEFIN")
+    print("FIEFNEEFIN")
 	if(deg > 3){
 		return abs( \
 		-deg) * 3 / 180
@@ -1073,8 +1072,8 @@ fun toRadians(deg) {
 // returns random int in range [a,b]
 fun rndInt(a,b)  {
 	t = int(rnd() * ((b - a) + 1))
-	log("t:" + t)
-	log(t)
+	print("t:" + t)
+	print(t)
 	return a + t
 }
 
@@ -1109,7 +1108,7 @@ fun addition(a, b) {
     get()
     test(same.addition(a,b) \
         == a + b + 1)
-    log(getFileName() \
+    print(getFileName() \
         == "imported")
     return a + b
 }
@@ -1131,7 +1130,7 @@ class ForCheck {}
         }
 
         fun get() {
-            log("from Same")
+            print("from Same")
         }
     """
     )
@@ -1145,7 +1144,7 @@ fun addIsTest() {
 
 fun main() {
     fch = ForCheck()
-    log(fch is ForCheck)
+    print(fch is ForCheck)
     a = A()
     test(a !is imported.A)
     test(a !is B)

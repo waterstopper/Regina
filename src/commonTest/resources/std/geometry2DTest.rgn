@@ -31,5 +31,5 @@ fun testSegment() {
     test(p.y == 2)
 
     rotated = s.rotate(45)
-    log(rotated)
+    print(rotated)
 }

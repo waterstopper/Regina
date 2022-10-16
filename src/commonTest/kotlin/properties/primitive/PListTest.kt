@@ -15,10 +15,10 @@ class PListTest {
             a.add(a, 0)
             a.add([1,2])
             b = a.sorted()
-            log(b)
+            print(b)
             b.add(A())
-            log(str(b))
-            log(str(a))
+            print(str(b))
+            print(str(a))
             test(str(a)=="[this, [1, 2]]")
             test(a[0][0][1]==[1, 2])
             a.removeAt(0)
@@ -81,7 +81,7 @@ class PListTest {
                a = Obj
                arr = [3, 2, 1]
                test(str([Obj,type(Cls()),[],1,2,{1:2}, ZObj,[1,2], {}, 0.1, type(Zcls())].sorted()) \
-                    == "[0.1, 1, 2, [], [1, 2], {}, {1=2}, Cls, Zcls, Obj-Object, ZObj-Object]")
+                    == "[0.1, 1, 2, [], [1, 2], {}, {1=2}, Cls, Zcls, Obj-@O, ZObj-@O]")
                test(arr.sorted() == [1,2,3])
            }
          object Obj {}

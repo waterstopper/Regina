@@ -22,8 +22,8 @@ class DefaultTest {
 {
 e*/
     b = A()
-    log(b)
-    log(b.properties)
+    print(b)
+    print(b.properties)
     t = []
     d = [1, {"abc":"cde"}]
     d.add(d)
@@ -32,7 +32,7 @@ e*/
     o = Obj
     f = [c, 1, 2]
     #stop
-    log("a " + 1)
+    print("a " + 1)
 }
 
 class A {

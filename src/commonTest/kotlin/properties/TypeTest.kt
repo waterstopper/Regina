@@ -12,8 +12,8 @@ class TypeTest {
             """
            fun main() {
                 a = A()
-                log("Built")
-                log(a.str())
+                print("Built")
+                print(a.str())
            }
            class A {
                 iter = (parent?.iter ?? 0) + 1
@@ -40,7 +40,7 @@ class TypeTest {
             """
             fun main() {
                 q = A()
-                log(q?.a)
+                print(q?.a)
                 q.a = 1
                 test(q.a == 1)
             }
@@ -84,7 +84,7 @@ class TypeTest {
             class Leaf {}
             fun main() {
                 r = Root()
-                log(r)
+                print(r)
             }
         """
         )
@@ -190,8 +190,8 @@ class TypeTest {
            }
            fun main() {
             b = B()
-            log(b.properties)
-            log(b.a())
+            print(b.properties)
+            print(b.a())
            }
         """
         )
@@ -203,9 +203,9 @@ class TypeTest {
             """
             fun main() {
                 a = A()
-                log(a.c)
-                log(a.b)
-                log(a.p)
+                print(a.c)
+                print(a.b)
+                print(a.p)
             }
             class A : B {
                 p = 2
@@ -304,10 +304,10 @@ class TypeTest {
         eval("""
             fun main() {
                 c = C()
-                log(c.b.properties)
-                log(c.b.points[0].properties)
-                log(c.b.points[1].properties)
-                log(c.b.points[2].properties)
+                print(c.b.properties)
+                print(c.b.points[0].properties)
+                print(c.b.points[1].properties)
+                print(c.b.points[2].properties)
             }
 
             class A {
@@ -324,9 +324,9 @@ class TypeTest {
                 
                 fun checkPoints() {
                     z = Z()
-                    log("z: " + z.properties)
-                    log(points[0].properties)
-                    log(points[0].f[0].properties)
+                    print("z: " + z.properties)
+                    print(points[0].properties)
+                    print(points[0].f[0].properties)
                 }
             }
             
@@ -356,7 +356,7 @@ class TypeTest {
                 a = initProp()
                 b = a
                 fun after() {test(test.p == 2)}
-                fun afterAll() {log("1")}
+                fun afterAll() {print("1")}
                 fun initProp() {test(test.p == 1);test.p = 2; return 3;}
             }
             
