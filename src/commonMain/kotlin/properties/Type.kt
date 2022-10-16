@@ -225,7 +225,7 @@ open class Type(
                 processAssignment(symbolTable.changeVariable(parent), stack, visitedTypes)
             } while (true)
             symbolTable.resolvingType = ResolvingMode.FUNCTION
-            afterAllBfs(mutableSetOf(), mutableListOf(), symbolTable)
+            afterAllBfs(mutableSetOf(), mutableListOf(root), symbolTable)
             return root
         }
 
@@ -326,11 +326,11 @@ open class Type(
             while (stack.isNotEmpty()) {
                 val current = stack.removeLast()
                 if (current is Type && current.toString() !in visited) {
-                    visited.add(current)
+                    visited.add(current.toString())
                     current.callAfter(symbolTable, all = true)
                     stack.addAll(current.properties.values.filter(condition))
                 } else if (current is Containerable && current.getContainerId() !in visited) {
-                    visited.add(current)
+                    visited.add(current.toString())
                     stack.addAll(current.getCollection().filter(condition))
                 }
             }

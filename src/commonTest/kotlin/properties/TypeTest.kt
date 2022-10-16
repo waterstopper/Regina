@@ -356,6 +356,7 @@ class TypeTest {
                 a = initProp()
                 b = a
                 fun after() {test(test.p == 2)}
+                fun afterAll() {log("1")}
                 fun initProp() {test(test.p == 1);test.p = 2; return 3;}
             }
             
