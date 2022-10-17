@@ -5,8 +5,10 @@ import lexer.ExpectedTypeException
 import node.Assignable
 import node.Linkable
 import node.Node
+import node.invocation.Invocation
 import node.statement.Assignment
 import properties.Type
+import properties.Variable
 import properties.primitive.*
 import table.SymbolTable
 import utils.Utils.toVariable
@@ -37,10 +39,23 @@ class Index(
 
     override fun evaluate(symbolTable: SymbolTable): Any {
         val res = evaluateIndex(symbolTable)
-        if (res is Primitive && res !is PNumber) {
+        if (res is Primitive && res !is PNumber)
             return res.getPValue()
-        }
         return res
+    }
+
+    fun evaluateIndexWithDeepestLeftProperty(prop: Variable, symbolTable: SymbolTable): Any {
+        val indexed = if (left is Index) (left as Index).evaluateIndexWithDeepestLeftProperty(prop, symbolTable)
+            .toVariable() else prop
+        val index = right.evaluate(symbolTable)
+        return when (indexed) {
+            is Indexable -> indexed[index, right, symbolTable.getFileTable()]
+            else -> throw ExpectedTypeException(
+                listOf(PList::class, PDictionary::class, PString::class),
+                symbolTable.getFileTable().filePath,
+                this
+            )
+        }
     }
 
     fun evaluateIndex(symbolTable: SymbolTable): Any {
@@ -65,8 +80,20 @@ class Index(
 
     override fun assign(assignment: Assignment, parent: Type?, symbolTable: SymbolTable, value: Any) {
         val assignTable = if (parent != null) symbolTable.changeVariable(parent) else symbolTable
-        val indexable = left.evaluate(assignTable).toVariable(left)
+        val indexable = getDeepestLeft().evaluate(assignTable).toVariable(left)
+        assignWithIndexable(indexable, assignTable, symbolTable, assignment, value)
+    }
+
+    fun assignWithIndexable(
+        variable: Variable,
+        assignTable: SymbolTable,
+        symbolTable: SymbolTable,
+        assignment: Assignment,
+        value: Any
+    ) {
         val index = right.evaluate(assignTable).toVariable(right)
+        val indexable =
+            if (left is Index) (left as Index).evaluateIndexWithDeepestLeftProperty(variable, symbolTable) else variable
         if (indexable is Indexable && indexable.checkIndexType(index)) {
             indexable.set(index, value, right, assignment.right, symbolTable.getFileTable())
         } else throw ExpectedTypeException(

@@ -54,12 +54,12 @@ class LinkTest {
             """
         fun main() {
             arr = [[0], [0]]
-            print(arr[0][0])
             arr[1][0] = 1
             test(arr[1][0] == 1)
             a = A()
             a.arr[0] = {1:2}
             test(a.arr[0] == {1:2})
+            test(arr == [[0], [1]])
             
             b = [A()]
             b[0].arr[0] = {1:2, 3:4}
@@ -100,7 +100,7 @@ class LinkTest {
                 """
             fun main() {
                 a = A()
-                print(a.n())
+                test(a.n() == [[1]])
                 a.n()[0][0] = 2
             }
             
@@ -134,7 +134,7 @@ class LinkTest {
             import std.geometry2D as geom
             
             fun main() {
-            a = A()
+                a = A()
                 print(geom.Constants.PI)
             }
             
@@ -143,5 +143,29 @@ class LinkTest {
             }
         """
         )
+    }
+
+    @Test
+    fun testSameNamedLink() {
+        eval("""
+            fun main() {
+                a = A()
+            }
+            
+            class A {
+                ps = createPs()
+                
+                fun createPs() {
+                    b = B()
+                    props = []
+                    i = 0
+                    print(b.props[i])
+                }
+            }
+            
+            class B {
+                props = [1,2,3]
+            }
+        """)
     }
 }

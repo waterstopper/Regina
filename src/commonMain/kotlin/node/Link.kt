@@ -77,6 +77,10 @@ open class Link(
         } else currentVariable
     }
 
+    private fun checkNextFunction() {
+
+    }
+
     private fun checkNextVariable(
         index: Int,
         table: SymbolTable,
@@ -85,52 +89,25 @@ open class Link(
         findingUnresolved: Boolean = false
     ): Optional {
         when (children[index]) {
-            is Call -> {
-                if (findingUnresolved) {
-                    return Optional(NullValue())
-                }
-                val function = variable.getFunctionOrNull((children[index] as Call))
-                if (function == null && nullable.contains(index)) {
-                    return Optional(NullValue())
-                }
-                if (function == null) {
-                    throw PositionalException(
-                        "Variable does not contain function",
-                        table.getFileTable().filePath,
-                        children[index]
-                    )
-                }
-                return Optional(
-                    resolveFunctionCall(
-                        index = index,
-                        table = table,
-                        initialTable = initialTable,
-                        function = function
-                    )
-                )
-            }
+            is Call -> return checkNextCall(findingUnresolved, variable, index, table, initialTable)
             is Identifier -> {
                 if (variable is Type && variable !is Object) {
                     val assignment = variable.getLinkedAssignment(this, index)
-                    if (assignment != null) {
+                    if (assignment != null)
                         return Optional(assignment)
-                    }
                 }
                 val property = variable.getPropertyOrNull(children[index].value)
-                if (property == null && nullable.contains(index)) {
+                if (property == null && nullable.contains(index))
                     return Optional(NullValue())
-                }
                 return Optional(property)
             }
             is Index -> {
                 // TODO here get linked assignment should be done too
-                var indexToken = children[index].left
-                while (indexToken is Index)
-                    indexToken = indexToken.left
+                val indexToken = (children[index] as Index).getDeepestLeft()
+                if (indexToken is Call) return checkNextCall(findingUnresolved, variable, index, table, initialTable)
                 val property = variable.getPropertyOrNull(indexToken.value)
-                if (property == null && nullable.contains(index)) {
+                if (property == null && nullable.contains(index))
                     return Optional(NullValue())
-                }
                 property
                     ?: if (variable is Type) (return Optional(variable.getAssignment(indexToken)))
                     else if (nullable.contains(index)) return Optional(NullValue()) else throw PositionalException(
@@ -138,10 +115,42 @@ open class Link(
                         table.getFileTable().filePath,
                         indexToken
                     )
-                return Optional((children[index] as Index).evaluateIndex(table).toVariable(children[index]))
+                return Optional(
+                    (children[index] as Index)
+                        .evaluateIndexWithDeepestLeftProperty(property, table).toVariable(children[index])
+                )
             }
             else -> throw PositionalException("Unexpected token", table.getFileTable().filePath, children[index])
         }
+    }
+
+    private fun checkNextCall(
+        findingUnresolved: Boolean,
+        variable: Variable,
+        index: Int,
+        table: SymbolTable,
+        initialTable: SymbolTable
+    ): Optional {
+        if (findingUnresolved)
+            return Optional(NullValue())
+        val function = variable.getFunctionOrNull((children[index] as Call))
+        if (function == null && nullable.contains(index))
+            return Optional(NullValue())
+        if (function == null) {
+            throw PositionalException(
+                "Variable does not contain function",
+                table.getFileTable().filePath,
+                children[index]
+            )
+        }
+        return Optional(
+            resolveFunctionCall(
+                index = index,
+                table = table,
+                initialTable = initialTable,
+                function = function
+            )
+        )
     }
 
     /**
@@ -246,11 +255,22 @@ open class Link(
             ),
             symbolTable
         )
-        if (currentParent !is Type || index != children.lastIndex) {
+        if (currentParent !is Type || index != children.lastIndex)
             throw PositionalException("Link not resolved", symbolTable.getFileTable().filePath, children.last())
-        }
         if (children.last() is Index) {
-            (children.last() as Index).assign(assignment, currentParent, symbolTable, value)
+            val tokenIndex = (children.last() as Index).getDeepestLeft()
+            if (tokenIndex is Call) throw PositionalException(
+                "Call is prohibited on the left of the assignment",
+                symbolTable.getFileTable().filePath,
+                tokenIndex
+            )
+            (children.last() as Index).assignWithIndexable(
+                currentParent.getProperty(tokenIndex, symbolTable.getFileTable()),
+                symbolTable.changeVariable(currentParent),
+                symbolTable,
+                assignment,
+                value.toProperty(assignment.right)
+            )//assign(assignment, currentParent, symbolTable, value)
         } else currentParent.setProperty(children.last().value, value.toProperty(assignment.right))
     }
 
