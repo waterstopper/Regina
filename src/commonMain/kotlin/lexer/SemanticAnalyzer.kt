@@ -109,6 +109,8 @@ class Analyzer(fileTable: FileTable) {
     }
 
     private fun changeInvocationType(node: Node, symbolTable: SymbolTable, cycles: Int, inProperty: Boolean = false) {
+        if (node is Link)
+            changeInvocationsInLink(node, symbolTable, inProperty)
         for ((index, child) in node.children.withIndex()) {
             when (child) {
                 is WordStatement -> {
@@ -150,10 +152,8 @@ class Analyzer(fileTable: FileTable) {
                 if (child is Block && (child.symbol == "foreach" || child.symbol == "while")) {
                     changeInvocationType(child, symbolTable, cycles + 1)
                 } else changeInvocationType(child, symbolTable, cycles)
-            } else {
-                for (linkChild in child.children)
-                    changeInvocationType(linkChild, symbolTable, cycles)
-            }
+            } else
+                changeInvocationType(child, symbolTable, cycles)
     }
 
     private fun checkLinkAsLValue(link: Link, fileTable: FileTable) {

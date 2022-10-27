@@ -103,7 +103,8 @@ class SymbolTable(
 
     fun getVariableOrNull(name: String): Variable? = scopeTable?.getVariableOrNull(name)
 
-    fun getIdentifier(node: Node): Variable = getIdentifierOrNull(node) ?: throw PositionalException(
+    fun getIdentifier(node: Node): Variable = getIdentifierOrNull(node)
+        ?: throw PositionalException(
         "Identifier `${node.value}` not found in `$fileTable`",
         fileTable.filePath,
         node

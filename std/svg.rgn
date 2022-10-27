@@ -1,6 +1,15 @@
+class StringBuilder {
+    string = []
+    fun add(s) {
+        string.add(s)
+    }
+    fun toString(sep="") {
+        return string.joinToString(sep)
+    }
+}
 fun createHeader(node) {
     res = StringBuilder(string=["<" + getName(node)] + " ")
-    foreach(attr in (node?.svgArgs["attributes"].entries ?? [])) {
+    foreach(attr in (node?.svgArgs["attributes"]?.entries ?? [])) {
         res.add(str(attr["key"]) + "=\"" + attr["value"] + "\"")
     }
     res.add(">")
@@ -15,15 +24,34 @@ fun getName(node, default="g") {
 
 fun createBody(node, stack, created) {
     res = StringBuilder()
-    foreach(child in node.properties.entries) {
-        if((child["value"] !is Class) \
-            || child["value"] == node \
-            || created[str(child["value"])] != null) continue
-        if(child["value"]?.svgArgs["inParent"] ?? false) {
-            res.add("\t\n" + createNode(child["value"], stack, created))
-        } else stack.add(createNode(child["value"], stack, created))
-    }
+    childrenDict = node.properties
+    if(node?.svgArgs["order"] != null) 
+        foreach(child in node.svgArgs["order"]) {
+            res.add("\t\n" + createNode(\
+                childrenDict[child] ?? except("No child " + child + " in " + node),\
+                stack, created))
+            childrenDict.remove(child)
+        }
+    traverseChildren(childrenDict.values, stack, created, res)
     return res.toString()
+}
+
+fun traverseChildren(children, stack, created, res) {
+    foreach(child in children) {
+        if(child is List)
+            traverseChildren(child, stack, created, res)
+        else if(child is Dictionary) {
+            traverseChildren(child.keys, stack, created, res)
+            traverseChildren(child.values, stack, created, res)
+        } else resolveNode(child, stack, created, res)
+    }
+}
+
+fun resolveNode(node, stack, created, res) {
+    if((node is Class) && created[str(node)] == null) 
+        if(node?.svgArgs["inParent"] ?? false)
+            res.add("\t\n" + createNode(node, stack, created))
+        else stack.add(createNode(node, stack, created))
 }
 
 fun createNode(node, stack, created) {
@@ -33,8 +61,8 @@ fun createNode(node, stack, created) {
 }
 
 fun createSVG(root, width=100, height=100) {
-    res = StringBuilder(string=["<svg width=\"" + width \
-        + "\" height=\"" + height + "\">\n"])
+    res = StringBuilder(string=[\
+        "<svg width="+width+" height="+height+ ">\n"])
     stack = []
     res.add(createNode(root, stack, {}))
     stack.reverse()
@@ -54,6 +82,7 @@ exportArgs:
     value: Any - value of attribute node
     attributes - Dictionary<String, Any> - all attributes are
         added from dictionary to element
+    order: Array - draw order of children elements
 */
 
 fun transform(type, value, node) {
@@ -86,12 +115,3 @@ fun transformToString(transform) {
     return res.toString()
 }
 
-class StringBuilder {
-    string = []
-    fun add(s) {
-        string.add(s)
-    }
-    fun toString(sep="") {
-        return string.joinToString(sep)
-    }
-}

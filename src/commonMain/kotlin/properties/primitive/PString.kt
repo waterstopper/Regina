@@ -69,7 +69,7 @@ class PString(value: String) : Primitive(value), Indexable {
                 s,
                 EmbeddedFunction("index", listOf("found")) { token, args ->
                     val string = castToPString(args.getPropertyOrNull("this")!!)
-                    val found = getPString(args, token, "index")
+                    val found = getPString(args, token, "found")
                     PInt(string.getPValue().indexOf(found.getPValue()))
                 }
             )

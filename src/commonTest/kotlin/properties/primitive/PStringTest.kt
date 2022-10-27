@@ -34,6 +34,14 @@ class PStringTest {
             }
         """
         )
-
+    }
+    @Test
+    fun testIndexInSubstring() {
+        eval("""
+            fun main() {
+                s = "abc"
+                print(s.substring(s.index("b")))
+            }
+        """)
     }
 }

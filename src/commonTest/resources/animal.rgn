@@ -1,47 +1,133 @@
-//import std.geometry2D as geom
 import std.math as math
 import std.svg as svg
 import std.geometry2D as geom
 
-class A {
-    iter = (parent?.iter ?? 0) + 1
-    next = if(iter < 3) A() else null
+object Globals {
+    petalsNum = rndInt(3, 10)
+}
 
-    fun n() {
-        return "a"
+class FlowerHead {
+    //svgArgs = {"group": true}
+    //iter = parent?.iter + 1
+    center = Point(x=70, y=70)
+    size = 60
+    offset = Point(x=rndInt(0, size/2),y=rndInt(0, size/2))
+    petals = createPetals()
+
+    fun createPetals() {
+        q = 10
+        p = copy(center)
+        r = RegularPolygon(center=p.plus(offset),q=q,r=size/2, fill=Constants.palette["black"])
+        t = RegularPolygon(center=p,q=q,r=size)
+        points=[]
+        foreach(i in range(0, q-1, 2)) {
+            points.add(r.points[i])
+            points.add(r.points[i+1])
+            points.add(t.points[(i+q+1)%q])
+            points.add(t.points[(i+q+2)%q])
+        }
+        this.innerPoly = r
+        return Polyline(points=points, isClosed=true, fill=Constants.palette["yellow"])
+    }
+}
+
+class Root {
+    width = 400
+    height = 300
+    iter = 0
+    stroke = Constants.palette["green"]
+    s = FlowerSegment(p1=Point(x=width/2,y=height),\
+        p2=Point(x=width/2,y=height-10))
+}
+
+class FlowerSegment: Segment {
+    strokeWidth = 2
+    stroke = parent.stroke
+    iter = parent.iter + 1
+    //c = Circle(r=2,fill=Constants.palette["red"],center=p2)
+    segment = if((p2 is Point) && p2.x != null && p2.y != null && iter < rndInt(5, 7)) \
+        (if(rnd() > 0.7) DoubleFlowerSegment() \
+        else FlowerSegment(p1=copy(p2),p2=copy(p2).plus(0,-20)\
+            .rotate(rndInt(-45,45),copy(p2)))) else Leaf()//FlowerHead(size=15,center=p2)
+    shadow = Segment(p1=p1.plus(2,0),p2=p2.plus(2,0),strokeWidth=strokeWidth,stroke=Constants.palette["yellow"])
+}
+
+class DoubleFlowerSegment {
+    iter = parent.iter + 1
+    stroke = parent.stroke
+    angle = rndInt(15, 50)
+    s1 = FlowerSegment(p1=copy(parent.p2), \
+        p2=copy(parent.p2)\
+            .translate(parent.p2.minus(parent.p1))\
+           .rotate(angle, parent.p1))
+    s2 = FlowerSegment(p1=copy(parent.p2), \
+        p2=copy(parent.p2)\
+            .translate(parent.p2.minus(parent.p1))\
+            .rotate(-angle, parent.p1))
+}
+
+class Leaf {
+    p = createLeaf()
+    fun createLeaf() {
+        res = Path()
+    //    res.moveTo(parent.p2)
+     //   res.drawTo(Point(-5,-5), isRelative=true)\
+     //   .drawTo(Point(0,-10), isRelative=true)
+      //  res.addRaw("Z")
+        return ""//res
     }
 }
 
 fun main() {
-    a = A()
-    print(a)
-  //  r = RegularPolygon(center=Point(x=50,y=50), q=7, convex=false)
-   // r.svgArgs["attributes"]["fill"] = "goldenrod"
-   // write(svg.createSVG(r), "result.svg")
-
-
-    b = Body(center=Point(x=50,y=50))
-   // b.head.eye.iris.svgArgs["attributes"]["fill"] = "beige"
-
-    f = Test()
-    a = svg.createSVG(b)
+    //b = Body(center=Point(x=50,y=50))
+    //b.head.eye.iris.svgArgs["attributes"]["fill"] = "beige"
+    //a = svg.createSVG(b)
+    //write(a, "result.svg")
+    //s = Student()
+    //s = PaletteShowcase()
+    //f = FlowerHead()
+    f = Root()
+    a = svg.createSVG(f, 400, 300)
     write(a, "result.svg")
-    #stop
 }
 
-class Test {
-    a = 2
-    b = Testing(f=a)
+fun showPalette() {
+    s = PaletteShowcase()
+    write(svg.createSVG(s), "result.svg")
+}
 
-    fun testing(t) {
-        return t
+class Student {
+    pos = Point(x=50,y=50)
+    shoulders = Rectangle(width=30,height=10,center=pos,\
+        fill=Constants.palette["blue"])
+    head = Circle(r=10,center=pos, fill=Constants.palette["black"])
+    fun before() {}
+
+    fun afterAll() {
+        shoulders.svgArgs["attributes"]["rx"] = 10
     }
 }
 
-class Testing {}
+class PaletteShowcase {
+    palette = Constants.palette
+    textColor = Constants.palette["black"]
+    rects = getRects(20)
+    fun getRects(size) {
+        res = []
+        prevX = size/2
+        foreach(p in palette.entries) {
+            res.add(Rectangle(center=Point(x=prevX,y=size/2),\
+                width=size,height=size,\
+                fill=p["value"]))
+            prevX = prevX + size
+        }
+        return res
+    }
+}
 
 object Constants {
-    palette = {"black":"#000000",\
+    palette = {\
+        "black":"#000000",\
         "blue":"#253092",\
         "red":"#bf3011",\
         "orange":"#df8022",\
@@ -53,11 +139,12 @@ object Constants {
 
 class Body: Rectangle {
     fill = Constants.palette.values[\
-        rndInt(0, Constants.palette.size-1)]
+        rndInt(0, Constants.palette.size-2)]
     width = rndInt(25, 50)
     height = 25
     head = if(rndInt(0,1)) Head() else RoundHead()
-    leg = Limb(start = downLeft())
+    leg0 = Limb(start = downLeft(5,-5))
+    leg1 = Limb(start = downRight(-5,-5))
 }
 
 class Head: Polyline {
@@ -79,45 +166,20 @@ class RoundHead: Polyline {
 
 class Eye {
     center = Point()
-    pupil = Circle(r=5,center=center)
     iris = Circle(r=7,center=center,\
     fill = Constants.palette["white"])
+    pupil = Circle(r=5,center=center)
+    svgArgs = {"order":["iris", "pupil"]}
 }
-
 class Limb {
     start = Point(x=1, y=1)
-    first = Segment(p1=copy(start),p2=Point(),\
+    first = Segment(p1=copy(start),p2=Point(x=start.x,y=start.y+rndInt(10, 20)),\
         stroke=parent.fill,strokeWidth=5)\
-        .rotate(rndInt(-15,15), start)
+        .rotate(rndInt(-50,50), start)
     second = Segment(p1=first.p2,\
     p2=Point(x=first.p2.x+rndInt(5,10),\
     y=first.p2.y),\
         stroke=parent.fill,strokeWidth=5)
-}
-
-class Flower {
-
-}
-
-object Globals {
-    petalsNum = rndInt(3, 10)
-}
-class FlowerHead {
-    svgArgs = {"group": true}
-    iter = parent?.iter + 1
-
-    fun createPetals() {
-        this.polygon = Polyline()
-        circle = []
-        bigCircle = []
-        bigRadius = rndInt(7, 10)
-      //  foreach(i in range(1, Globals.petalsNum)) {
-       //     circle.add(Point(x=parent.x + 5, y=parent.y))
-       //     bigCircle.add(Point(x=parent.x + bigRadius, y=parent.y))
-       //     circle[circle.size - 1].rotate(i * (360 / Global.petalsNum))
-       //     bigCircle[circle.size - 1].rotate(i * (360 / Global.petalsNum))
-     //   }
-    }
 }
 
 // The maximum and the minimum are inclusive

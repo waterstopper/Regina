@@ -26,7 +26,7 @@ open class Invocation(
 
     override fun findUnassigned(symbolTable: SymbolTable, parent: Type): Pair<Type, Assignment>? {
         for (arg in children.subList(1, children.size)) {
-            val found = left.findUnassigned(symbolTable, parent)
+            val found = arg.findUnassigned(symbolTable, parent)
             if (found != null) {
                 return found
             }

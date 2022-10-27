@@ -1,9 +1,20 @@
+//import utils
+class StringBuilder {
+    string = []
+    fun add(s) {
+        string.add(s)
+    }
+    fun toString(sep="") {
+        return string.joinToString(sep)
+    }
+}
 // also a vector class
 class Point {
     x = 0
     y = 0
 
     fun plus(other) { return Point(x=x + other.x, y=y + other.y) }
+    fun plus(x2, y2) { return Point(x=x + x2, y=y + y2) }
     fun minus(other) { return Point(x=x - other.x, y=y - other.y) }
     fun crossProduct(other) { return x * other.y - y * other.x }
     fun scale(coeff) { return Point(x=x * coeff, y=y * coeff) }
@@ -39,7 +50,8 @@ class Point {
             return sqrt((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y))
     }
 
-    fun toString() { return str(x) + " " + y}
+    fun toString() { return str(x.round(4)) + " " + y.round(4)}
+    fun toString(sep=", ", digits=4) { return str(x.round(digits)) + sep + y.round(digits)}
 }
 
 object Constants {
@@ -209,6 +221,7 @@ class RegularPolygon: ArrayGeom {
         return res
     }
 }
+
 /* Similar to <g> tag in svg. */
 class Plane {
     objects = []
@@ -223,18 +236,62 @@ class Plane {
     }
 }
 
-/*
-    Classes below can be rotated with svg.transform only
-*/
+/* Classes below can be rotated with svg.transform only */
 class PointGeom {
     center = Point()
     fill = "#000000"
     stroke = "none"
+    length = "none"
+    fontFamily = "Fira Code"
+    fontSize = "medium"
     fun rotate(angle, pivot=Point()) {} // does nothing
     fun translate(vec) { this.center.translate(vec) }
     fun scalePointGeom(coeff, origin=center) {
         this.center.scale(coeff, origin)
     }
+}
+
+class Path {
+    path = StringBuilder(string=[])
+
+    fun getString() { return path.toString() }
+
+    fun addRaw(str) { path.add(str); return this; }
+
+    fun moveTo(point, isRelative=false, digits=4) {
+        path.add((if(isRelative) "m" else "M")\
+             + point.toString(digits=digits))
+        return this
+    }
+
+    fun drawTo(point, isRelative=false, digits = 4) {
+        path.add((if(isRelative) "l" else "L")\
+             + point.toString(digits=digits))
+        return this
+    }
+
+    fun curve(handle1, handle2, end, isRelative=false, digits=4) {
+        path.add((if(isRelative) "c" else "C")\
+        + handle1.toString(digits=digits) + " "\
+        + handle2.toString(digits=digits) + " "\
+        + end.toString(digits=digits))
+        return this
+    }
+
+    svgArgs = {"name": "path", \
+        "attributes": {"d": path.toString()}\
+    }
+}
+
+class Text: PointGeom {
+    svgArgs = {"name": "text", \
+        "attributes": {\
+            "x":center.x, \
+            "y":center.y, \
+            "textLength": length, \
+            "font-family": fontFamily, \
+            "font-size": fontSize, \
+            "stroke":stroke,"fill":fill}}
 }
 
 class Rectangle: PointGeom {
@@ -249,24 +306,24 @@ class Rectangle: PointGeom {
         this.height = this.height * coeff
     }
 
-    fun downLeft() {
-        return Point(x=center.x-width/2,y=center.y+height/2)
+    fun downLeft(offsetX = 0, offsetY = 0) {
+        return Point(x=center.x-width/2+offsetX,y=center.y+height/2+offsetY)
     }
-    fun upLeft() {
-        return Point(x=center.x-width/2,y=center.y-height/2)
+    fun upLeft(offsetX = 0, offsetY = 0) {
+        return Point(x=center.x-width/2+offsetX,y=center.y-height/2+offsetY)
     }
-    fun upRight() {
-        return Point(x=center.x+width/2,y=center.y-height/2)
+    fun upRight(offsetX = 0, offsetY = 0) {
+        return Point(x=center.x+width/2+offsetX,y=center.y-height/2+offsetY)
     }
-    fun downRight() {
-        return Point(x=center.x+width/2,y=center.y+height/2)
+    fun downRight(offsetX = 0, offsetY = 0) {
+        return Point(x=center.x+width/2+offsetX,y=center.y+height/2+offsetY)
     }
 
     svgArgs = {"name":"rect", \
         "attributes":{"width":width, "height":height, \
-        "x":center.x - width / 2,\
-        "y":center.y - height / 2,\
-        "stroke":stroke,"fill":fill}}
+            "x":center.x - width / 2,\
+            "y":center.y - height / 2,\
+            "stroke":stroke,"fill":fill}}
 }
 
 class Circle: PointGeom {
@@ -307,8 +364,9 @@ fun cosAngleBetweenSegments(a, b) {
 }
 
 fun rotatePointsList(list, angle, pivot=Point()) {
-    foreach(point in list)
+    foreach(point in list) {
         point.rotate(angle, pivot)
+    }
 }
 
 fun translatePointsList(list, vec) {

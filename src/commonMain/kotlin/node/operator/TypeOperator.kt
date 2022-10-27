@@ -49,11 +49,14 @@ class TypeOperator(
                         right
                     )
                 }
-                val type = if (right is Identifier) symbolTable.getType(right) else getType(symbolTable, right as Link)
+                val type = if (right is Identifier) symbolTable.getUncopiedTypeOrNull(right) else getType(
+                    symbolTable,
+                    right as Link
+                )
                 if (checked is Type && checked !is Object &&
                     type is Type && type !is Object &&
-                    checked.assignments.isEmpty() &&
-                    type.getProperties().getPValue().isEmpty()
+                    checked.index != 0 &&
+                    type.index == 0
                 ) {
                     return checked.inherits(type)
                 }
@@ -66,7 +69,7 @@ class TypeOperator(
         }
     }
 
-    private fun getType(symbolTable: SymbolTable, link: Link): Type {
+    private fun getType(symbolTable: SymbolTable, link: Link): Type? {
         if (link.children.size != 2 || link.left !is Identifier || link.right !is Identifier) {
             throw PositionalException(
                 "Expected link in form of `importName.typeName`",
@@ -75,6 +78,6 @@ class TypeOperator(
             )
         }
         val import = symbolTable.getImport(link.left)
-        return symbolTable.changeFile(import).getType(link.right)
+        return symbolTable.changeFile(import).getUncopiedTypeOrNull(link.right)
     }
 }

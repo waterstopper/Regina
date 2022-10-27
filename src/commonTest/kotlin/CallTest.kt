@@ -118,4 +118,23 @@ class CallTest {
             assertTrue(exception.message!!.contains("Argument already assigned"))
         }
     }
+
+    @Test
+    fun testLongCallLink() {
+        eval("""
+            class A {
+                b = B(a=a().a().a().a().a().a())
+                fun a() {return this}
+            }
+            
+            fun main() {
+                a = A()
+                test(a.a().a().a().a() == a)
+                t = A(a=a.a().a().a().a().a())
+                test(t.a == a)
+            }
+            
+            class B {}
+        """)
+    }
 }

@@ -112,7 +112,7 @@ open class Link(
                     ?: if (variable is Type) (return Optional(variable.getAssignment(indexToken)))
                     else if (nullable.contains(index)) return Optional(NullValue()) else throw PositionalException(
                         "Property not found",
-                        table.getFileTable().filePath,
+                        initialTable.getFileTable().filePath,
                         indexToken
                     )
                 return Optional(
@@ -120,7 +120,7 @@ open class Link(
                         .evaluateIndexWithDeepestLeftProperty(property, table).toVariable(children[index])
                 )
             }
-            else -> throw PositionalException("Unexpected token", table.getFileTable().filePath, children[index])
+            else -> throw PositionalException("Unexpected token", initialTable.getFileTable().filePath, children[index])
         }
     }
 
@@ -139,7 +139,7 @@ open class Link(
         if (function == null) {
             throw PositionalException(
                 "Variable does not contain function",
-                table.getFileTable().filePath,
+                initialTable.getFileTable().filePath,
                 children[index]
             )
         }
@@ -202,9 +202,8 @@ open class Link(
             }
             // unary minus, (1+2).max(...)
             else -> {
-                if (!canBeFile) {
-                    throw PositionalException("Unexpected token", table.getFileTable().filePath, children[index])
-                }
+                if (!canBeFile)
+                    throw PositionalException("Unexpected token", initialTable.getFileTable().filePath, children[index])
                 return Pair(index, children[index].evaluate(table).toVariable(children[index]))
             }
         }

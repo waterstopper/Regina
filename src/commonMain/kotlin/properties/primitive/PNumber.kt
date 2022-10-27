@@ -2,7 +2,6 @@ package properties.primitive
 
 import References
 import properties.EmbeddedFunction
-import properties.Variable
 import round
 import utils.Utils.castToPNumber
 import utils.Utils.getPInt
@@ -179,6 +178,25 @@ open class PNumber(value: Number) : Primitive(value) {
                 n,
                 EmbeddedFunction("acos") { token, args ->
                     PDouble(acos(getPNumber(args, token, "this").getPValue().toDouble()))
+                }
+            )
+            setFunction(
+                n,
+                EmbeddedFunction("tan") { token, args ->
+                    PDouble(tan(getPNumber(args, token, "this").getPValue().toDouble()))
+                }
+            )
+            setFunction(
+                n,
+                EmbeddedFunction("atan") { token, args ->
+                    PDouble(atan(getPNumber(args, token, "this").getPValue().toDouble()))
+                }
+            )
+            setFunction(
+                n,
+                EmbeddedFunction("atan2", listOf("x")) { token, args ->
+                    val y = getPNumber(args, token, "x")
+                    PDouble(atan2(getPNumber(args, token, "this").getPValue().toDouble(), y.getPValue().toDouble()))
                 }
             )
         }
