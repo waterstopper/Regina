@@ -1,11 +1,11 @@
 plugins {
-    kotlin("multiplatform") version "1.6.21"
-    id("org.jetbrains.dokka") version "1.6.21"
+    kotlin("multiplatform") version "1.8.10"
+    id("org.jetbrains.dokka") version "1.8.10"
     id("maven-publish")
 }
 
-group = "waterstop.regina"
-version = "0.8.0"
+group = "org.llesha.regina"
+version = "0.9.0"
 
 repositories {
     mavenCentral()
@@ -14,7 +14,7 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "11"
+            kotlinOptions.jvmTarget = "17"
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -23,9 +23,6 @@ kotlin {
     js(IR) {
         binaries.executable()
         browser {
-            commonWebpackConfig {
-                cssSupport.enabled = true
-            }
         }
     }
 
