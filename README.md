@@ -1,9 +1,9 @@
 # Regina
 Programming language for generating SVG images
 
-[IDE](https://llesha.github.io/regina-ide)
+[IDE](https://waterstopper.github.io/regina-ide)
 
-[Documentation](https://llesha.github.io/regina/)
+[Documentation](https://waterstopper.github.io/regina/)
 
 ## Showcase
 
